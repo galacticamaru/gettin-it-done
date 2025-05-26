@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus } from 'lucide-react';
 import { TaskOptionsModal } from './TaskOptionsModal';
+import { TaskItem } from './TaskItem';
+import { FilterTabs } from './FilterTabs';
+import { ConfettiAnimation } from './ConfettiAnimation';
 
 interface Task {
   id: number;
@@ -82,67 +84,14 @@ export const TodoApp = () => {
     return true;
   });
 
-  const getTaskEmoji = (text: string) => {
-    const lower = text.toLowerCase();
-    if (lower.includes('medication') || lower.includes('medicine')) return '💊';
-    if (lower.includes('exercise') || lower.includes('workout')) return '💪';
-    if (lower.includes('book') || lower.includes('read')) return '📚';
-    if (lower.includes('shop') || lower.includes('buy')) return '🛒';
-    if (lower.includes('call') || lower.includes('phone')) return '📞';
-    if (lower.includes('email') || lower.includes('mail')) return '📧';
-    if (lower.includes('clean')) return '🧹';
-    if (lower.includes('cook') || lower.includes('food')) return '🍳';
-    return '📝';
-  };
-
   const today = new Date().toLocaleDateString('en-US', { 
     weekday: 'short', 
     day: 'numeric', 
     month: 'short' 
   });
 
-  const createConfetti = () => {
-    const colors = ['#FDE047', '#84CC16', '#10B981', '#06B6D4', '#8B5CF6', '#F59E0B', '#EF4444'];
-    const confettiElements = [];
-    
-    for (let i = 0; i < 50; i++) {
-      const delay = Math.random() * 0.3;
-      const duration = 1.5 + Math.random() * 1;
-      const xMovement = (Math.random() - 0.5) * 300;
-      const yMovement = -200 - Math.random() * 100;
-      
-      confettiElements.push(
-        <div
-          key={i}
-          className="absolute w-3 h-3 rounded-full opacity-0"
-          style={{
-            backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-            left: `${45 + Math.random() * 10}%`,
-            top: `${40 + Math.random() * 20}%`,
-            animation: `confetti-fall ${duration}s ease-out ${delay}s forwards`,
-            transform: `translate(${xMovement}px, ${yMovement}px) rotate(${Math.random() * 360}deg)`
-          }}
-        />
-      );
-    }
-    return confettiElements;
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <style jsx>{`
-        @keyframes confetti-fall {
-          0% {
-            opacity: 1;
-            transform: translate(0, 0) rotate(0deg);
-          }
-          100% {
-            opacity: 0;
-            transform: translate(var(--x-movement, 0), var(--y-movement, 200px)) rotate(720deg);
-          }
-        }
-      `}</style>
-      
       <div className="max-w-md mx-auto px-6 py-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -182,47 +131,12 @@ export const TodoApp = () => {
         />
 
         {/* Filter Tabs */}
-        <div className="flex justify-center gap-8 text-sm mb-6">
-          <button
-            onClick={() => setFilter('all')}
-            className={`pb-2 transition-colors ${
-              filter === 'all' 
-                ? 'text-yellow-600 border-b-2 border-yellow-400' 
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setFilter('completed')}
-            className={`pb-2 transition-colors ${
-              filter === 'completed' 
-                ? 'text-yellow-600 border-b-2 border-yellow-400' 
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            Completed
-          </button>
-          <button
-            onClick={() => setFilter('active')}
-            className={`pb-2 transition-colors ${
-              filter === 'active' 
-                ? 'text-yellow-600 border-b-2 border-yellow-400' 
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            Active
-          </button>
-        </div>
+        <FilterTabs filter={filter} onFilterChange={setFilter} />
 
         {/* Task List */}
         <div className="space-y-3 relative">
           {/* Confetti overlay */}
-          {celebratingTaskId && (
-            <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-              {createConfetti()}
-            </div>
-          )}
+          <ConfettiAnimation isVisible={celebratingTaskId !== null} />
           
           {filteredTasks.length === 0 ? (
             <div className="text-center py-12">
@@ -237,53 +151,12 @@ export const TodoApp = () => {
             </div>
           ) : (
             filteredTasks.map((task) => (
-              <div
+              <TaskItem
                 key={task.id}
-                className={`flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md ${
-                  task.completed ? 'bg-green-50' : ''
-                }`}
-              >
-                <button
-                  onClick={() => toggleTask(task.id)}
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                    task.completed 
-                      ? 'bg-green-500 border-green-500' 
-                      : 'border-gray-300 hover:border-green-400'
-                  }`}
-                >
-                  {task.completed && (
-                    <span className="text-white text-sm font-bold">✓</span>
-                  )}
-                </button>
-                
-                <span className="text-xl">{getTaskEmoji(task.text)}</span>
-                
-                <div className="flex-1">
-                  <span className={`block ${
-                    task.completed 
-                      ? 'text-gray-500 line-through' 
-                      : 'text-gray-700'
-                  }`}>
-                    {task.text}
-                  </span>
-                  {(task.dueDate || task.repeatOption || task.reminder) && (
-                    <div className="text-xs text-gray-400 mt-1">
-                      {task.dueDate && `Due ${new Date(task.dueDate).toLocaleDateString()}`}
-                      {task.dueDate && (task.repeatOption || task.reminder) && ' • '}
-                      {task.repeatOption && `Repeats ${task.repeatOption}`}
-                      {task.repeatOption && task.reminder && ' • '}
-                      {task.reminder && `Reminder ${task.reminder}`}
-                    </div>
-                  )}
-                </div>
-                
-                <button
-                  onClick={() => deleteTask(task.id)}
-                  className="text-gray-400 hover:text-red-500 transition-colors ml-2"
-                >
-                  ×
-                </button>
-              </div>
+                task={task}
+                onToggle={toggleTask}
+                onDelete={deleteTask}
+              />
             ))
           )}
         </div>
