@@ -20,6 +20,7 @@ export const TodoApp = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
+  const [celebratingTaskId, setCelebratingTaskId] = useState<number | null>(null);
   
   // Task options state
   const [dueDate, setDueDate] = useState<Date | undefined>();
@@ -58,6 +59,13 @@ export const TodoApp = () => {
   };
 
   const toggleTask = (id: number) => {
+    const task = tasks.find(t => t.id === id);
+    if (task && !task.completed) {
+      // Trigger celebration animation
+      setCelebratingTaskId(id);
+      setTimeout(() => setCelebratingTaskId(null), 1000);
+    }
+    
     setTasks(tasks.map(task => 
       task.id === id ? { ...task, completed: !task.completed } : task
     ));
@@ -91,6 +99,28 @@ export const TodoApp = () => {
     day: 'numeric', 
     month: 'short' 
   });
+
+  const createConfetti = () => {
+    const colors = ['#FDE047', '#84CC16', '#10B981', '#06B6D4', '#8B5CF6'];
+    const confettiElements = [];
+    
+    for (let i = 0; i < 30; i++) {
+      confettiElements.push(
+        <div
+          key={i}
+          className="absolute w-2 h-2 opacity-0 animate-ping"
+          style={{
+            backgroundColor: colors[Math.floor(Math.random() * colors.length)],
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 0.5}s`,
+            animationDuration: '0.8s'
+          }}
+        />
+      );
+    }
+    return confettiElements;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -167,7 +197,14 @@ export const TodoApp = () => {
         </div>
 
         {/* Task List */}
-        <div className="space-y-3">
+        <div className="space-y-3 relative">
+          {/* Confetti overlay */}
+          {celebratingTaskId && (
+            <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+              {createConfetti()}
+            </div>
+          )}
+          
           {filteredTasks.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-400 mb-2">
@@ -185,6 +222,8 @@ export const TodoApp = () => {
                 key={task.id}
                 className={`flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md ${
                   task.completed ? 'bg-green-50' : ''
+                } ${
+                  celebratingTaskId === task.id ? 'animate-bounce scale-105' : ''
                 }`}
               >
                 <button
