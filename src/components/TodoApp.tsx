@@ -1,14 +1,17 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Calendar, Bell, Repeat, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { TaskOptionsModal } from './TaskOptionsModal';
 
 interface Task {
   id: number;
   text: string;
   completed: boolean;
   createdAt: string;
+  dueDate?: string;
+  repeatOption?: string;
+  reminder?: string;
 }
 
 type Filter = 'all' | 'completed' | 'active';
@@ -17,6 +20,11 @@ export const TodoApp = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
+  
+  // Task options state
+  const [dueDate, setDueDate] = useState<Date | undefined>();
+  const [repeatOption, setRepeatOption] = useState('none');
+  const [reminder, setReminder] = useState('none');
 
   useEffect(() => {
     const savedTasks = localStorage.getItem('gettinItDone_tasks');
@@ -35,10 +43,17 @@ export const TodoApp = () => {
         id: Date.now(),
         text: newTask.trim(),
         completed: false,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        dueDate: dueDate?.toISOString(),
+        repeatOption: repeatOption !== 'none' ? repeatOption : undefined,
+        reminder: reminder !== 'none' ? reminder : undefined
       };
       setTasks([task, ...tasks]);
       setNewTask('');
+      // Clear options after adding task
+      setDueDate(undefined);
+      setRepeatOption('none');
+      setReminder('none');
     }
   };
 
@@ -108,12 +123,14 @@ export const TodoApp = () => {
         </div>
 
         {/* Task Options */}
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 px-2">
-          <Calendar className="w-4 h-4" />
-          <Repeat className="w-4 h-4" />
-          <Bell className="w-4 h-4" />
-          <span className="text-xs">Add due date, configure whether the task repeats and set reminders</span>
-        </div>
+        <TaskOptionsModal
+          dueDate={dueDate}
+          onDueDateChange={setDueDate}
+          repeatOption={repeatOption}
+          onRepeatChange={setRepeatOption}
+          reminder={reminder}
+          onReminderChange={setReminder}
+        />
 
         {/* Filter Tabs */}
         <div className="flex justify-center gap-8 text-sm mb-6">
@@ -185,17 +202,23 @@ export const TodoApp = () => {
                 
                 <span className="text-xl">{getTaskEmoji(task.text)}</span>
                 
-                <span className={`flex-1 ${
-                  task.completed 
-                    ? 'text-gray-500 line-through' 
-                    : 'text-gray-700'
-                }`}>
-                  {task.text}
-                </span>
-                
-                <div className="flex gap-2">
-                  <Repeat className="w-4 h-4 text-gray-400" />
-                  <Bell className="w-4 h-4 text-gray-400" />
+                <div className="flex-1">
+                  <span className={`block ${
+                    task.completed 
+                      ? 'text-gray-500 line-through' 
+                      : 'text-gray-700'
+                  }`}>
+                    {task.text}
+                  </span>
+                  {(task.dueDate || task.repeatOption || task.reminder) && (
+                    <div className="text-xs text-gray-400 mt-1">
+                      {task.dueDate && `Due ${new Date(task.dueDate).toLocaleDateString()}`}
+                      {task.dueDate && (task.repeatOption || task.reminder) && ' • '}
+                      {task.repeatOption && `Repeats ${task.repeatOption}`}
+                      {task.repeatOption && task.reminder && ' • '}
+                      {task.reminder && `Reminder ${task.reminder}`}
+                    </div>
+                  )}
                 </div>
                 
                 <button
