@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,7 +64,7 @@ export const TodoApp = () => {
     if (task && !task.completed) {
       // Trigger celebration animation
       setCelebratingTaskId(id);
-      setTimeout(() => setCelebratingTaskId(null), 1000);
+      setTimeout(() => setCelebratingTaskId(null), 2000);
     }
     
     setTasks(tasks.map(task => 
@@ -101,20 +102,25 @@ export const TodoApp = () => {
   });
 
   const createConfetti = () => {
-    const colors = ['#FDE047', '#84CC16', '#10B981', '#06B6D4', '#8B5CF6'];
+    const colors = ['#FDE047', '#84CC16', '#10B981', '#06B6D4', '#8B5CF6', '#F59E0B', '#EF4444'];
     const confettiElements = [];
     
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 50; i++) {
+      const delay = Math.random() * 0.3;
+      const duration = 1.5 + Math.random() * 1;
+      const xMovement = (Math.random() - 0.5) * 300;
+      const yMovement = -200 - Math.random() * 100;
+      
       confettiElements.push(
         <div
           key={i}
-          className="absolute w-2 h-2 opacity-0 animate-ping"
+          className="absolute w-3 h-3 rounded-full opacity-0"
           style={{
             backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 0.5}s`,
-            animationDuration: '0.8s'
+            left: `${45 + Math.random() * 10}%`,
+            top: `${40 + Math.random() * 20}%`,
+            animation: `confetti-fall ${duration}s ease-out ${delay}s forwards`,
+            transform: `translate(${xMovement}px, ${yMovement}px) rotate(${Math.random() * 360}deg)`
           }}
         />
       );
@@ -124,6 +130,19 @@ export const TodoApp = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <style jsx>{`
+        @keyframes confetti-fall {
+          0% {
+            opacity: 1;
+            transform: translate(0, 0) rotate(0deg);
+          }
+          100% {
+            opacity: 0;
+            transform: translate(var(--x-movement, 0), var(--y-movement, 200px)) rotate(720deg);
+          }
+        }
+      `}</style>
+      
       <div className="max-w-md mx-auto px-6 py-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -222,8 +241,6 @@ export const TodoApp = () => {
                 key={task.id}
                 className={`flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md ${
                   task.completed ? 'bg-green-50' : ''
-                } ${
-                  celebratingTaskId === task.id ? 'animate-bounce scale-105' : ''
                 }`}
               >
                 <button
