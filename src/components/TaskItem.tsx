@@ -7,6 +7,7 @@ interface Task {
   dueDate?: string;
   repeatOption?: string;
   reminder?: string;
+  emoji?: string;
 }
 
 interface TaskItemProps {
@@ -48,7 +49,9 @@ export const TaskItem = ({ task, onToggle, onDelete }: TaskItemProps) => {
         )}
       </button>
       
-      <span className="text-xl">{getTaskEmoji(task.text)}</span>
+      <span className="text-xl">
+        {task.emoji || getTaskEmoji(task.text)}
+      </span>
       
       <div className="flex-1">
         <span className={`block ${

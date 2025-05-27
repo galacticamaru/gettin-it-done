@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,6 +11,7 @@ export interface Task {
   dueDate?: string;
   repeatOption?: string;
   reminder?: string;
+  emoji?: string;
 }
 
 export const useTasks = () => {
@@ -37,6 +39,7 @@ export const useTasks = () => {
         dueDate: task.due_date,
         repeatOption: task.repeat_option,
         reminder: task.reminder,
+        emoji: task.emoji,
       }));
 
       setTasks(formattedTasks);
@@ -52,6 +55,7 @@ export const useTasks = () => {
     dueDate?: Date;
     repeatOption?: string;
     reminder?: string;
+    emoji?: string;
   }): Promise<string | null> => {
     if (!user) return null;
 
@@ -64,6 +68,7 @@ export const useTasks = () => {
           due_date: taskData.dueDate?.toISOString(),
           repeat_option: taskData.repeatOption !== 'none' ? taskData.repeatOption : null,
           reminder: taskData.reminder !== 'none' ? taskData.reminder : null,
+          emoji: taskData.emoji || null,
         })
         .select()
         .single();
@@ -78,6 +83,7 @@ export const useTasks = () => {
         dueDate: data.due_date,
         repeatOption: data.repeat_option,
         reminder: data.reminder,
+        emoji: data.emoji,
       };
 
       setTasks([newTask, ...tasks]);

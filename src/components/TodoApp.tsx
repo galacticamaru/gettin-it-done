@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,6 +6,7 @@ import { TaskOptionsModal } from './TaskOptionsModal';
 import { TaskItem } from './TaskItem';
 import { FilterTabs } from './FilterTabs';
 import { ConfettiAnimation } from './ConfettiAnimation';
+import { EmojiPicker } from './EmojiPicker';
 import { useTasks } from '@/hooks/useTasks';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -23,6 +25,7 @@ export const TodoApp = () => {
   const [dueDate, setDueDate] = useState<Date | undefined>();
   const [repeatOption, setRepeatOption] = useState('none');
   const [reminder, setReminder] = useState('none');
+  const [selectedEmoji, setSelectedEmoji] = useState('');
 
   const handleAddTask = async () => {
     if (newTask.trim()) {
@@ -31,21 +34,14 @@ export const TodoApp = () => {
         dueDate,
         repeatOption,
         reminder,
+        emoji: selectedEmoji,
       };
 
-      await addTask(taskData);
+      const taskId = await addTask(taskData);
       
       // Schedule reminder if one was set
-      if (reminder !== 'none') {
-        // We need to get the task ID, but since addTask doesn't return it,
-        // we'll need to schedule the reminder after the task is added
-        // For now, we'll use a temporary approach
-        setTimeout(() => {
-          const latestTask = tasks[0]; // Assuming newest task is first
-          if (latestTask && reminder !== 'none') {
-            scheduleTaskReminder(latestTask.id, latestTask.text, dueDate, reminder);
-          }
-        }, 100);
+      if (reminder !== 'none' && taskId) {
+        scheduleTaskReminder(taskId, newTask.trim(), dueDate, reminder);
       }
 
       setNewTask('');
@@ -53,6 +49,7 @@ export const TodoApp = () => {
       setDueDate(undefined);
       setRepeatOption('none');
       setReminder('none');
+      setSelectedEmoji('');
     }
   };
 
@@ -122,6 +119,10 @@ export const TodoApp = () => {
 
         {/* Add Task Input */}
         <div className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm mb-4">
+          <EmojiPicker 
+            selectedEmoji={selectedEmoji}
+            onEmojiSelect={setSelectedEmoji}
+          />
           <Input
             placeholder="Add a new task"
             value={newTask}
@@ -179,6 +180,7 @@ export const TodoApp = () => {
                   dueDate: task.dueDate,
                   repeatOption: task.repeatOption,
                   reminder: task.reminder,
+                  emoji: task.emoji,
                 }}
                 onToggle={() => handleToggleTask(task.id)}
                 onDelete={() => handleDeleteTask(task.id)}

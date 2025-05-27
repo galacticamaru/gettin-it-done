@@ -11,6 +11,7 @@ const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const { signUp, signIn } = useAuth();
   const navigate = useNavigate();
 
@@ -22,16 +23,49 @@ const Auth = () => {
     try {
       if (isSignUp) {
         await signUp(email, password);
+        setShowEmailConfirmation(true);
       } else {
         await signIn(email, password);
+        navigate('/');
       }
-      navigate('/');
     } catch (err: any) {
       setError(err.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
+
+  if (showEmailConfirmation) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md w-full px-6">
+          <div className="text-center mb-8">
+            <div className="text-6xl mb-4">📧</div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Check your email!
+            </h1>
+            <p className="text-gray-600 mb-4">
+              We've sent you an email to confirm your account. Click the link in the email to complete your registration.
+            </p>
+            <p className="text-sm text-gray-500">
+              Email sent to: <strong>{email}</strong>
+            </p>
+          </div>
+
+          <Button
+            onClick={() => {
+              setShowEmailConfirmation(false);
+              setIsSignUp(false);
+            }}
+            variant="outline"
+            className="w-full"
+          >
+            Back to Sign In
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">

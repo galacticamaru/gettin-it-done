@@ -1,7 +1,9 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar, Bell, Repeat, Plus } from 'lucide-react';
+import { EmojiPicker } from './EmojiPicker';
 import { useNavigate } from 'react-router-dom';
 
 interface OnboardingFlowProps {
@@ -12,13 +14,15 @@ interface OnboardingTask {
   id: number;
   text: string;
   completed: boolean;
+  emoji: string;
 }
 
 export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [firstTask, setFirstTask] = useState('');
+  const [firstTaskEmoji, setFirstTaskEmoji] = useState('');
   const [onboardingTasks, setOnboardingTasks] = useState<OnboardingTask[]>([
-    { id: 1, text: 'Take my medication', completed: false }
+    { id: 1, text: 'Take my medication', completed: false, emoji: '💊' }
   ]);
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -27,7 +31,6 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Navigate to auth page instead of completing onboarding
       navigate('/auth');
     }
   };
@@ -37,10 +40,12 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       const newTask: OnboardingTask = {
         id: Date.now(),
         text: firstTask.trim(),
-        completed: false
+        completed: false,
+        emoji: firstTaskEmoji || getTaskEmoji(firstTask.trim())
       };
       setOnboardingTasks([...onboardingTasks, newTask]);
       setFirstTask('');
+      setFirstTaskEmoji('');
     }
   };
 
@@ -48,6 +53,14 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     setOnboardingTasks(tasks => 
       tasks.map(task => 
         task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  const updateTaskEmoji = (id: number, emoji: string) => {
+    setOnboardingTasks(tasks => 
+      tasks.map(task => 
+        task.id === id ? { ...task, emoji: emoji || getTaskEmoji(task.text) } : task
       )
     );
   };
@@ -81,6 +94,10 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       content: (
         <div className="space-y-6">
           <div className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm">
+            <EmojiPicker 
+              selectedEmoji={firstTaskEmoji}
+              onEmojiSelect={setFirstTaskEmoji}
+            />
             <Input
               placeholder="Add a new task"
               value={firstTask}
@@ -126,7 +143,10 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
           <div className="space-y-3">
             {onboardingTasks.map((task) => (
               <div key={task.id} className="flex items-center gap-3 p-3 bg-white rounded-2xl">
-                <span className="text-xl">{getTaskEmoji(task.text)}</span>
+                <EmojiPicker 
+                  selectedEmoji={task.emoji}
+                  onEmojiSelect={(emoji) => updateTaskEmoji(task.id, emoji)}
+                />
                 <span className="text-gray-700">{task.text}</span>
                 <div className="flex gap-2 ml-auto">
                   <Repeat className="w-4 h-4 text-gray-400" />
@@ -147,6 +167,10 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       content: (
         <div className="space-y-6">
           <div className="flex items-center gap-3 p-4 bg-white rounded-2xl">
+            <EmojiPicker 
+              selectedEmoji={firstTaskEmoji}
+              onEmojiSelect={setFirstTaskEmoji}
+            />
             <Input
               placeholder="Add a new task"
               value={firstTask}
@@ -193,7 +217,10 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
                       <span className="text-white text-sm font-bold">✓</span>
                     )}
                   </button>
-                  <span className="text-xl">{getTaskEmoji(task.text)}</span>
+                  <EmojiPicker 
+                    selectedEmoji={task.emoji}
+                    onEmojiSelect={(emoji) => updateTaskEmoji(task.id, emoji)}
+                  />
                   <span className={`text-gray-700 ${task.completed ? 'line-through' : ''}`}>
                     {task.text}
                   </span>
@@ -214,6 +241,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       content: (
         <div className="space-y-6">
           <div className="flex items-center gap-3 p-4 bg-white rounded-2xl">
+            <div className="text-xl p-1">😀</div>
             <Input
               placeholder="Add a new task"
               className="border-0 bg-transparent focus-visible:ring-0"
@@ -251,7 +279,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
                       <span className="text-white text-sm font-bold">✓</span>
                     )}
                   </div>
-                  <span className="text-xl">{getTaskEmoji(task.text)}</span>
+                  <span className="text-xl">{task.emoji}</span>
                   <span className={`text-gray-700 ${task.completed ? 'line-through' : ''}`}>
                     {task.text}
                   </span>
