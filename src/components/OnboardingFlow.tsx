@@ -8,27 +8,77 @@ interface OnboardingFlowProps {
   onComplete: () => void;
 }
 
+interface OnboardingTask {
+  id: number;
+  text: string;
+  completed: boolean;
+}
+
 export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [firstTask, setFirstTask] = useState('');
+  const [onboardingTasks, setOnboardingTasks] = useState<OnboardingTask[]>([
+    { id: 1, text: 'Take my medication', completed: false }
+  ]);
+  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
 
   const handleNextStep = () => {
-    if (currentStep < 3) {
+    if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Save first task to localStorage for the main app
-      if (firstTask.trim()) {
-        const tasks = JSON.parse(localStorage.getItem('gettinItDone_tasks') || '[]');
-        tasks.push({
-          id: Date.now(),
-          text: firstTask,
-          completed: currentStep === 3,
-          createdAt: new Date().toISOString()
-        });
-        localStorage.setItem('gettinItDone_tasks', JSON.stringify(tasks));
-      }
+      // Save all tasks to localStorage for the main app
+      const existingTasks = JSON.parse(localStorage.getItem('gettinItDone_tasks') || '[]');
+      const newTasks = onboardingTasks.map(task => ({
+        id: Date.now() + task.id,
+        text: task.text,
+        completed: task.completed,
+        createdAt: new Date().toISOString()
+      }));
+      localStorage.setItem('gettinItDone_tasks', JSON.stringify([...newTasks, ...existingTasks]));
       onComplete();
     }
+  };
+
+  const addTaskToOnboarding = () => {
+    if (firstTask.trim()) {
+      const newTask: OnboardingTask = {
+        id: Date.now(),
+        text: firstTask.trim(),
+        completed: false
+      };
+      setOnboardingTasks([...onboardingTasks, newTask]);
+      setFirstTask('');
+    }
+  };
+
+  const toggleOnboardingTask = (id: number) => {
+    setOnboardingTasks(tasks => 
+      tasks.map(task => 
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  const getTaskEmoji = (text: string) => {
+    const lower = text.toLowerCase();
+    if (lower.includes('medication') || lower.includes('medicine')) return '💊';
+    if (lower.includes('exercise') || lower.includes('workout')) return '💪';
+    if (lower.includes('book') || lower.includes('read')) return '📚';
+    if (lower.includes('shop') || lower.includes('buy')) return '🛒';
+    if (lower.includes('call') || lower.includes('phone')) return '📞';
+    if (lower.includes('email') || lower.includes('mail')) return '📧';
+    if (lower.includes('clean')) return '🧹';
+    if (lower.includes('cook') || lower.includes('food')) return '🍳';
+    return '📝';
+  };
+
+  const getHighlightedText = (text: string, wordsToHighlight: string[]) => {
+    let highlightedText = text;
+    wordsToHighlight.forEach(word => {
+      const regex = new RegExp(`(${word})`, 'gi');
+      highlightedText = highlightedText.replace(regex, '<mark class="bg-yellow-200 px-1 rounded">$1</mark>');
+    });
+    return highlightedText;
   };
 
   const screens = [
@@ -38,20 +88,60 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       content: (
         <div className="space-y-6">
           <div className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm">
-            <span className="text-2xl">💊</span>
-            <span className="text-gray-700">Take my medication</span>
-            <Button size="sm" className="ml-auto bg-yellow-400 hover:bg-yellow-500 text-gray-900">
+            <Input
+              placeholder="Add a new task"
+              value={firstTask}
+              onChange={(e) => setFirstTask(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addTaskToOnboarding()}
+              className="border-0 bg-transparent focus-visible:ring-0"
+            />
+            <Button 
+              onClick={addTaskToOnboarding}
+              size="sm" 
+              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+            >
               Add
             </Button>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Calendar className="w-4 h-4" />
-            <Repeat className="w-4 h-4" />
-            <Bell className="w-4 h-4" />
+            <Calendar 
+              className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors" 
+              onMouseEnter={() => setHoveredIcon('calendar')}
+              onMouseLeave={() => setHoveredIcon(null)}
+            />
+            <Repeat 
+              className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors"
+              onMouseEnter={() => setHoveredIcon('repeat')}
+              onMouseLeave={() => setHoveredIcon(null)}
+            />
+            <Bell 
+              className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors"
+              onMouseEnter={() => setHoveredIcon('bell')}
+              onMouseLeave={() => setHoveredIcon(null)}
+            />
           </div>
           <p className="text-sm text-gray-500 text-center px-4">
-            Add a due date, configure whether the task repeats and set reminders so you can keep gettin it done!
+            <span dangerouslySetInnerHTML={{
+              __html: getHighlightedText(
+                "Add a due date, configure whether the task repeats and set reminders so you can keep gettin it done!",
+                hoveredIcon === 'calendar' ? ['due date'] :
+                hoveredIcon === 'repeat' ? ['task repeats'] :
+                hoveredIcon === 'bell' ? ['reminders'] : []
+              )
+            }} />
           </p>
+          <div className="space-y-3">
+            {onboardingTasks.map((task) => (
+              <div key={task.id} className="flex items-center gap-3 p-3 bg-white rounded-2xl">
+                <span className="text-xl">{getTaskEmoji(task.text)}</span>
+                <span className="text-gray-700">{task.text}</span>
+                <div className="flex gap-2 ml-auto">
+                  <Repeat className="w-4 h-4 text-gray-400" />
+                  <Bell className="w-4 h-4 text-gray-400" />
+                </div>
+              </div>
+            ))}
+          </div>
           <p className="text-sm text-gray-400 text-center px-4">
             Your tasks will appear here. Try adding a task above so you can track gettin it done.
           </p>
@@ -68,9 +158,14 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               placeholder="Add a new task"
               value={firstTask}
               onChange={(e) => setFirstTask(e.target.value)}
-              className="border-0 bg-transparent"
+              onKeyPress={(e) => e.key === 'Enter' && addTaskToOnboarding()}
+              className="border-0 bg-transparent focus-visible:ring-0"
             />
-            <Button size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
+            <Button 
+              onClick={addTaskToOnboarding}
+              size="sm" 
+              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+            >
               Add
             </Button>
           </div>
@@ -86,20 +181,35 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               <span className="text-gray-400">Active</span>
             </div>
             <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-white rounded-2xl">
-                <span className="text-xl">💊</span>
-                <span className="text-gray-700">Take my medication</span>
-                <div className="flex gap-2 ml-auto">
-                  <Repeat className="w-4 h-4 text-gray-400" />
-                  <Bell className="w-4 h-4 text-gray-400" />
+              {onboardingTasks.map((task) => (
+                <div 
+                  key={task.id} 
+                  className={`flex items-center gap-3 p-3 bg-white rounded-2xl ${
+                    task.completed ? 'bg-green-50' : ''
+                  }`}
+                >
+                  <button
+                    onClick={() => toggleOnboardingTask(task.id)}
+                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                      task.completed 
+                        ? 'bg-green-500 border-green-500' 
+                        : 'border-gray-300 hover:border-green-400'
+                    }`}
+                  >
+                    {task.completed && (
+                      <span className="text-white text-sm font-bold">✓</span>
+                    )}
+                  </button>
+                  <span className="text-xl">{getTaskEmoji(task.text)}</span>
+                  <span className={`text-gray-700 ${task.completed ? 'line-through' : ''}`}>
+                    {task.text}
+                  </span>
+                  <div className="flex gap-2 ml-auto">
+                    <Repeat className="w-4 h-4 text-gray-400" />
+                    <Bell className="w-4 h-4 text-gray-400" />
+                  </div>
                 </div>
-              </div>
-              {firstTask && (
-                <div className="flex items-center gap-3 p-3 bg-white rounded-2xl">
-                  <span className="text-xl">📝</span>
-                  <span className="text-gray-700">{firstTask}</span>
-                </div>
-              )}
+              ))}
             </div>
           </div>
         </div>
@@ -113,9 +223,10 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
           <div className="flex items-center gap-3 p-4 bg-white rounded-2xl">
             <Input
               placeholder="Add a new task"
-              className="border-0 bg-transparent"
+              className="border-0 bg-transparent focus-visible:ring-0"
+              disabled
             />
-            <Button size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
+            <Button size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900" disabled>
               Add
             </Button>
           </div>
@@ -131,69 +242,32 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               <span className="text-gray-400">Active</span>
             </div>
             <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-white rounded-2xl">
-                <span className="text-xl">💊</span>
-                <span className="text-gray-700">Take my medication</span>
-                <div className="flex gap-2 ml-auto">
-                  <Repeat className="w-4 h-4 text-gray-400" />
-                  <Bell className="w-4 h-4 text-gray-400" />
-                </div>
-              </div>
-              {firstTask && (
-                <div className="flex items-center gap-3 p-3 bg-green-100 rounded-2xl">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm">✓</span>
+              {onboardingTasks.map((task) => (
+                <div 
+                  key={task.id} 
+                  className={`flex items-center gap-3 p-3 rounded-2xl ${
+                    task.completed ? 'bg-green-100' : 'bg-white'
+                  }`}
+                >
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                    task.completed 
+                      ? 'bg-green-500 border-green-500' 
+                      : 'border-gray-300'
+                  }`}>
+                    {task.completed && (
+                      <span className="text-white text-sm font-bold">✓</span>
+                    )}
                   </div>
-                  <span className="text-gray-700 line-through">{firstTask}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )
-    },
-    {
-      title: "Getting it Done!",
-      subtitle: "Today is Mon 26 May. Anything new you wanna get done?",
-      content: (
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 p-4 bg-white rounded-2xl">
-            <Input
-              placeholder="Add a new task"
-              className="border-0 bg-transparent"
-            />
-            <Button size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
-              Add
-            </Button>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Calendar className="w-4 h-4" />
-            <Repeat className="w-4 h-4" />
-            <Bell className="w-4 h-4" />
-          </div>
-          <div className="space-y-3">
-            <div className="flex justify-center gap-8 text-sm">
-              <span className="text-yellow-600 border-b-2 border-yellow-400 pb-1">All</span>
-              <span className="text-gray-400">Completed</span>
-              <span className="text-gray-400">Active</span>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-white rounded-2xl">
-                <span className="text-xl">💊</span>
-                <span className="text-gray-700">Take my medication</span>
-                <div className="flex gap-2 ml-auto">
-                  <Repeat className="w-4 h-4 text-gray-400" />
-                  <Bell className="w-4 h-4 text-gray-400" />
-                </div>
-              </div>
-              {firstTask && (
-                <div className="flex items-center gap-3 p-3 bg-green-100 rounded-2xl">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm">✓</span>
+                  <span className="text-xl">{getTaskEmoji(task.text)}</span>
+                  <span className={`text-gray-700 ${task.completed ? 'line-through' : ''}`}>
+                    {task.text}
+                  </span>
+                  <div className="flex gap-2 ml-auto">
+                    <Repeat className="w-4 h-4 text-gray-400" />
+                    <Bell className="w-4 h-4 text-gray-400" />
                   </div>
-                  <span className="text-gray-700 line-through">Launch Getting it Done</span>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         </div>
@@ -236,7 +310,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
           onClick={handleNextStep}
           className="w-full mt-6 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-medium py-3 rounded-full"
         >
-          {currentStep === 3 ? 'Get Started!' : 'Continue'}
+          {currentStep === 2 ? 'Get Started!' : 'Continue'}
         </Button>
       </div>
     </div>
