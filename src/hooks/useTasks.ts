@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,8 +52,8 @@ export const useTasks = () => {
     dueDate?: Date;
     repeatOption?: string;
     reminder?: string;
-  }) => {
-    if (!user) return;
+  }): Promise<string | null> => {
+    if (!user) return null;
 
     try {
       const { data, error } = await supabase
@@ -82,8 +81,10 @@ export const useTasks = () => {
       };
 
       setTasks([newTask, ...tasks]);
+      return data.id;
     } catch (error) {
       console.error('Error adding task:', error);
+      return null;
     }
   };
 

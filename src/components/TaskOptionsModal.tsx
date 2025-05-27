@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { NotificationPermissionDialog } from './NotificationPermissionDialog';
+import { useNotifications } from '@/hooks/useNotifications';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -27,6 +29,29 @@ export const TaskOptionsModal = ({
   onReminderChange
 }: TaskOptionsModalProps) => {
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [showPermissionDialog, setShowPermissionDialog] = useState(false);
+  const { permissionGranted, permissionDenied, requestPermission } = useNotifications();
+
+  const handleBellClick = async () => {
+    if (permissionDenied) {
+      // Permission was denied, don't show dialog again
+      return;
+    }
+
+    if (!permissionGranted) {
+      // Need to request permission
+      setShowPermissionDialog(true);
+    }
+  };
+
+  const handlePermissionResult = (granted: boolean) => {
+    if (!granted) {
+      // If permission denied, reset reminder to none
+      onReminderChange('none');
+    }
+  };
+
+  const isReminderDisabled = permissionDenied;
 
   return (
     <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 px-2">
@@ -97,8 +122,20 @@ export const TaskOptionsModal = ({
       {/* Reminder Modal */}
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="p-1 h-auto">
-            <Bell className={cn("w-4 h-4", reminder !== 'none' && "text-yellow-600")} />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-1 h-auto"
+            disabled={isReminderDisabled}
+            onClick={handleBellClick}
+          >
+            <Bell 
+              className={cn(
+                "w-4 h-4", 
+                reminder !== 'none' && "text-yellow-600",
+                isReminderDisabled && "text-gray-300"
+              )} 
+            />
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
@@ -116,19 +153,19 @@ export const TaskOptionsModal = ({
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="15min" id="15min" />
                 <label htmlFor="15min" className="text-sm font-medium">
-                  15 minutes before
+                  {dueDate ? '15 minutes before due' : '15 minutes from now'}
                 </label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="1hour" id="1hour" />
                 <label htmlFor="1hour" className="text-sm font-medium">
-                  1 hour before
+                  {dueDate ? '1 hour before due' : '1 hour from now'}
                 </label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="1day" id="1day" />
                 <label htmlFor="1day" className="text-sm font-medium">
-                  1 day before
+                  {dueDate ? '1 day before due' : '1 day from now'}
                 </label>
               </div>
             </RadioGroup>
@@ -136,12 +173,20 @@ export const TaskOptionsModal = ({
         </DialogContent>
       </Dialog>
 
+      {/* Permission Dialog */}
+      <NotificationPermissionDialog
+        open={showPermissionDialog}
+        onOpenChange={setShowPermissionDialog}
+        onPermissionResult={handlePermissionResult}
+      />
+
       <span className="text-xs">
         {dueDate && `Due ${format(dueDate, 'MMM d')}`}
         {dueDate && (repeatOption !== 'none' || reminder !== 'none') && ' • '}
         {repeatOption !== 'none' && `Repeats ${repeatOption}`}
         {repeatOption !== 'none' && reminder !== 'none' && ' • '}
         {reminder !== 'none' && `Reminder ${reminder}`}
+        {isReminderDisabled && reminder !== 'none' && ' (disabled)'}
       </span>
     </div>
   );

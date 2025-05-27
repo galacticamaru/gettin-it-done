@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,12 +7,14 @@ import { FilterTabs } from './FilterTabs';
 import { ConfettiAnimation } from './ConfettiAnimation';
 import { useTasks } from '@/hooks/useTasks';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/hooks/useNotifications';
 
 type Filter = 'all' | 'completed' | 'active';
 
 export const TodoApp = () => {
   const { user, signOut } = useAuth();
   const { tasks, loading, addTask, toggleTask, deleteTask } = useTasks();
+  const { scheduleTaskReminder, cancelTaskReminder } = useNotifications();
   const [newTask, setNewTask] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [celebratingTaskId, setCelebratingTaskId] = useState<string | null>(null);
@@ -25,12 +26,28 @@ export const TodoApp = () => {
 
   const handleAddTask = async () => {
     if (newTask.trim()) {
-      await addTask({
+      const taskData = {
         text: newTask.trim(),
         dueDate,
         repeatOption,
         reminder,
-      });
+      };
+
+      await addTask(taskData);
+      
+      // Schedule reminder if one was set
+      if (reminder !== 'none') {
+        // We need to get the task ID, but since addTask doesn't return it,
+        // we'll need to schedule the reminder after the task is added
+        // For now, we'll use a temporary approach
+        setTimeout(() => {
+          const latestTask = tasks[0]; // Assuming newest task is first
+          if (latestTask && reminder !== 'none') {
+            scheduleTaskReminder(latestTask.id, latestTask.text, dueDate, reminder);
+          }
+        }, 100);
+      }
+
       setNewTask('');
       // Clear options after adding task
       setDueDate(undefined);
@@ -47,7 +64,18 @@ export const TodoApp = () => {
       setTimeout(() => setCelebratingTaskId(null), 2000);
     }
     
+    // Cancel reminder when task is completed
+    if (task && !task.completed) {
+      cancelTaskReminder(id);
+    }
+    
     await toggleTask(id);
+  };
+
+  const handleDeleteTask = async (id: string) => {
+    // Cancel reminder when task is deleted
+    cancelTaskReminder(id);
+    await deleteTask(id);
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -153,7 +181,7 @@ export const TodoApp = () => {
                   reminder: task.reminder,
                 }}
                 onToggle={() => handleToggleTask(task.id)}
-                onDelete={() => deleteTask(task.id)}
+                onDelete={() => handleDeleteTask(task.id)}
               />
             ))
           )}
