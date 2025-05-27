@@ -2,9 +2,12 @@
 import { useState, useEffect } from 'react';
 import { OnboardingFlow } from '@/components/OnboardingFlow';
 import { TodoApp } from '@/components/TodoApp';
+import { useAuth } from '@/contexts/AuthContext';
+import Auth from './Auth';
 
 const Index = () => {
   const [isOnboarding, setIsOnboarding] = useState(true);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     // Check if user has completed onboarding
@@ -19,15 +22,26 @@ const Index = () => {
     setIsOnboarding(false);
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {isOnboarding ? (
-        <OnboardingFlow onComplete={completeOnboarding} />
-      ) : (
-        <TodoApp />
-      )}
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show onboarding if user hasn't completed it and no user is logged in
+  if (isOnboarding && !user) {
+    return <OnboardingFlow onComplete={completeOnboarding} />;
+  }
+
+  // Show auth page if user is not logged in
+  if (!user) {
+    return <Auth />;
+  }
+
+  // Show main app if user is logged in
+  return <TodoApp />;
 };
 
 export default Index;

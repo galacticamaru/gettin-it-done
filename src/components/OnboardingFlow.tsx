@@ -1,8 +1,8 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar, Bell, Repeat, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface OnboardingFlowProps {
   onComplete: () => void;
@@ -21,21 +21,14 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     { id: 1, text: 'Take my medication', completed: false }
   ]);
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleNextStep = () => {
     if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Save all tasks to localStorage for the main app
-      const existingTasks = JSON.parse(localStorage.getItem('gettinItDone_tasks') || '[]');
-      const newTasks = onboardingTasks.map(task => ({
-        id: Date.now() + task.id,
-        text: task.text,
-        completed: task.completed,
-        createdAt: new Date().toISOString()
-      }));
-      localStorage.setItem('gettinItDone_tasks', JSON.stringify([...newTasks, ...existingTasks]));
-      onComplete();
+      // Navigate to auth page instead of completing onboarding
+      navigate('/auth');
     }
   };
 
@@ -310,7 +303,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
           onClick={handleNextStep}
           className="w-full mt-6 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-medium py-3 rounded-full"
         >
-          {currentStep === 2 ? 'Get Started!' : 'Continue'}
+          {currentStep === 2 ? 'Create Account' : 'Continue'}
         </Button>
       </div>
     </div>

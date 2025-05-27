@@ -1,58 +1,36 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TaskOptionsModal } from './TaskOptionsModal';
 import { TaskItem } from './TaskItem';
 import { FilterTabs } from './FilterTabs';
 import { ConfettiAnimation } from './ConfettiAnimation';
-
-interface Task {
-  id: number;
-  text: string;
-  completed: boolean;
-  createdAt: string;
-  dueDate?: string;
-  repeatOption?: string;
-  reminder?: string;
-}
+import { useTasks } from '@/hooks/useTasks';
+import { useAuth } from '@/contexts/AuthContext';
 
 type Filter = 'all' | 'completed' | 'active';
 
 export const TodoApp = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { user, signOut } = useAuth();
+  const { tasks, loading, addTask, toggleTask, deleteTask } = useTasks();
   const [newTask, setNewTask] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
-  const [celebratingTaskId, setCelebratingTaskId] = useState<number | null>(null);
+  const [celebratingTaskId, setCelebratingTaskId] = useState<string | null>(null);
   
   // Task options state
   const [dueDate, setDueDate] = useState<Date | undefined>();
   const [repeatOption, setRepeatOption] = useState('none');
   const [reminder, setReminder] = useState('none');
 
-  useEffect(() => {
-    const savedTasks = localStorage.getItem('gettinItDone_tasks');
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('gettinItDone_tasks', JSON.stringify(tasks));
-  }, [tasks]);
-
-  const addTask = () => {
+  const handleAddTask = async () => {
     if (newTask.trim()) {
-      const task: Task = {
-        id: Date.now(),
+      await addTask({
         text: newTask.trim(),
-        completed: false,
-        createdAt: new Date().toISOString(),
-        dueDate: dueDate?.toISOString(),
-        repeatOption: repeatOption !== 'none' ? repeatOption : undefined,
-        reminder: reminder !== 'none' ? reminder : undefined
-      };
-      setTasks([task, ...tasks]);
+        dueDate,
+        repeatOption,
+        reminder,
+      });
       setNewTask('');
       // Clear options after adding task
       setDueDate(undefined);
@@ -61,7 +39,7 @@ export const TodoApp = () => {
     }
   };
 
-  const toggleTask = (id: number) => {
+  const handleToggleTask = async (id: string) => {
     const task = tasks.find(t => t.id === id);
     if (task && !task.completed) {
       // Trigger celebration animation
@@ -69,13 +47,7 @@ export const TodoApp = () => {
       setTimeout(() => setCelebratingTaskId(null), 2000);
     }
     
-    setTasks(tasks.map(task => 
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
-  };
-
-  const deleteTask = (id: number) => {
-    setTasks(tasks.filter(task => task.id !== id));
+    await toggleTask(id);
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -90,16 +62,34 @@ export const TodoApp = () => {
     month: 'short' 
   });
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600">Loading your tasks...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-md mx-auto px-6 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Getting it Done!
-          </h1>
-          <p className="text-gray-600">
-            Today is {today}. Anything new you wanna get done?
-          </p>
+        <div className="flex justify-between items-start mb-8">
+          <div className="text-center flex-1">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Getting it Done!
+            </h1>
+            <p className="text-gray-600">
+              Today is {today}. Anything new you wanna get done?
+            </p>
+          </div>
+          <Button
+            onClick={signOut}
+            variant="ghost"
+            size="sm"
+            className="text-gray-500 hover:text-gray-700"
+          >
+            Sign Out
+          </Button>
         </div>
 
         {/* Add Task Input */}
@@ -108,11 +98,11 @@ export const TodoApp = () => {
             placeholder="Add a new task"
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && addTask()}
+            onKeyPress={(e) => e.key === 'Enter' && handleAddTask()}
             className="border-0 bg-transparent focus-visible:ring-0"
           />
           <Button 
-            onClick={addTask}
+            onClick={handleAddTask}
             size="sm" 
             className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-medium px-4 py-2 rounded-full"
           >
@@ -153,9 +143,17 @@ export const TodoApp = () => {
             filteredTasks.map((task) => (
               <TaskItem
                 key={task.id}
-                task={task}
-                onToggle={toggleTask}
-                onDelete={deleteTask}
+                task={{
+                  id: parseInt(task.id),
+                  text: task.text,
+                  completed: task.completed,
+                  createdAt: task.createdAt,
+                  dueDate: task.dueDate,
+                  repeatOption: task.repeatOption,
+                  reminder: task.reminder,
+                }}
+                onToggle={() => handleToggleTask(task.id)}
+                onDelete={() => deleteTask(task.id)}
               />
             ))
           )}
