@@ -30,114 +30,12 @@ export type Database = {
         }
         Relationships: []
       }
-      task_due_date: {
-        Row: {
-          created_at: string
-          due_date_configuration: string | null
-          due_date_id: number
-        }
-        Insert: {
-          created_at?: string
-          due_date_configuration?: string | null
-          due_date_id?: number
-        }
-        Update: {
-          created_at?: string
-          due_date_configuration?: string | null
-          due_date_id?: number
-        }
-        Relationships: []
-      }
-      task_reminder: {
-        Row: {
-          created_at: string
-          reminder_configuration: Json | null
-          reminder_id: number
-        }
-        Insert: {
-          created_at?: string
-          reminder_configuration?: Json | null
-          reminder_id?: number
-        }
-        Update: {
-          created_at?: string
-          reminder_configuration?: Json | null
-          reminder_id?: number
-        }
-        Relationships: []
-      }
-      task_repeat: {
-        Row: {
-          created_at: string
-          repeat_configuration: Json | null
-          repeat_id: number
-        }
-        Insert: {
-          created_at?: string
-          repeat_configuration?: Json | null
-          repeat_id?: number
-        }
-        Update: {
-          created_at?: string
-          repeat_configuration?: Json | null
-          repeat_id?: number
-        }
-        Relationships: []
-      }
-      tasks: {
-        Row: {
-          created_at: string
-          due_date_id: number | null
-          reminder_id: number | null
-          repeat_id: number | null
-          task_id: number
-          task_title: string | null
-        }
-        Insert: {
-          created_at?: string
-          due_date_id?: number | null
-          reminder_id?: number | null
-          repeat_id?: number | null
-          task_id?: number
-          task_title?: string | null
-        }
-        Update: {
-          created_at?: string
-          due_date_id?: number | null
-          reminder_id?: number | null
-          repeat_id?: number | null
-          task_id?: number
-          task_title?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tasks_due_date_id_fkey"
-            columns: ["due_date_id"]
-            isOneToOne: false
-            referencedRelation: "task_due_date"
-            referencedColumns: ["due_date_id"]
-          },
-          {
-            foreignKeyName: "tasks_reminder_id_fkey"
-            columns: ["reminder_id"]
-            isOneToOne: false
-            referencedRelation: "task_reminder"
-            referencedColumns: ["reminder_id"]
-          },
-          {
-            foreignKeyName: "tasks_repeat_id_fkey"
-            columns: ["repeat_id"]
-            isOneToOne: false
-            referencedRelation: "task_repeat"
-            referencedColumns: ["repeat_id"]
-          },
-        ]
-      }
       user_tasks: {
         Row: {
           completed: boolean | null
           created_at: string | null
           due_date: string | null
+          emoji: string | null
           id: string
           reminder: string | null
           repeat_option: string | null
@@ -149,6 +47,7 @@ export type Database = {
           completed?: boolean | null
           created_at?: string | null
           due_date?: string | null
+          emoji?: string | null
           id?: string
           reminder?: string | null
           repeat_option?: string | null
@@ -160,6 +59,7 @@ export type Database = {
           completed?: boolean | null
           created_at?: string | null
           due_date?: string | null
+          emoji?: string | null
           id?: string
           reminder?: string | null
           repeat_option?: string | null
