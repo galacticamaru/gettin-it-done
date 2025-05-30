@@ -1,9 +1,9 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar, Bell, Repeat, Plus } from 'lucide-react';
 import { EmojiPicker } from './EmojiPicker';
+import { FilterTabs } from './FilterTabs';
 import { useNavigate } from 'react-router-dom';
 
 interface OnboardingFlowProps {
@@ -17,10 +17,13 @@ interface OnboardingTask {
   emoji: string;
 }
 
+type Filter = 'all' | 'completed' | 'active';
+
 export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [firstTask, setFirstTask] = useState('');
   const [firstTaskEmoji, setFirstTaskEmoji] = useState('');
+  const [filter, setFilter] = useState<Filter>('all');
   const [onboardingTasks, setOnboardingTasks] = useState<OnboardingTask[]>([
     { id: 1, text: 'Take my medication', completed: false, emoji: '💊' }
   ]);
@@ -64,6 +67,13 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       )
     );
   };
+
+  // Filter tasks based on current filter
+  const filteredTasks = onboardingTasks.filter(task => {
+    if (filter === 'completed') return task.completed;
+    if (filter === 'active') return !task.completed;
+    return true;
+  });
 
   const getTaskEmoji = (text: string) => {
     const lower = text.toLowerCase();
@@ -140,8 +150,11 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               )
             }} />
           </p>
+          
+          <FilterTabs filter={filter} onFilterChange={setFilter} />
+          
           <div className="space-y-3">
-            {onboardingTasks.map((task) => (
+            {filteredTasks.map((task) => (
               <div key={task.id} className="flex items-center gap-3 p-3 bg-white rounded-2xl">
                 <EmojiPicker 
                   selectedEmoji={task.emoji}
@@ -155,9 +168,13 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               </div>
             ))}
           </div>
-          <p className="text-sm text-gray-400 text-center px-4">
-            Your tasks will appear here. Try adding a task above so you can track gettin it done.
-          </p>
+          {filteredTasks.length === 0 && (
+            <p className="text-sm text-gray-400 text-center px-4">
+              {filter === 'completed' ? 'No completed tasks yet.' : 
+               filter === 'active' ? 'No active tasks.' : 
+               'Your tasks will appear here. Try adding a task above so you can track gettin it done.'}
+            </p>
+          )}
         </div>
       )
     },
@@ -213,47 +230,50 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               )
             }} />
           </p>
+          
+          <FilterTabs filter={filter} onFilterChange={setFilter} />
+          
           <div className="space-y-3">
-            <div className="flex justify-center gap-8 text-sm">
-              <span className="text-yellow-600 border-b-2 border-yellow-400 pb-1">All</span>
-              <span className="text-gray-400">Completed</span>
-              <span className="text-gray-400">Active</span>
-            </div>
-            <div className="space-y-3">
-              {onboardingTasks.map((task) => (
-                <div 
-                  key={task.id} 
-                  className={`flex items-center gap-3 p-3 bg-white rounded-2xl ${
-                    task.completed ? 'bg-green-50' : ''
+            {filteredTasks.map((task) => (
+              <div 
+                key={task.id} 
+                className={`flex items-center gap-3 p-3 bg-white rounded-2xl ${
+                  task.completed ? 'bg-green-50' : ''
+                }`}
+              >
+                <button
+                  onClick={() => toggleOnboardingTask(task.id)}
+                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                    task.completed 
+                      ? 'bg-green-500 border-green-500' 
+                      : 'border-gray-300 hover:border-green-400'
                   }`}
                 >
-                  <button
-                    onClick={() => toggleOnboardingTask(task.id)}
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                      task.completed 
-                        ? 'bg-green-500 border-green-500' 
-                        : 'border-gray-300 hover:border-green-400'
-                    }`}
-                  >
-                    {task.completed && (
-                      <span className="text-white text-sm font-bold">✓</span>
-                    )}
-                  </button>
-                  <EmojiPicker 
-                    selectedEmoji={task.emoji}
-                    onEmojiSelect={(emoji) => updateTaskEmoji(task.id, emoji)}
-                  />
-                  <span className={`text-gray-700 ${task.completed ? 'line-through' : ''}`}>
-                    {task.text}
-                  </span>
-                  <div className="flex gap-2 ml-auto">
-                    <Repeat className="w-4 h-4 text-gray-400" />
-                    <Bell className="w-4 h-4 text-gray-400" />
-                  </div>
+                  {task.completed && (
+                    <span className="text-white text-sm font-bold">✓</span>
+                  )}
+                </button>
+                <EmojiPicker 
+                  selectedEmoji={task.emoji}
+                  onEmojiSelect={(emoji) => updateTaskEmoji(task.id, emoji)}
+                />
+                <span className={`text-gray-700 ${task.completed ? 'line-through' : ''}`}>
+                  {task.text}
+                </span>
+                <div className="flex gap-2 ml-auto">
+                  <Repeat className="w-4 h-4 text-gray-400" />
+                  <Bell className="w-4 h-4 text-gray-400" />
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
+          {filteredTasks.length === 0 && (
+            <p className="text-sm text-gray-400 text-center px-4">
+              {filter === 'completed' ? 'No completed tasks yet. Complete some tasks to see them here!' : 
+               filter === 'active' ? 'No active tasks. Add a new task to get started!' : 
+               'Your tasks will appear here.'}
+            </p>
+          )}
         </div>
       )
     },
@@ -278,41 +298,44 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             <Repeat className="w-4 h-4" />
             <Bell className="w-4 h-4" />
           </div>
+          
+          <FilterTabs filter={filter} onFilterChange={setFilter} />
+          
           <div className="space-y-3">
-            <div className="flex justify-center gap-8 text-sm">
-              <span className="text-yellow-600 border-b-2 border-yellow-400 pb-1">All</span>
-              <span className="text-gray-400">Completed</span>
-              <span className="text-gray-400">Active</span>
-            </div>
-            <div className="space-y-3">
-              {onboardingTasks.map((task) => (
-                <div 
-                  key={task.id} 
-                  className={`flex items-center gap-3 p-3 rounded-2xl ${
-                    task.completed ? 'bg-green-100' : 'bg-white'
-                  }`}
-                >
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                    task.completed 
-                      ? 'bg-green-500 border-green-500' 
-                      : 'border-gray-300'
-                  }`}>
-                    {task.completed && (
-                      <span className="text-white text-sm font-bold">✓</span>
-                    )}
-                  </div>
-                  <span className="text-xl">{task.emoji}</span>
-                  <span className={`text-gray-700 ${task.completed ? 'line-through' : ''}`}>
-                    {task.text}
-                  </span>
-                  <div className="flex gap-2 ml-auto">
-                    <Repeat className="w-4 h-4 text-gray-400" />
-                    <Bell className="w-4 h-4 text-gray-400" />
-                  </div>
+            {filteredTasks.map((task) => (
+              <div 
+                key={task.id} 
+                className={`flex items-center gap-3 p-3 rounded-2xl ${
+                  task.completed ? 'bg-green-100' : 'bg-white'
+                }`}
+              >
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                  task.completed 
+                    ? 'bg-green-500 border-green-500' 
+                    : 'border-gray-300'
+                }`}>
+                  {task.completed && (
+                    <span className="text-white text-sm font-bold">✓</span>
+                  )}
                 </div>
-              ))}
-            </div>
+                <span className="text-xl">{task.emoji}</span>
+                <span className={`text-gray-700 ${task.completed ? 'line-through' : ''}`}>
+                  {task.text}
+                </span>
+                <div className="flex gap-2 ml-auto">
+                  <Repeat className="w-4 h-4 text-gray-400" />
+                  <Bell className="w-4 h-4 text-gray-400" />
+                </div>
+              </div>
+            ))}
           </div>
+          {filteredTasks.length === 0 && (
+            <p className="text-sm text-gray-400 text-center px-4">
+              {filter === 'completed' ? 'No completed tasks yet.' : 
+               filter === 'active' ? 'No active tasks.' : 
+               'Your tasks will appear here.'}
+            </p>
+          )}
         </div>
       )
     }
