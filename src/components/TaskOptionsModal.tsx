@@ -30,16 +30,11 @@ export const TaskOptionsModal = ({
 }: TaskOptionsModalProps) => {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
-  const { permissionGranted, permissionDenied } = useNotifications();
+  const { permissionGranted, permissionDenied, hasNotificationCapability } = useNotifications();
 
   const handleBellClick = async () => {
-    if (permissionDenied) {
-      // Permission was denied, don't show dialog again
-      return;
-    }
-
     // Only show permission dialog if user tries to set a reminder and doesn't have permission
-    if (!permissionGranted && reminder === 'none') {
+    if (!permissionGranted && reminder === 'none' && hasNotificationCapability) {
       setShowPermissionDialog(true);
     }
   };
@@ -51,7 +46,8 @@ export const TaskOptionsModal = ({
     }
   };
 
-  const isReminderDisabled = permissionDenied;
+  // Only disable if no notification capability exists at all
+  const isReminderDisabled = !hasNotificationCapability;
 
   return (
     <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 px-2">

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { notificationService } from '@/services/notificationService';
 import { oneSignalService } from '@/services/oneSignalService';
@@ -13,16 +12,21 @@ export const useNotifications = () => {
   useEffect(() => {
     const initNotifications = async () => {
       // Check initial permission state for browser notifications
-      setPermissionGranted(notificationService.isPermissionGranted());
-      setPermissionDenied(notificationService.isPermissionDenied());
+      const browserPermissionGranted = notificationService.isPermissionGranted();
+      const browserPermissionDenied = notificationService.isPermissionDenied();
+      
+      setPermissionGranted(browserPermissionGranted);
+      setPermissionDenied(browserPermissionDenied);
 
       // Initialize OneSignal when ready
       if (window.OneSignalDeferred) {
         window.OneSignalDeferred.push(async () => {
           setOneSignalReady(true);
-          const granted = await oneSignalService.isPermissionGranted();
+          const oneSignalGranted = await oneSignalService.isPermissionGranted();
           const subscribed = await oneSignalService.isSubscribed();
-          setPermissionGranted(granted);
+          
+          // Update permission states - we have permission if either OneSignal OR browser notifications work
+          setPermissionGranted(browserPermissionGranted || oneSignalGranted);
           setIsSubscribed(subscribed);
         });
       }
@@ -32,7 +36,7 @@ export const useNotifications = () => {
   }, []);
 
   const requestPermission = async (): Promise<boolean> => {
-    // Try OneSignal first, then fall back to browser notifications
+    // Try OneSignal first if available, then fall back to browser notifications
     if (oneSignalReady) {
       const oneSignalResult = await oneSignalService.requestPermission();
       if (oneSignalResult.granted) {
@@ -49,7 +53,7 @@ export const useNotifications = () => {
     // Fallback to browser notifications
     const result = await notificationService.requestPermission();
     setPermissionGranted(result.granted);
-    setPermissionDenied(result.denied);
+    setPermissionDenied(!result.granted); // Only set denied if both methods failed
     return result.granted;
   };
 
@@ -184,11 +188,17 @@ export const useNotifications = () => {
     });
   };
 
+  // Check if any notification method is available
+  const hasNotificationCapability = () => {
+    return oneSignalReady || ('Notification' in window && Notification.permission !== 'denied');
+  };
+
   return {
     permissionGranted: permissionGranted || isSubscribed,
-    permissionDenied,
+    permissionDenied: permissionDenied && !oneSignalReady, // Only denied if both browser and OneSignal unavailable
     oneSignalReady,
     isSubscribed,
+    hasNotificationCapability: hasNotificationCapability(),
     requestPermission,
     scheduleTaskReminder,
     scheduleDueDateNotification,
