@@ -187,10 +187,29 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             </Button>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Calendar className="w-4 h-4" />
-            <Repeat className="w-4 h-4" />
-            <Bell className="w-4 h-4" />
+            <Calendar className="w-4 h-4" 
+              onMouseEnter={() => setHoveredIcon('calendar')}
+              onMouseLeave={() => setHoveredIcon(null)}
+              />
+            <Repeat className="w-4 h-4" 
+              onMouseEnter={() => setHoveredIcon('repeat')}
+              onMouseLeave={() => setHoveredIcon(null)}
+              />
+            <Bell className="w-4 h-4" 
+              onMouseEnter={() => setHoveredIcon('bell')}
+              onMouseLeave={() => setHoveredIcon(null)}
+              />
           </div>
+          <p className="text-sm text-gray-500 text-center px-4">
+            <span dangerouslySetInnerHTML={{
+              __html: getHighlightedText(
+                "Add a due date, configure whether the task repeats and set reminders so you can keep gettin it done!",
+                hoveredIcon === 'calendar' ? ['due date'] :
+                hoveredIcon === 'repeat' ? ['task repeats'] :
+                hoveredIcon === 'bell' ? ['reminders'] : []
+              )
+            }} />
+          </p>
           <div className="space-y-3">
             <div className="flex justify-center gap-8 text-sm">
               <span className="text-yellow-600 border-b-2 border-yellow-400 pb-1">All</span>
