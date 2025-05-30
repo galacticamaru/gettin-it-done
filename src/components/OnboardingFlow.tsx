@@ -279,13 +279,13 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     },
     {
       title: "They've bloody done it!",
-      subtitle: "Gettin it done ain't rocket science, but you will fly as you keep on goin innit. 🚀",
+      subtitle: "Sign up with a free account to start gettin it done. 🚀",
       content: (
         <div className="space-y-6">
           <div className="flex items-center gap-3 p-4 bg-white rounded-2xl">
             <div className="text-xl p-1">😀</div>
             <Input
-              placeholder="Add a new task"
+              placeholder="Create an account to add more tasks"
               className="border-0 bg-transparent focus-visible:ring-0"
               disabled
             />
