@@ -187,18 +187,21 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             </Button>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Calendar className="w-4 h-4" 
+            <Calendar 
+              className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors" 
               onMouseEnter={() => setHoveredIcon('calendar')}
               onMouseLeave={() => setHoveredIcon(null)}
-              />
-            <Repeat className="w-4 h-4" 
+            />
+            <Repeat 
+              className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors"
               onMouseEnter={() => setHoveredIcon('repeat')}
               onMouseLeave={() => setHoveredIcon(null)}
-              />
-            <Bell className="w-4 h-4" 
+            />
+            <Bell 
+              className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors"
               onMouseEnter={() => setHoveredIcon('bell')}
               onMouseLeave={() => setHoveredIcon(null)}
-              />
+            />
           </div>
           <p className="text-sm text-gray-500 text-center px-4">
             <span dangerouslySetInnerHTML={{
