@@ -48,8 +48,9 @@ export class OneSignalService {
     if (!window.OneSignal) return false;
 
     try {
-      const isSubscribed = await window.OneSignal.User.PushSubscription.optedIn;
-      return isSubscribed;
+      // Check if user has opted in to push notifications
+      const subscription = await window.OneSignal.User.PushSubscription.id;
+      return subscription !== null && subscription !== undefined;
     } catch (error) {
       console.error('Error checking OneSignal subscription:', error);
       return false;
@@ -93,17 +94,7 @@ export class OneSignalService {
           icon: '/favicon.ico',
           badge: '/favicon.ico',
           tag: `task-reminder-${Date.now()}`,
-          requireInteraction: true,
-          actions: [
-            {
-              action: 'complete',
-              title: 'Mark Complete'
-            },
-            {
-              action: 'dismiss',
-              title: 'Dismiss'
-            }
-          ]
+          requireInteraction: true
         });
         return true;
       }
