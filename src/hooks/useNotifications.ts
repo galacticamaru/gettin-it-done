@@ -8,20 +8,27 @@ export const useNotifications = () => {
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [activeReminders, setActiveReminders] = useState<Map<string, number>>(new Map());
   const [oneSignalReady, setOneSignalReady] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   useEffect(() => {
-    // Check initial permission state for browser notifications
-    setPermissionGranted(notificationService.isPermissionGranted());
-    setPermissionDenied(notificationService.isPermissionDenied());
+    const initNotifications = async () => {
+      // Check initial permission state for browser notifications
+      setPermissionGranted(notificationService.isPermissionGranted());
+      setPermissionDenied(notificationService.isPermissionDenied());
 
-    // Initialize OneSignal when ready
-    if (window.OneSignalDeferred) {
-      window.OneSignalDeferred.push(async () => {
-        setOneSignalReady(true);
-        const granted = await oneSignalService.isPermissionGranted();
-        setPermissionGranted(granted);
-      });
-    }
+      // Initialize OneSignal when ready
+      if (window.OneSignalDeferred) {
+        window.OneSignalDeferred.push(async () => {
+          setOneSignalReady(true);
+          const granted = await oneSignalService.isPermissionGranted();
+          const subscribed = await oneSignalService.isSubscribed();
+          setPermissionGranted(granted);
+          setIsSubscribed(subscribed);
+        });
+      }
+    };
+
+    initNotifications();
   }, []);
 
   const requestPermission = async (): Promise<boolean> => {
@@ -29,10 +36,13 @@ export const useNotifications = () => {
     if (oneSignalReady) {
       const oneSignalResult = await oneSignalService.requestPermission();
       if (oneSignalResult.granted) {
-        await oneSignalService.subscribeUser();
-        setPermissionGranted(true);
-        setPermissionDenied(false);
-        return true;
+        const subscribed = await oneSignalService.subscribeUser();
+        if (subscribed) {
+          setPermissionGranted(true);
+          setPermissionDenied(false);
+          setIsSubscribed(true);
+          return true;
+        }
       }
     }
 
@@ -43,15 +53,23 @@ export const useNotifications = () => {
     return result.granted;
   };
 
-  const scheduleTaskReminder = (taskId: string, taskText: string, dueDate: Date | undefined, reminderOption: string) => {
-    if (!permissionGranted || reminderOption === 'none') {
+  const scheduleTaskReminder = async (taskId: string, taskText: string, dueDate: Date | undefined, reminderOption: string) => {
+    if (reminderOption === 'none') {
       return;
+    }
+
+    // Check if we need to request permission
+    if (!permissionGranted && !isSubscribed) {
+      const granted = await requestPermission();
+      if (!granted) {
+        return;
+      }
     }
 
     // Cancel existing reminder for this task
     const existingTimeoutId = activeReminders.get(taskId);
     if (existingTimeoutId) {
-      notificationService.cancelReminder(existingTimeoutId);
+      clearTimeout(existingTimeoutId);
     }
 
     // Calculate when to send the reminder
@@ -60,18 +78,28 @@ export const useNotifications = () => {
       return;
     }
 
-    // Schedule new reminder using both OneSignal and browser notifications
+    // Schedule new reminder
     const timeoutId = window.setTimeout(async () => {
-      const title = 'Task Reminder';
-      const message = `Don't forget: ${taskText}`;
-
       // Try OneSignal first
-      if (oneSignalReady) {
-        await oneSignalService.sendNotification(title, message, { taskId, taskText });
-      } else {
+      if (oneSignalReady && isSubscribed) {
+        await oneSignalService.sendTaskReminder(taskText, dueDate);
+      } else if (permissionGranted) {
         // Fallback to browser notification
-        notificationService.scheduleReminder(taskText, reminderTime);
+        new Notification('Task Reminder 📝', {
+          body: `Don't forget: ${taskText}`,
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: `task-reminder-${taskId}`,
+          requireInteraction: true
+        });
       }
+
+      // Remove from active reminders
+      setActiveReminders(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(taskId);
+        return newMap;
+      });
     }, reminderTime.getTime() - Date.now());
 
     if (timeoutId > 0) {
@@ -79,24 +107,91 @@ export const useNotifications = () => {
     }
   };
 
-  const cancelTaskReminder = (taskId: string) => {
-    const timeoutId = activeReminders.get(taskId);
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      setActiveReminders(prev => {
-        const newMap = new Map(prev);
-        newMap.delete(taskId);
-        return newMap;
-      });
+  const scheduleDueDateNotification = async (taskId: string, taskText: string, dueDate: Date) => {
+    // Check if we need to request permission
+    if (!permissionGranted && !isSubscribed) {
+      const granted = await requestPermission();
+      if (!granted) {
+        return;
+      }
     }
+
+    const now = new Date();
+    const timeUntilDue = dueDate.getTime() - now.getTime();
+
+    // Schedule notification for 1 hour before due date (if due date is more than 1 hour away)
+    if (timeUntilDue > 60 * 60 * 1000) { // More than 1 hour away
+      const reminderTime = new Date(dueDate.getTime() - 60 * 60 * 1000); // 1 hour before
+      const timeoutId = window.setTimeout(async () => {
+        if (oneSignalReady && isSubscribed) {
+          await oneSignalService.sendDueDateNotification(taskText, dueDate);
+        } else if (permissionGranted) {
+          new Notification('Task Due Soon 📅', {
+            body: `${taskText} is due in 1 hour`,
+            icon: '/favicon.ico',
+            badge: '/favicon.ico',
+            tag: `due-date-${taskId}`,
+            requireInteraction: true
+          });
+        }
+      }, reminderTime.getTime() - now.getTime());
+
+      setActiveReminders(prev => new Map(prev).set(`due-${taskId}`, timeoutId));
+    }
+
+    // Schedule notification for when task becomes overdue
+    const overdueTimeoutId = window.setTimeout(async () => {
+      if (oneSignalReady && isSubscribed) {
+        await oneSignalService.sendDueDateNotification(taskText, dueDate);
+      } else if (permissionGranted) {
+        new Notification('Task Overdue ⏰', {
+          body: `${taskText} is overdue!`,
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: `overdue-${taskId}`,
+          requireInteraction: true
+        });
+      }
+    }, timeUntilDue);
+
+    setActiveReminders(prev => new Map(prev).set(`overdue-${taskId}`, overdueTimeoutId));
+  };
+
+  const cancelTaskReminder = (taskId: string) => {
+    // Cancel reminder notification
+    const reminderTimeoutId = activeReminders.get(taskId);
+    if (reminderTimeoutId) {
+      clearTimeout(reminderTimeoutId);
+    }
+
+    // Cancel due date notifications
+    const dueDateTimeoutId = activeReminders.get(`due-${taskId}`);
+    if (dueDateTimeoutId) {
+      clearTimeout(dueDateTimeoutId);
+    }
+
+    const overdueTimeoutId = activeReminders.get(`overdue-${taskId}`);
+    if (overdueTimeoutId) {
+      clearTimeout(overdueTimeoutId);
+    }
+
+    setActiveReminders(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(taskId);
+      newMap.delete(`due-${taskId}`);
+      newMap.delete(`overdue-${taskId}`);
+      return newMap;
+    });
   };
 
   return {
-    permissionGranted,
+    permissionGranted: permissionGranted || isSubscribed,
     permissionDenied,
     oneSignalReady,
+    isSubscribed,
     requestPermission,
     scheduleTaskReminder,
+    scheduleDueDateNotification,
     cancelTaskReminder,
   };
 };

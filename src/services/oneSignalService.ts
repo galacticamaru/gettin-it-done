@@ -44,6 +44,18 @@ export class OneSignalService {
     }
   }
 
+  async isSubscribed(): Promise<boolean> {
+    if (!window.OneSignal) return false;
+
+    try {
+      const isSubscribed = await window.OneSignal.User.PushSubscription.optedIn;
+      return isSubscribed;
+    } catch (error) {
+      console.error('Error checking OneSignal subscription:', error);
+      return false;
+    }
+  }
+
   async subscribeUser(): Promise<boolean> {
     if (!window.OneSignal) return false;
 
@@ -56,28 +68,72 @@ export class OneSignalService {
     }
   }
 
-  async sendNotification(title: string, message: string, data?: any): Promise<boolean> {
+  async sendTaskReminder(taskText: string, dueDate?: Date): Promise<boolean> {
     if (!window.OneSignal) return false;
 
     try {
-      // OneSignal notifications are typically sent from the server
-      // This is a client-side notification for immediate feedback
+      const title = 'Task Reminder 📝';
+      let message = `Don't forget: ${taskText}`;
+      
+      if (dueDate) {
+        const now = new Date();
+        const isOverdue = dueDate < now;
+        if (isOverdue) {
+          message = `⏰ Overdue: ${taskText}`;
+        } else {
+          message = `📅 Due soon: ${taskText}`;
+        }
+      }
+
+      // For client-side notifications, we use the service worker
       if ('serviceWorker' in navigator && 'Notification' in window) {
         const registration = await navigator.serviceWorker.ready;
         registration.showNotification(title, {
           body: message,
           icon: '/favicon.ico',
           badge: '/favicon.ico',
-          data: data,
-          requireInteraction: true
+          tag: `task-reminder-${Date.now()}`,
+          requireInteraction: true,
+          actions: [
+            {
+              action: 'complete',
+              title: 'Mark Complete'
+            },
+            {
+              action: 'dismiss',
+              title: 'Dismiss'
+            }
+          ]
         });
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Error sending OneSignal notification:', error);
+      console.error('Error sending OneSignal task reminder:', error);
       return false;
     }
+  }
+
+  async sendDueDateNotification(taskText: string, dueDate: Date): Promise<boolean> {
+    const now = new Date();
+    const timeUntilDue = dueDate.getTime() - now.getTime();
+    const hoursUntilDue = timeUntilDue / (1000 * 60 * 60);
+    
+    let title = 'Task Due Soon 📅';
+    let message = `${taskText} is due soon`;
+    
+    if (hoursUntilDue <= 0) {
+      title = 'Task Overdue ⏰';
+      message = `${taskText} is overdue!`;
+    } else if (hoursUntilDue <= 1) {
+      title = 'Task Due in 1 Hour ⏰';
+      message = `${taskText} is due in less than an hour`;
+    } else if (hoursUntilDue <= 24) {
+      title = 'Task Due Today 📅';
+      message = `${taskText} is due today`;
+    }
+
+    return this.sendTaskReminder(taskText, dueDate);
   }
 
   async getUserId(): Promise<string | null> {

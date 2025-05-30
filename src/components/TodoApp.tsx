@@ -16,7 +16,7 @@ type Filter = 'all' | 'completed' | 'active';
 export const TodoApp = () => {
   const { user, signOut } = useAuth();
   const { tasks, loading, addTask, toggleTask, deleteTask } = useTasks();
-  const { scheduleTaskReminder, cancelTaskReminder } = useNotifications();
+  const { scheduleTaskReminder, scheduleDueDateNotification, cancelTaskReminder } = useNotifications();
   const [newTask, setNewTask] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [celebratingTaskId, setCelebratingTaskId] = useState<string | null>(null);
@@ -39,9 +39,16 @@ export const TodoApp = () => {
 
       const taskId = await addTask(taskData);
       
-      // Schedule reminder if one was set
-      if (reminder !== 'none' && taskId) {
-        scheduleTaskReminder(taskId, newTask.trim(), dueDate, reminder);
+      if (taskId) {
+        // Schedule reminder if one was set
+        if (reminder !== 'none') {
+          await scheduleTaskReminder(taskId, newTask.trim(), dueDate, reminder);
+        }
+
+        // Schedule due date notifications if due date is set
+        if (dueDate) {
+          await scheduleDueDateNotification(taskId, newTask.trim(), dueDate);
+        }
       }
 
       setNewTask('');
