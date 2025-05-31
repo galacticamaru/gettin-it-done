@@ -52,9 +52,9 @@ export class OneSignalService {
 
     try {
       // Check if user is opted in to push notifications
-      const optedIn = await window.OneSignal.User.PushSubscription.optedIn;
-      console.log('OneSignal subscription status (optedIn):', optedIn);
-      return optedIn;
+      const optIn = await window.OneSignal.User.PushSubscription.optIn;
+      console.log('OneSignal subscription status (optIn):', optIn);
+      return optIn;
     } catch (error) {
       console.error('Error checking OneSignal subscription:', error);
       return false;
