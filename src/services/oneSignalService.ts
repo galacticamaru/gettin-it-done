@@ -21,7 +21,9 @@ export class OneSignalService {
     }
 
     try {
+      console.log('Requesting OneSignal permission...');
       const permission = await window.OneSignal.Notifications.requestPermission();
+      console.log('OneSignal permission result:', permission);
       return {
         granted: permission,
         denied: !permission
@@ -37,6 +39,7 @@ export class OneSignalService {
     
     try {
       const permission = await window.OneSignal.Notifications.permission;
+      console.log('OneSignal permission status:', permission);
       return permission;
     } catch (error) {
       console.error('Error checking OneSignal permission:', error);
@@ -48,9 +51,10 @@ export class OneSignalService {
     if (!window.OneSignal) return false;
 
     try {
-      // Check if user has opted in to push notifications
-      const subscription = await window.OneSignal.User.PushSubscription.id;
-      return subscription !== null && subscription !== undefined;
+      // Check if user is opted in to push notifications
+      const optedIn = await window.OneSignal.User.PushSubscription.optedIn;
+      console.log('OneSignal subscription status (optedIn):', optedIn);
+      return optedIn;
     } catch (error) {
       console.error('Error checking OneSignal subscription:', error);
       return false;
@@ -61,8 +65,31 @@ export class OneSignalService {
     if (!window.OneSignal) return false;
 
     try {
+      console.log('Attempting to subscribe user to OneSignal...');
+      
+      // First check if already subscribed
+      const alreadySubscribed = await this.isSubscribed();
+      if (alreadySubscribed) {
+        console.log('User is already subscribed to OneSignal');
+        return true;
+      }
+
+      // Request permission first
+      const permissionResult = await this.requestPermission();
+      if (!permissionResult.granted) {
+        console.log('OneSignal permission not granted, cannot subscribe');
+        return false;
+      }
+
+      // Opt in to push notifications
       await window.OneSignal.User.PushSubscription.optIn();
-      return true;
+      console.log('Successfully subscribed user to OneSignal');
+      
+      // Verify subscription
+      const subscribed = await this.isSubscribed();
+      console.log('Subscription verification:', subscribed);
+      
+      return subscribed;
     } catch (error) {
       console.error('Error subscribing user to OneSignal:', error);
       return false;
@@ -86,16 +113,29 @@ export class OneSignalService {
         }
       }
 
-      // For client-side notifications, we use the service worker
+      console.log('Sending OneSignal notification:', { title, message });
+
+      // Use OneSignal's notification API
+      // Note: For client-side notifications in OneSignal, we need to use their REST API
+      // or handle this through service worker notifications since OneSignal doesn't 
+      // provide a direct client-side notification method
+      
+      // For now, we'll use service worker notifications with OneSignal branding
       if ('serviceWorker' in navigator && 'Notification' in window) {
         const registration = await navigator.serviceWorker.ready;
-        registration.showNotification(title, {
+        await registration.showNotification(title, {
           body: message,
           icon: '/favicon.ico',
           badge: '/favicon.ico',
           tag: `task-reminder-${Date.now()}`,
-          requireInteraction: true
+          requireInteraction: true,
+          data: {
+            source: 'onesignal',
+            taskText,
+            dueDate
+          }
         });
+        console.log('OneSignal notification sent via service worker');
         return true;
       }
       return false;
@@ -124,6 +164,7 @@ export class OneSignalService {
       message = `${taskText} is due today`;
     }
 
+    console.log('Sending OneSignal due date notification:', { title, message });
     return this.sendTaskReminder(taskText, dueDate);
   }
 
@@ -131,10 +172,26 @@ export class OneSignalService {
     if (!window.OneSignal) return null;
 
     try {
-      const userId = await window.OneSignal.User.PushSubscription.id;
+      // Get the OneSignal user ID
+      const userId = await window.OneSignal.User.onesignalId;
+      console.log('OneSignal User ID:', userId);
       return userId;
     } catch (error) {
       console.error('Error getting OneSignal user ID:', error);
+      return null;
+    }
+  }
+
+  async getPushSubscriptionId(): Promise<string | null> {
+    if (!window.OneSignal) return null;
+
+    try {
+      // Get the push subscription ID
+      const subscriptionId = await window.OneSignal.User.PushSubscription.id;
+      console.log('OneSignal Push Subscription ID:', subscriptionId);
+      return subscriptionId;
+    } catch (error) {
+      console.error('Error getting OneSignal push subscription ID:', error);
       return null;
     }
   }
