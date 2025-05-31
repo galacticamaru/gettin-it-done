@@ -42,8 +42,7 @@ export const useNotifications = () => {
             // Get user IDs for debugging
             if (subscribed) {
               const userId = await oneSignalService.getUserId();
-              const pushId = await oneSignalService.getPushSubscriptionId();
-              console.log('OneSignal User ID:', userId, 'Push Subscription ID:', pushId);
+              console.log('OneSignal User ID:', userId);
             }
           } catch (error) {
             console.error('Error checking OneSignal status:', error);
@@ -82,7 +81,7 @@ export const useNotifications = () => {
     console.log('Browser notification permission result:', result);
     
     setPermissionGranted(result.granted);
-    setPermissionDenied(!result.granted); // Only set denied if both methods failed
+    setPermissionDenied(!result.granted);
     return result.granted;
   };
 
@@ -252,7 +251,7 @@ export const useNotifications = () => {
 
   return {
     permissionGranted: permissionGranted || isSubscribed,
-    permissionDenied: permissionDenied && !oneSignalReady, // Only denied if both browser and OneSignal unavailable
+    permissionDenied: permissionDenied && !oneSignalReady,
     oneSignalReady,
     isSubscribed,
     hasNotificationCapability: hasNotificationCapability(),
