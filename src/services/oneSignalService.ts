@@ -1,4 +1,3 @@
-
 export interface OneSignalPermissionResult {
   granted: boolean;
   denied: boolean;
@@ -127,75 +126,79 @@ export class OneSignalService {
         return false;
       }
 
-      // For web push notifications, we need to use the REST API
-      // Since we can't directly send from client-side, we'll use the service worker approach
-      if ('serviceWorker' in navigator && 'Notification' in window) {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          
-          // Check if OneSignal service worker is active
-          if (registration.active && registration.active.scriptURL.includes('OneSignal')) {
-            console.log('OneSignal service worker is active');
-            
-            // Try to send via OneSignal's postMessage system
-            await registration.active.postMessage({
-              command: 'notification',
-              title,
-              body: message,
-              icon: '/favicon.ico',
-              badge: '/favicon.ico',
-              tag: `task-reminder-${Date.now()}`,
-              requireInteraction: true,
-              data: {
-                source: 'onesignal',
-                taskText,
-                dueDate
-              }
-            });
-            
-            console.log('OneSignal notification sent via service worker');
-            return true;
-          } else {
-            console.warn('OneSignal service worker not found or not active');
-            
-            // Fallback to browser notification
-            await registration.showNotification(title, {
-              body: message,
-              icon: '/favicon.ico',
-              badge: '/favicon.ico',
-              tag: `task-reminder-${Date.now()}`,
-              requireInteraction: true,
-              data: {
-                source: 'fallback',
-                taskText,
-                dueDate
-              }
-            });
-            
-            console.log('Notification sent via browser fallback');
-            return true;
-          }
-        } catch (swError) {
-          console.error('Service worker notification failed:', swError);
-          
-          // Final fallback to browser notification
-          if (Notification.permission === 'granted') {
-            new Notification(title, {
-              body: message,
-              icon: '/favicon.ico',
-              badge: '/favicon.ico',
-              tag: `task-reminder-${Date.now()}`,
-              requireInteraction: true
-            });
-            console.log('Notification sent via direct browser API');
-            return true;
-          }
-        }
+      // Get the user's subscription ID
+      const userSubscriptionId = await this.getUserId();
+      if (!userSubscriptionId) {
+        console.warn('Could not get user subscription ID');
+        return false;
       }
-      
-      return false;
+
+      console.log('Sending notification via Edge Function for user:', userSubscriptionId);
+
+      // Send notification via our Edge Function
+      const response = await fetch('https://gdopicetwkrzihvwikwu.supabase.co/functions/v1/send-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          message,
+          userSubscriptionId
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Edge Function error:', errorData);
+        
+        // Fallback to browser notification if Edge Function fails
+        if ('Notification' in window && Notification.permission === 'granted') {
+          console.log('Falling back to browser notification');
+          new Notification(title, {
+            body: message,
+            icon: '/favicon.ico',
+            badge: '/favicon.ico',
+            tag: `task-reminder-${Date.now()}`,
+            requireInteraction: true
+          });
+          return true;
+        }
+        return false;
+      }
+
+      const result = await response.json();
+      console.log('Notification sent successfully:', result);
+      return true;
+
     } catch (error) {
       console.error('Error sending OneSignal task reminder:', error);
+      
+      // Fallback to browser notification on any error
+      if ('Notification' in window && Notification.permission === 'granted') {
+        console.log('Falling back to browser notification due to error');
+        const title = 'Task Reminder 📝';
+        let message = `Don't forget: ${taskText}`;
+        
+        if (dueDate) {
+          const now = new Date();
+          const isOverdue = dueDate < now;
+          if (isOverdue) {
+            message = `⏰ Overdue: ${taskText}`;
+          } else {
+            message = `📅 Due soon: ${taskText}`;
+          }
+        }
+
+        new Notification(title, {
+          body: message,
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: `task-reminder-${Date.now()}`,
+          requireInteraction: true
+        });
+        return true;
+      }
       return false;
     }
   }
