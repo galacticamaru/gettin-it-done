@@ -51,7 +51,6 @@ export class OneSignalService {
     if (!window.OneSignal) return false;
 
     try {
-      // Check if user has an active push subscription
       const subscriptionId = await window.OneSignal.User.PushSubscription.id;
       console.log('OneSignal subscription ID:', subscriptionId);
       return !!subscriptionId;
@@ -86,7 +85,7 @@ export class OneSignalService {
       console.log('Successfully called OneSignal optIn');
       
       // Wait a moment for the subscription to be processed
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Verify subscription
       const subscribed = await this.isSubscribed();
@@ -100,7 +99,10 @@ export class OneSignalService {
   }
 
   async sendTaskReminder(taskText: string, dueDate?: Date): Promise<boolean> {
-    if (!window.OneSignal) return false;
+    if (!window.OneSignal) {
+      console.warn('OneSignal not available');
+      return false;
+    }
 
     try {
       const title = 'Task Reminder 📝';
@@ -118,25 +120,79 @@ export class OneSignalService {
 
       console.log('Sending OneSignal notification:', { title, message });
 
-      // For client-side notifications, we'll use service worker notifications
-      // OneSignal doesn't provide a direct client-side notification method
-      if ('serviceWorker' in navigator && 'Notification' in window) {
-        const registration = await navigator.serviceWorker.ready;
-        await registration.showNotification(title, {
-          body: message,
-          icon: '/favicon.ico',
-          badge: '/favicon.ico',
-          tag: `task-reminder-${Date.now()}`,
-          requireInteraction: true,
-          data: {
-            source: 'onesignal',
-            taskText,
-            dueDate
-          }
-        });
-        console.log('OneSignal notification sent via service worker');
-        return true;
+      // Check if we have an active subscription
+      const isSubscribed = await this.isSubscribed();
+      if (!isSubscribed) {
+        console.warn('User is not subscribed to OneSignal');
+        return false;
       }
+
+      // For web push notifications, we need to use the REST API
+      // Since we can't directly send from client-side, we'll use the service worker approach
+      if ('serviceWorker' in navigator && 'Notification' in window) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          
+          // Check if OneSignal service worker is active
+          if (registration.active && registration.active.scriptURL.includes('OneSignal')) {
+            console.log('OneSignal service worker is active');
+            
+            // Try to send via OneSignal's postMessage system
+            await registration.active.postMessage({
+              command: 'notification',
+              title,
+              body: message,
+              icon: '/favicon.ico',
+              badge: '/favicon.ico',
+              tag: `task-reminder-${Date.now()}`,
+              requireInteraction: true,
+              data: {
+                source: 'onesignal',
+                taskText,
+                dueDate
+              }
+            });
+            
+            console.log('OneSignal notification sent via service worker');
+            return true;
+          } else {
+            console.warn('OneSignal service worker not found or not active');
+            
+            // Fallback to browser notification
+            await registration.showNotification(title, {
+              body: message,
+              icon: '/favicon.ico',
+              badge: '/favicon.ico',
+              tag: `task-reminder-${Date.now()}`,
+              requireInteraction: true,
+              data: {
+                source: 'fallback',
+                taskText,
+                dueDate
+              }
+            });
+            
+            console.log('Notification sent via browser fallback');
+            return true;
+          }
+        } catch (swError) {
+          console.error('Service worker notification failed:', swError);
+          
+          // Final fallback to browser notification
+          if (Notification.permission === 'granted') {
+            new Notification(title, {
+              body: message,
+              icon: '/favicon.ico',
+              badge: '/favicon.ico',
+              tag: `task-reminder-${Date.now()}`,
+              requireInteraction: true
+            });
+            console.log('Notification sent via direct browser API');
+            return true;
+          }
+        }
+      }
+      
       return false;
     } catch (error) {
       console.error('Error sending OneSignal task reminder:', error);
@@ -171,7 +227,6 @@ export class OneSignalService {
     if (!window.OneSignal) return null;
 
     try {
-      // Get the push subscription ID (this is what we use as the user identifier)
       const subscriptionId = await window.OneSignal.User.PushSubscription.id;
       console.log('OneSignal Push Subscription ID:', subscriptionId);
       return subscriptionId || null;
