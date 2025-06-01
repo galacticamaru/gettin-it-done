@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,6 +11,7 @@ export interface Task {
   repeatOption?: string;
   reminder?: string;
   emoji?: string;
+  order?: number;
 }
 
 export const useTasks = () => {
@@ -27,6 +27,7 @@ export const useTasks = () => {
       const { data, error } = await supabase
         .from('user_tasks')
         .select('*')
+        .order('order', { ascending: true })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -40,6 +41,7 @@ export const useTasks = () => {
         repeatOption: task.repeat_option,
         reminder: task.reminder,
         emoji: task.emoji,
+        order: task.order || 0,
       }));
 
       setTasks(formattedTasks);
@@ -60,6 +62,8 @@ export const useTasks = () => {
     if (!user) return null;
 
     try {
+      const maxOrder = Math.max(...tasks.map(t => t.order || 0), -1);
+      
       const { data, error } = await supabase
         .from('user_tasks')
         .insert({
@@ -69,6 +73,7 @@ export const useTasks = () => {
           repeat_option: taskData.repeatOption !== 'none' ? taskData.repeatOption : null,
           reminder: taskData.reminder !== 'none' ? taskData.reminder : null,
           emoji: taskData.emoji || null,
+          order: maxOrder + 1,
         })
         .select()
         .single();
@@ -84,13 +89,50 @@ export const useTasks = () => {
         repeatOption: data.repeat_option,
         reminder: data.reminder,
         emoji: data.emoji,
+        order: data.order,
       };
 
-      setTasks([newTask, ...tasks]);
+      setTasks([...tasks, newTask].sort((a, b) => (a.order || 0) - (b.order || 0)));
       return data.id;
     } catch (error) {
       console.error('Error adding task:', error);
       return null;
+    }
+  };
+
+  const reorderTasks = async (dragIndex: number, hoverIndex: number) => {
+    const draggedTask = tasks[dragIndex];
+    const newTasks = [...tasks];
+    
+    // Remove the dragged task and insert it at the new position
+    newTasks.splice(dragIndex, 1);
+    newTasks.splice(hoverIndex, 0, draggedTask);
+    
+    // Update the order values
+    const updatedTasks = newTasks.map((task, index) => ({
+      ...task,
+      order: index
+    }));
+    
+    setTasks(updatedTasks);
+
+    // Update the order in the database
+    try {
+      const updates = updatedTasks.map(task => ({
+        id: task.id,
+        order: task.order
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from('user_tasks')
+          .update({ order: update.order })
+          .eq('id', update.id);
+      }
+    } catch (error) {
+      console.error('Error updating task order:', error);
+      // Revert to original order on error
+      fetchTasks();
     }
   };
 
@@ -144,6 +186,7 @@ export const useTasks = () => {
     addTask,
     toggleTask,
     deleteTask,
+    reorderTasks,
     refetch: fetchTasks,
   };
 };
