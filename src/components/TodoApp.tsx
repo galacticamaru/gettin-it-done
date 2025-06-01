@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { DndProvider } from 'react-dnd';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TaskOptionsModal } from './TaskOptionsModal';
