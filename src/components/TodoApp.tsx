@@ -7,6 +7,7 @@ import { TaskItem } from './TaskItem';
 import { FilterTabs } from './FilterTabs';
 import { ConfettiAnimation } from './ConfettiAnimation';
 import { EmojiPicker } from './EmojiPicker';
+import { ThemeToggle } from './ThemeToggle';
 import { useTasks } from '@/hooks/useTasks';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -96,36 +97,39 @@ export const TodoApp = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading your tasks...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Loading your tasks...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-md mx-auto px-6 py-8">
         <div className="flex justify-between items-start mb-8">
           <div className="text-center flex-1">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
               Getting it Done!
             </h1>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Today is {today}. Anything new you wanna get done?
             </p>
           </div>
-          <Button
-            onClick={signOut}
-            variant="ghost"
-            size="sm"
-            className="text-gray-500 hover:text-gray-700"
-          >
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button
+              onClick={signOut}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Sign Out
+            </Button>
+          </div>
         </div>
 
         {/* Add Task Input */}
-        <div className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm mb-4">
+        <div className="flex items-center gap-3 p-4 bg-card rounded-2xl shadow-sm mb-4 border">
           <EmojiPicker 
             selectedEmoji={selectedEmoji}
             onEmojiSelect={setSelectedEmoji}
@@ -140,7 +144,7 @@ export const TodoApp = () => {
           <Button 
             onClick={handleAddTask}
             size="sm" 
-            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-medium px-4 py-2 rounded-full"
+            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-medium px-4 py-2 rounded-full dark:bg-yellow-500 dark:hover:bg-yellow-600"
           >
             Add
           </Button>
@@ -166,7 +170,7 @@ export const TodoApp = () => {
           
           {filteredTasks.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-400 mb-2">
+              <p className="text-muted-foreground mb-2">
                 {filter === 'all' 
                   ? "Your tasks will appear here. Try adding a task above so you can track gettin it done."
                   : filter === 'completed'
@@ -198,12 +202,12 @@ export const TodoApp = () => {
 
         {/* Stats */}
         {tasks.length > 0 && (
-          <div className="mt-8 text-center text-sm text-gray-500">
+          <div className="mt-8 text-center text-sm text-muted-foreground">
             <p>
               {tasks.filter(t => t.completed).length} of {tasks.length} tasks completed
             </p>
             {tasks.filter(t => t.completed).length === tasks.length && tasks.length > 0 && (
-              <p className="text-green-600 font-medium mt-2">
+              <p className="text-green-600 font-medium mt-2 dark:text-green-400">
                 🎉 Amazing! You've completed all your tasks!
               </p>
             )}
