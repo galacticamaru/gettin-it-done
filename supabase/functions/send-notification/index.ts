@@ -54,7 +54,7 @@ const handler = async (req: Request): Promise<Response> => {
       include_subscription_ids: [userSubscriptionId],
       headings: { en: title },
       contents: { en: message },
-      web_url: window.location?.origin || 'https://40750f37-8eb8-48b2-91db-b7497085fdf3.lovableproject.com',
+      web_url: window.location?.origin || 'https://gettin-it-done.lovable.app/',
       chrome_web_icon: '/favicon.ico',
       chrome_web_badge: '/favicon.ico',
       data: {
