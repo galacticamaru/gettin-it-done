@@ -32,8 +32,8 @@ export const TaskItem = ({ task, onToggle, onDelete }: TaskItemProps) => {
 
   return (
     <div
-      className={`flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md ${
-        task.completed ? 'bg-green-50' : ''
+      className={`flex items-center gap-3 p-4 bg-card rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md border ${
+        task.completed ? 'bg-green-50 dark:bg-green-950/30' : ''
       }`}
     >
       <button
@@ -41,7 +41,7 @@ export const TaskItem = ({ task, onToggle, onDelete }: TaskItemProps) => {
         className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
           task.completed 
             ? 'bg-green-500 border-green-500' 
-            : 'border-gray-300 hover:border-green-400'
+            : 'border-border hover:border-green-400'
         }`}
       >
         {task.completed && (
@@ -56,13 +56,13 @@ export const TaskItem = ({ task, onToggle, onDelete }: TaskItemProps) => {
       <div className="flex-1">
         <span className={`block ${
           task.completed 
-            ? 'text-gray-500 line-through' 
-            : 'text-gray-700'
+            ? 'text-muted-foreground line-through' 
+            : 'text-foreground'
         }`}>
           {task.text}
         </span>
         {(task.dueDate || task.repeatOption || task.reminder) && (
-          <div className="text-xs text-gray-400 mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             {task.dueDate && `Due ${new Date(task.dueDate).toLocaleDateString()}`}
             {task.dueDate && (task.repeatOption || task.reminder) && ' • '}
             {task.repeatOption && `Repeats ${task.repeatOption}`}
@@ -74,7 +74,7 @@ export const TaskItem = ({ task, onToggle, onDelete }: TaskItemProps) => {
       
       <button
         onClick={() => onDelete(task.id)}
-        className="text-gray-400 hover:text-red-500 transition-colors ml-2"
+        className="text-muted-foreground hover:text-destructive transition-colors ml-2"
       >
         ×
       </button>
