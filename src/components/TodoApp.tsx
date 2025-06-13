@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +10,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { useTasks } from '@/hooks/useTasks';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/hooks/useNotifications';
+import { DailyDigestToggle } from './DailyDigestToggle';
 
 type Filter = 'all' | 'completed' | 'active';
 
@@ -126,6 +126,11 @@ export const TodoApp = () => {
               Sign Out
             </Button>
           </div>
+        </div>
+
+        {/* Daily Digest Toggle */}
+        <div className="mb-4 p-4 bg-card rounded-2xl shadow-sm border">
+          <DailyDigestToggle />
         </div>
 
         {/* Add Task Input */}

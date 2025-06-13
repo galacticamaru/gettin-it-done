@@ -30,10 +30,35 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          created_at: string
+          daily_digest_enabled: boolean
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_digest_enabled?: boolean
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_digest_enabled?: boolean
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_tasks: {
         Row: {
           completed: boolean | null
           created_at: string | null
+          daily_digest_enabled: boolean | null
           due_date: string | null
           emoji: string | null
           id: string
@@ -46,6 +71,7 @@ export type Database = {
         Insert: {
           completed?: boolean | null
           created_at?: string | null
+          daily_digest_enabled?: boolean | null
           due_date?: string | null
           emoji?: string | null
           id?: string
@@ -58,6 +84,7 @@ export type Database = {
         Update: {
           completed?: boolean | null
           created_at?: string | null
+          daily_digest_enabled?: boolean | null
           due_date?: string | null
           emoji?: string | null
           id?: string
