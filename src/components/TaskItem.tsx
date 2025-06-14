@@ -32,24 +32,54 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
+    canDrag: () => {
+      console.log('🎯 canDrag check for task:', task.text);
+      return true;
+    },
+    begin: () => {
+      console.log('🚀 Drag started for task:', task.text, 'ID:', task.id);
+      return { id: task.id.toString() };
+    },
+    end: (item, monitor) => {
+      console.log('🏁 Drag ended for task:', task.text, 'Success:', monitor.didDrop());
+    },
   });
 
   const [, drop] = useDrop({
     accept: TASK_TYPE,
     hover: (draggedItem: { id: string }) => {
-      if (!ref.current) return;
+      if (!ref.current) {
+        console.log('❌ No ref available for hover');
+        return;
+      }
       
       const dragId = draggedItem.id;
       const hoverId = task.id.toString();
       
-      if (dragId === hoverId) return;
+      console.log('👆 Hover detected:', { dragId, hoverId, taskText: task.text });
       
+      if (dragId === hoverId) {
+        console.log('🔄 Same task, skipping reorder');
+        return;
+      }
+      
+      console.log('📞 Calling onReorder with:', { dragId, hoverId });
       onReorder?.(dragId, hoverId);
+    },
+    drop: (draggedItem: { id: string }) => {
+      console.log('💧 Drop detected on task:', task.text, 'from:', draggedItem.id);
     },
   });
 
   // Connect both drag and drop to the ref
   drag(drop(ref));
+
+  console.log('🎨 Rendering TaskItem:', { 
+    id: task.id, 
+    text: task.text, 
+    isDragging, 
+    hasOnReorder: !!onReorder 
+  });
 
   const getTaskEmoji = (text: string) => {
     const lower = text.toLowerCase();

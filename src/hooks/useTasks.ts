@@ -25,6 +25,7 @@ export const useTasks = () => {
     
     setLoading(true);
     try {
+      console.log('Fetching tasks...');
       const { data, error } = await supabase
         .from('user_tasks')
         .select('*')
@@ -45,6 +46,7 @@ export const useTasks = () => {
         sortOrder: task.sort_order ?? index,
       }));
 
+      console.log('Fetched tasks:', formattedTasks);
       setTasks(formattedTasks);
     } catch (error) {
       console.error('Error fetching tasks:', error);
@@ -65,6 +67,7 @@ export const useTasks = () => {
     try {
       // Get the highest sort_order and add 1
       const maxSortOrder = Math.max(...tasks.map(t => t.sortOrder || 0), -1);
+      console.log('Adding task with sort_order:', maxSortOrder + 1);
       
       const { data, error } = await supabase
         .from('user_tasks')
@@ -138,13 +141,22 @@ export const useTasks = () => {
   };
 
   const reorderTasks = async (dragId: string, hoverId: string) => {
+    console.log('🔄 reorderTasks called with:', { dragId, hoverId });
+    
     const dragIndex = tasks.findIndex(task => task.id === dragId);
     const hoverIndex = tasks.findIndex(task => task.id === hoverId);
 
-    if (dragIndex === -1 || hoverIndex === -1) return;
+    console.log('📍 Found indices:', { dragIndex, hoverIndex });
+
+    if (dragIndex === -1 || hoverIndex === -1) {
+      console.error('❌ Could not find task indices');
+      return;
+    }
 
     const newTasks = [...tasks];
     const dragTask = newTasks[dragIndex];
+    
+    console.log('📦 Moving task:', dragTask.text, 'from position', dragIndex, 'to', hoverIndex);
     
     // Remove the dragged task and insert at new position
     newTasks.splice(dragIndex, 1);
@@ -156,23 +168,28 @@ export const useTasks = () => {
       sortOrder: index
     }));
 
+    console.log('✅ Updated task order:', updatedTasks.map(t => ({ id: t.id, text: t.text, sortOrder: t.sortOrder })));
+
     setTasks(updatedTasks);
 
     // Update sort orders in database
     try {
+      console.log('💾 Saving order to database...');
       const updates = updatedTasks.map((task, index) => ({
         id: task.id,
         sort_order: index
       }));
 
       for (const update of updates) {
+        console.log('📝 Updating task:', update.id, 'to sort_order:', update.sort_order);
         await supabase
           .from('user_tasks')
           .update({ sort_order: update.sort_order } as any)
           .eq('id', update.id);
       }
+      console.log('✅ Successfully saved order to database');
     } catch (error) {
-      console.error('Error updating task order:', error);
+      console.error('❌ Error updating task order:', error);
       // Revert on error
       fetchTasks();
     }

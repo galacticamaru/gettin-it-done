@@ -6,6 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Cog, Bell, BellOff } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
+import { DailyDigestToggle } from './DailyDigestToggle';
 
 export const SettingsDrawer = () => {
   const [open, setOpen] = useState(false);
@@ -68,6 +69,11 @@ export const SettingsDrawer = () => {
                     onCheckedChange={handleNotificationToggle}
                     disabled={!oneSignalReady}
                   />
+                </div>
+
+                {/* Daily Digest Toggle */}
+                <div className="pl-8 border-l-2 border-muted">
+                  <DailyDigestToggle />
                 </div>
                 
                 {!oneSignalReady && (
