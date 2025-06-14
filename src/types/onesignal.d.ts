@@ -9,6 +9,7 @@ declare global {
       User: {
         PushSubscription: {
           optIn(): Promise<void>;
+          optOut(): Promise<void>;
           id: Promise<string | null>;
         };
       };
