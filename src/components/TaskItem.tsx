@@ -1,7 +1,7 @@
 
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { move } from 'lucide-react';
+import { Move } from 'lucide-react';
 
 interface Task {
   id: number;
@@ -111,7 +111,7 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
 
       <div className="flex items-center gap-2">
         <div className="drag-handle text-muted-foreground hover:text-foreground transition-colors cursor-grab active:cursor-grabbing">
-          <move className="h-4 w-4" />
+          <Move className="h-4 w-4" />
         </div>
         
         <button
