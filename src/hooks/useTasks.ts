@@ -12,6 +12,7 @@ export interface Task {
   repeatOption?: string;
   reminder?: string;
   emoji?: string;
+  sortOrder?: number;
 }
 
 export const useTasks = () => {
@@ -27,11 +28,12 @@ export const useTasks = () => {
       const { data, error } = await supabase
         .from('user_tasks')
         .select('*')
+        .order('completed', { ascending: true })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const formattedTasks: Task[] = data.map(task => ({
+      const formattedTasks: Task[] = data.map((task, index) => ({
         id: task.id,
         text: task.text,
         completed: task.completed,
@@ -40,6 +42,7 @@ export const useTasks = () => {
         repeatOption: task.repeat_option,
         reminder: task.reminder,
         emoji: task.emoji,
+        sortOrder: index,
       }));
 
       setTasks(formattedTasks);
@@ -84,6 +87,7 @@ export const useTasks = () => {
         repeatOption: data.repeat_option,
         reminder: data.reminder,
         emoji: data.emoji,
+        sortOrder: 0,
       };
 
       setTasks([newTask, ...tasks]);
@@ -129,6 +133,29 @@ export const useTasks = () => {
     }
   };
 
+  const reorderTasks = (dragId: string, hoverId: string) => {
+    const dragIndex = tasks.findIndex(task => task.id === dragId);
+    const hoverIndex = tasks.findIndex(task => task.id === hoverId);
+
+    if (dragIndex === -1 || hoverIndex === -1) return;
+
+    const dragTask = tasks[dragIndex];
+    const newTasks = [...tasks];
+    
+    // Remove the dragged task
+    newTasks.splice(dragIndex, 1);
+    // Insert it at the new position
+    newTasks.splice(hoverIndex, 0, dragTask);
+    
+    // Update sort orders
+    const updatedTasks = newTasks.map((task, index) => ({
+      ...task,
+      sortOrder: index
+    }));
+
+    setTasks(updatedTasks);
+  };
+
   useEffect(() => {
     if (user) {
       fetchTasks();
@@ -144,6 +171,7 @@ export const useTasks = () => {
     addTask,
     toggleTask,
     deleteTask,
+    reorderTasks,
     refetch: fetchTasks,
   };
 };
