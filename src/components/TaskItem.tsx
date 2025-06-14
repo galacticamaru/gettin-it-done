@@ -48,6 +48,7 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
     },
   });
 
+  // Connect both drag and drop to the ref
   drag(drop(ref));
 
   const getTaskEmoji = (text: string) => {
@@ -69,7 +70,6 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
       className={`flex items-center gap-3 p-4 bg-card rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md border ${
         task.completed ? 'bg-green-50 dark:bg-green-950/30' : ''
       } ${isDragging ? 'opacity-50' : ''}`}
-      style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
     >
       <div className="flex items-center gap-3 flex-1">
         <button

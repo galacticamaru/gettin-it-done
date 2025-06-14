@@ -28,7 +28,7 @@ export const useTasks = () => {
       const { data, error } = await supabase
         .from('user_tasks')
         .select('*')
-        .order('completed', { ascending: true })
+        .order('sort_order', { ascending: true })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -42,7 +42,7 @@ export const useTasks = () => {
         repeatOption: task.repeat_option,
         reminder: task.reminder,
         emoji: task.emoji,
-        sortOrder: index,
+        sortOrder: task.sort_order ?? index,
       }));
 
       setTasks(formattedTasks);
@@ -63,6 +63,9 @@ export const useTasks = () => {
     if (!user) return null;
 
     try {
+      // Get the highest sort_order and add 1
+      const maxSortOrder = Math.max(...tasks.map(t => t.sortOrder || 0), -1);
+      
       const { data, error } = await supabase
         .from('user_tasks')
         .insert({
@@ -72,6 +75,7 @@ export const useTasks = () => {
           repeat_option: taskData.repeatOption !== 'none' ? taskData.repeatOption : null,
           reminder: taskData.reminder !== 'none' ? taskData.reminder : null,
           emoji: taskData.emoji || null,
+          sort_order: maxSortOrder + 1,
         })
         .select()
         .single();
@@ -87,10 +91,10 @@ export const useTasks = () => {
         repeatOption: data.repeat_option,
         reminder: data.reminder,
         emoji: data.emoji,
-        sortOrder: 0,
+        sortOrder: data.sort_order,
       };
 
-      setTasks([newTask, ...tasks]);
+      setTasks([...tasks, newTask].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)));
       return data.id;
     } catch (error) {
       console.error('Error adding task:', error);
@@ -133,18 +137,17 @@ export const useTasks = () => {
     }
   };
 
-  const reorderTasks = (dragId: string, hoverId: string) => {
+  const reorderTasks = async (dragId: string, hoverId: string) => {
     const dragIndex = tasks.findIndex(task => task.id === dragId);
     const hoverIndex = tasks.findIndex(task => task.id === hoverId);
 
     if (dragIndex === -1 || hoverIndex === -1) return;
 
-    const dragTask = tasks[dragIndex];
     const newTasks = [...tasks];
+    const dragTask = newTasks[dragIndex];
     
-    // Remove the dragged task
+    // Remove the dragged task and insert at new position
     newTasks.splice(dragIndex, 1);
-    // Insert it at the new position
     newTasks.splice(hoverIndex, 0, dragTask);
     
     // Update sort orders
@@ -154,6 +157,25 @@ export const useTasks = () => {
     }));
 
     setTasks(updatedTasks);
+
+    // Update sort orders in database
+    try {
+      const updates = updatedTasks.map((task, index) => ({
+        id: task.id,
+        sort_order: index
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from('user_tasks')
+          .update({ sort_order: update.sort_order })
+          .eq('id', update.id);
+      }
+    } catch (error) {
+      console.error('Error updating task order:', error);
+      // Revert on error
+      fetchTasks();
+    }
   };
 
   useEffect(() => {
