@@ -64,6 +64,7 @@ export type Database = {
           id: string
           reminder: string | null
           repeat_option: string | null
+          sort_order: number | null
           text: string
           updated_at: string | null
           user_id: string
@@ -77,6 +78,7 @@ export type Database = {
           id?: string
           reminder?: string | null
           repeat_option?: string | null
+          sort_order?: number | null
           text: string
           updated_at?: string | null
           user_id: string
@@ -90,6 +92,7 @@ export type Database = {
           id?: string
           reminder?: string | null
           repeat_option?: string | null
+          sort_order?: number | null
           text?: string
           updated_at?: string | null
           user_id?: string

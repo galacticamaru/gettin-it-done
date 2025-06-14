@@ -33,7 +33,7 @@ export const useTasks = () => {
 
       if (error) throw error;
 
-      const formattedTasks: Task[] = data.map((task, index) => ({
+      const formattedTasks: Task[] = data.map((task: any, index) => ({
         id: task.id,
         text: task.text,
         completed: task.completed,
@@ -76,7 +76,7 @@ export const useTasks = () => {
           reminder: taskData.reminder !== 'none' ? taskData.reminder : null,
           emoji: taskData.emoji || null,
           sort_order: maxSortOrder + 1,
-        })
+        } as any)
         .select()
         .single();
 
@@ -168,7 +168,7 @@ export const useTasks = () => {
       for (const update of updates) {
         await supabase
           .from('user_tasks')
-          .update({ sort_order: update.sort_order })
+          .update({ sort_order: update.sort_order } as any)
           .eq('id', update.id);
       }
     } catch (error) {
