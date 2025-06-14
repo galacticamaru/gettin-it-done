@@ -97,6 +97,37 @@ export class OneSignalService {
     }
   }
 
+  async unsubscribeUser(): Promise<boolean> {
+    if (!window.OneSignal) return false;
+
+    try {
+      console.log('Attempting to unsubscribe user from OneSignal...');
+      
+      // Check if already unsubscribed
+      const currentlySubscribed = await this.isSubscribed();
+      if (!currentlySubscribed) {
+        console.log('User is already unsubscribed from OneSignal');
+        return true;
+      }
+
+      // Opt out of push notifications
+      await window.OneSignal.User.PushSubscription.optOut();
+      console.log('Successfully called OneSignal optOut');
+      
+      // Wait a moment for the unsubscription to be processed
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Verify unsubscription
+      const stillSubscribed = await this.isSubscribed();
+      console.log('Unsubscription verification - still subscribed:', stillSubscribed);
+      
+      return !stillSubscribed;
+    } catch (error) {
+      console.error('Error unsubscribing user from OneSignal:', error);
+      return false;
+    }
+  }
+
   async sendTaskReminder(taskText: string, dueDate?: Date): Promise<boolean> {
     if (!window.OneSignal) {
       console.warn('OneSignal not available');
@@ -151,19 +182,6 @@ export class OneSignalService {
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Edge Function error:', errorData);
-        
-        // Fallback to browser notification if Edge Function fails
-        if ('Notification' in window && Notification.permission === 'granted') {
-          console.log('Falling back to browser notification');
-          new Notification(title, {
-            body: message,
-            icon: '/favicon.ico',
-            badge: '/favicon.ico',
-            tag: `task-reminder-${Date.now()}`,
-            requireInteraction: true
-          });
-          return true;
-        }
         return false;
       }
 
@@ -173,32 +191,6 @@ export class OneSignalService {
 
     } catch (error) {
       console.error('Error sending OneSignal task reminder:', error);
-      
-      // Fallback to browser notification on any error
-      if ('Notification' in window && Notification.permission === 'granted') {
-        console.log('Falling back to browser notification due to error');
-        const title = 'Task Reminder 📝';
-        let message = `Don't forget: ${taskText}`;
-        
-        if (dueDate) {
-          const now = new Date();
-          const isOverdue = dueDate < now;
-          if (isOverdue) {
-            message = `⏰ Overdue: ${taskText}`;
-          } else {
-            message = `📅 Due soon: ${taskText}`;
-          }
-        }
-
-        new Notification(title, {
-          body: message,
-          icon: '/favicon.ico',
-          badge: '/favicon.ico',
-          tag: `task-reminder-${Date.now()}`,
-          requireInteraction: true
-        });
-        return true;
-      }
       return false;
     }
   }

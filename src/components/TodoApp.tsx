@@ -7,11 +7,14 @@ import { FilterTabs } from './FilterTabs';
 import { ConfettiAnimation } from './ConfettiAnimation';
 import { EmojiPicker } from './EmojiPicker';
 import { ThemeToggle } from './ThemeToggle';
+import { SettingsDrawer } from './SettingsDrawer';
 import { useTasks } from '@/hooks/useTasks';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import { DailyDigestToggle } from './DailyDigestToggle';
+
 type Filter = 'all' | 'completed' | 'active';
+
 export const TodoApp = () => {
   const {
     user,
@@ -38,6 +41,7 @@ export const TodoApp = () => {
   const [repeatOption, setRepeatOption] = useState('none');
   const [reminder, setReminder] = useState('none');
   const [selectedEmoji, setSelectedEmoji] = useState('');
+
   const handleAddTask = async () => {
     if (newTask.trim()) {
       const taskData = {
@@ -113,6 +117,7 @@ export const TodoApp = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <SettingsDrawer />
             <ThemeToggle />
             <Button onClick={signOut} variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
               Sign Out

@@ -1,26 +1,16 @@
+
 import { useState, useEffect } from 'react';
 import { notificationService } from '@/services/notificationService';
 import { oneSignalService } from '@/services/oneSignalService';
 
 export const useNotifications = () => {
-  const [permissionGranted, setPermissionGranted] = useState(false);
-  const [permissionDenied, setPermissionDenied] = useState(false);
   const [activeReminders, setActiveReminders] = useState<Map<string, number>>(new Map());
   const [oneSignalReady, setOneSignalReady] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
 
   useEffect(() => {
     const initNotifications = async () => {
-      console.log('Initializing notifications...');
-      
-      // Check initial permission state for browser notifications
-      const browserPermissionGranted = notificationService.isPermissionGranted();
-      const browserPermissionDenied = notificationService.isPermissionDenied();
-      
-      console.log('Browser notifications - granted:', browserPermissionGranted, 'denied:', browserPermissionDenied);
-      
-      setPermissionGranted(browserPermissionGranted);
-      setPermissionDenied(browserPermissionDenied);
+      console.log('Initializing OneSignal notifications...');
 
       // Initialize OneSignal when ready
       if (window.OneSignalDeferred) {
@@ -30,13 +20,8 @@ export const useNotifications = () => {
           setOneSignalReady(true);
           
           try {
-            const oneSignalGranted = await oneSignalService.isPermissionGranted();
             const subscribed = await oneSignalService.isSubscribed();
-            
-            console.log('OneSignal status - permission:', oneSignalGranted, 'subscribed:', subscribed);
-            
-            // Update permission states - we have permission if either OneSignal OR browser notifications work
-            setPermissionGranted(browserPermissionGranted || oneSignalGranted);
+            console.log('OneSignal subscription status:', subscribed);
             setIsSubscribed(subscribed);
 
             // Get user IDs for debugging
@@ -57,32 +42,41 @@ export const useNotifications = () => {
   }, []);
 
   const requestPermission = async (): Promise<boolean> => {
-    console.log('Requesting notification permission...');
+    console.log('Requesting OneSignal permission/subscription...');
     
-    // Try OneSignal first if available, then fall back to browser notifications
-    if (oneSignalReady) {
-      console.log('Trying OneSignal permission/subscription...');
-      
-      const subscribed = await oneSignalService.subscribeUser();
-      if (subscribed) {
-        console.log('OneSignal subscription successful');
-        setPermissionGranted(true);
-        setPermissionDenied(false);
-        setIsSubscribed(true);
-        return true;
-      } else {
-        console.log('OneSignal subscription failed');
-      }
+    if (!oneSignalReady) {
+      console.log('OneSignal not ready yet');
+      return false;
     }
 
-    // Fallback to browser notifications
-    console.log('Falling back to browser notifications...');
-    const result = await notificationService.requestPermission();
-    console.log('Browser notification permission result:', result);
+    const subscribed = await oneSignalService.subscribeUser();
+    if (subscribed) {
+      console.log('OneSignal subscription successful');
+      setIsSubscribed(true);
+      return true;
+    } else {
+      console.log('OneSignal subscription failed');
+      return false;
+    }
+  };
+
+  const unsubscribeFromNotifications = async (): Promise<boolean> => {
+    console.log('Unsubscribing from OneSignal notifications...');
     
-    setPermissionGranted(result.granted);
-    setPermissionDenied(!result.granted);
-    return result.granted;
+    if (!oneSignalReady) {
+      console.log('OneSignal not ready yet');
+      return false;
+    }
+
+    const unsubscribed = await oneSignalService.unsubscribeUser();
+    if (unsubscribed) {
+      console.log('OneSignal unsubscription successful');
+      setIsSubscribed(false);
+      return true;
+    } else {
+      console.log('OneSignal unsubscription failed');
+      return false;
+    }
   };
 
   const scheduleTaskReminder = async (taskId: string, taskText: string, dueDate: Date | undefined, reminderOption: string) => {
@@ -94,11 +88,11 @@ export const useNotifications = () => {
     console.log('Scheduling task reminder:', { taskId, taskText, reminderOption, hasSubscription: isSubscribed });
 
     // Check if we need to request permission
-    if (!permissionGranted && !isSubscribed) {
-      console.log('No permission/subscription, requesting...');
+    if (!isSubscribed) {
+      console.log('No subscription, requesting...');
       const granted = await requestPermission();
       if (!granted) {
-        console.log('Permission/subscription denied, cannot schedule reminder');
+        console.log('Subscription denied, cannot schedule reminder');
         return;
       }
     }
@@ -123,35 +117,7 @@ export const useNotifications = () => {
     // Schedule new reminder
     const timeoutId = window.setTimeout(async () => {
       console.log('Sending scheduled reminder for task:', taskId);
-      
-      // Try OneSignal first
-      if (oneSignalReady && isSubscribed) {
-        console.log('Sending via OneSignal...');
-        const sent = await oneSignalService.sendTaskReminder(taskText, dueDate);
-        if (!sent) {
-          console.log('OneSignal send failed, falling back to browser notification');
-          // Fallback to browser notification
-          if (permissionGranted) {
-            new Notification('Task Reminder 📝', {
-              body: `Don't forget: ${taskText}`,
-              icon: '/favicon.ico',
-              badge: '/favicon.ico',
-              tag: `task-reminder-${taskId}`,
-              requireInteraction: true
-            });
-          }
-        }
-      } else if (permissionGranted) {
-        console.log('Sending via browser notification...');
-        // Fallback to browser notification
-        new Notification('Task Reminder 📝', {
-          body: `Don't forget: ${taskText}`,
-          icon: '/favicon.ico',
-          badge: '/favicon.ico',
-          tag: `task-reminder-${taskId}`,
-          requireInteraction: true
-        });
-      }
+      await oneSignalService.sendTaskReminder(taskText, dueDate);
 
       // Remove from active reminders
       setActiveReminders(prev => {
@@ -169,7 +135,7 @@ export const useNotifications = () => {
 
   const scheduleDueDateNotification = async (taskId: string, taskText: string, dueDate: Date) => {
     // Check if we need to request permission
-    if (!permissionGranted && !isSubscribed) {
+    if (!isSubscribed) {
       const granted = await requestPermission();
       if (!granted) {
         return;
@@ -183,17 +149,7 @@ export const useNotifications = () => {
     if (timeUntilDue > 60 * 60 * 1000) { // More than 1 hour away
       const reminderTime = new Date(dueDate.getTime() - 60 * 60 * 1000); // 1 hour before
       const timeoutId = window.setTimeout(async () => {
-        if (oneSignalReady && isSubscribed) {
-          await oneSignalService.sendDueDateNotification(taskText, dueDate);
-        } else if (permissionGranted) {
-          new Notification('Task Due Soon 📅', {
-            body: `${taskText} is due in 1 hour`,
-            icon: '/favicon.ico',
-            badge: '/favicon.ico',
-            tag: `due-date-${taskId}`,
-            requireInteraction: true
-          });
-        }
+        await oneSignalService.sendDueDateNotification(taskText, dueDate);
       }, reminderTime.getTime() - now.getTime());
 
       setActiveReminders(prev => new Map(prev).set(`due-${taskId}`, timeoutId));
@@ -201,17 +157,7 @@ export const useNotifications = () => {
 
     // Schedule notification for when task becomes overdue
     const overdueTimeoutId = window.setTimeout(async () => {
-      if (oneSignalReady && isSubscribed) {
-        await oneSignalService.sendDueDateNotification(taskText, dueDate);
-      } else if (permissionGranted) {
-        new Notification('Task Overdue ⏰', {
-          body: `${taskText} is overdue!`,
-          icon: '/favicon.ico',
-          badge: '/favicon.ico',
-          tag: `overdue-${taskId}`,
-          requireInteraction: true
-        });
-      }
+      await oneSignalService.sendDueDateNotification(taskText, dueDate);
     }, timeUntilDue);
 
     setActiveReminders(prev => new Map(prev).set(`overdue-${taskId}`, overdueTimeoutId));
@@ -244,18 +190,14 @@ export const useNotifications = () => {
     });
   };
 
-  // Check if any notification method is available
-  const hasNotificationCapability = () => {
-    return oneSignalReady || ('Notification' in window && Notification.permission !== 'denied');
-  };
-
   return {
-    permissionGranted: permissionGranted || isSubscribed,
-    permissionDenied: permissionDenied && !oneSignalReady,
+    permissionGranted: isSubscribed,
+    permissionDenied: false,
     oneSignalReady,
     isSubscribed,
-    hasNotificationCapability: hasNotificationCapability(),
+    hasNotificationCapability: oneSignalReady,
     requestPermission,
+    unsubscribeFromNotifications,
     scheduleTaskReminder,
     scheduleDueDateNotification,
     cancelTaskReminder,
