@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -65,10 +64,22 @@ export const useTasks = () => {
     if (!user) return null;
 
     try {
-      // Get the highest sort_order and add 1
-      const maxSortOrder = Math.max(...tasks.map(t => t.sortOrder || 0), -1);
-      console.log('Adding task with sort_order:', maxSortOrder + 1);
+      console.log('Adding new task at the top of the list');
       
+      // First, increment all existing tasks' sort_order by 1
+      const { error: updateError } = await supabase
+        .from('user_tasks')
+        .update({ sort_order: supabase.sql`sort_order + 1` } as any)
+        .eq('user_id', user.id);
+
+      if (updateError) {
+        console.error('Error updating existing task orders:', updateError);
+        throw updateError;
+      }
+
+      console.log('Incremented all existing task sort orders');
+
+      // Now insert the new task with sort_order = 0
       const { data, error } = await supabase
         .from('user_tasks')
         .insert({
@@ -78,12 +89,14 @@ export const useTasks = () => {
           repeat_option: taskData.repeatOption !== 'none' ? taskData.repeatOption : null,
           reminder: taskData.reminder !== 'none' ? taskData.reminder : null,
           emoji: taskData.emoji || null,
-          sort_order: maxSortOrder + 1,
+          sort_order: 0,
         } as any)
         .select()
         .single();
 
       if (error) throw error;
+
+      console.log('Added new task with sort_order 0:', data);
 
       const newTask: Task = {
         id: data.id,
@@ -97,7 +110,14 @@ export const useTasks = () => {
         sortOrder: data.sort_order,
       };
 
-      setTasks([...tasks, newTask].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)));
+      // Update local state - add new task at beginning and increment sort orders
+      const updatedTasks = [
+        newTask,
+        ...tasks.map(task => ({ ...task, sortOrder: (task.sortOrder || 0) + 1 }))
+      ];
+
+      console.log('Updated local task list:', updatedTasks);
+      setTasks(updatedTasks);
       return data.id;
     } catch (error) {
       console.error('Error adding task:', error);
