@@ -28,17 +28,16 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
 
   const [{ isDragging }, drag] = useDrag({
     type: TASK_TYPE,
-    item: { id: task.id.toString() },
+    item: () => {
+      console.log('🚀 Drag started for task:', task.text, 'ID:', task.id);
+      return { id: task.id.toString() };
+    },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
     canDrag: () => {
       console.log('🎯 canDrag check for task:', task.text);
       return true;
-    },
-    begin: () => {
-      console.log('🚀 Drag started for task:', task.text, 'ID:', task.id);
-      return { id: task.id.toString() };
     },
     end: (item, monitor) => {
       console.log('🏁 Drag ended for task:', task.text, 'Success:', monitor.didDrop());
