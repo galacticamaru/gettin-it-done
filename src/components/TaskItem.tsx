@@ -4,7 +4,7 @@ import { useDrag, useDrop } from 'react-dnd';
 import { Move } from 'lucide-react';
 
 interface Task {
-  id: number;
+  id: string; // Changed from number to string
   text: string;
   completed: boolean;
   createdAt: string;
@@ -16,8 +16,8 @@ interface Task {
 
 interface TaskItemProps {
   task: Task;
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
+  onToggle: (id: string) => void; // Changed from number to string
+  onDelete: (id: string) => void; // Changed from number to string
   onReorder?: (dragId: string, hoverId: string) => void;
 }
 

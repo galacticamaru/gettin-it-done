@@ -159,18 +159,9 @@ export const TodoApp = () => {
               filteredTasks.map(task => (
                 <TaskItem 
                   key={task.id} 
-                  task={{
-                    id: parseInt(task.id),
-                    text: task.text,
-                    completed: task.completed,
-                    createdAt: task.createdAt,
-                    dueDate: task.dueDate,
-                    repeatOption: task.repeatOption,
-                    reminder: task.reminder,
-                    emoji: task.emoji
-                  }} 
-                  onToggle={() => handleToggleTask(task.id)} 
-                  onDelete={() => handleDeleteTask(task.id)}
+                  task={task} // Pass the task directly without converting ID
+                  onToggle={handleToggleTask} 
+                  onDelete={handleDeleteTask}
                   onReorder={reorderTasks}
                 />
               ))
