@@ -66,18 +66,29 @@ export const useTasks = () => {
     try {
       console.log('Adding new task at the top of the list');
       
-      // First, increment all existing tasks' sort_order by 1
-      const { error: updateError } = await supabase
+      // First, get all existing tasks to update their sort orders
+      const { data: existingTasks, error: fetchError } = await supabase
         .from('user_tasks')
-        .update({ sort_order: supabase.sql`sort_order + 1` } as any)
+        .select('id, sort_order')
         .eq('user_id', user.id);
 
-      if (updateError) {
-        console.error('Error updating existing task orders:', updateError);
-        throw updateError;
+      if (fetchError) {
+        console.error('Error fetching existing tasks:', fetchError);
+        throw fetchError;
       }
 
-      console.log('Incremented all existing task sort orders');
+      // Update all existing tasks' sort_order by incrementing by 1
+      if (existingTasks && existingTasks.length > 0) {
+        const updatePromises = existingTasks.map(task => 
+          supabase
+            .from('user_tasks')
+            .update({ sort_order: (task.sort_order || 0) + 1 })
+            .eq('id', task.id)
+        );
+
+        await Promise.all(updatePromises);
+        console.log('Incremented all existing task sort orders');
+      }
 
       // Now insert the new task with sort_order = 0
       const { data, error } = await supabase
