@@ -1,4 +1,3 @@
-
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { Move } from 'lucide-react';
@@ -22,6 +21,9 @@ interface TaskItemProps {
 }
 
 const TASK_TYPE = 'task';
+
+// Set to track logged renders to avoid spam
+const loggedRenders = new Set<string>();
 
 export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -73,12 +75,24 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
   // Connect both drag and drop to the ref
   drag(drop(ref));
 
-  console.log('🎨 Rendering TaskItem:', { 
-    id: task.id, 
-    text: task.text, 
-    isDragging, 
-    hasOnReorder: !!onReorder 
-  });
+  // Only log render info if it's new or changed
+  const renderLogKey = `${task.id}-${task.text}-${isDragging}-${!!onReorder}`;
+  if (!loggedRenders.has(renderLogKey)) {
+    console.log('🎨 Rendering TaskItem:', { 
+      id: task.id, 
+      text: task.text, 
+      isDragging, 
+      hasOnReorder: !!onReorder 
+    });
+    loggedRenders.add(renderLogKey);
+    
+    // Clear old entries to prevent memory leaks (keep only last 100)
+    if (loggedRenders.size > 100) {
+      const entries = Array.from(loggedRenders);
+      loggedRenders.clear();
+      entries.slice(-50).forEach(entry => loggedRenders.add(entry));
+    }
+  }
 
   const getTaskEmoji = (text: string) => {
     const lower = text.toLowerCase();
