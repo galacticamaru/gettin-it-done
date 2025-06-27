@@ -1,12 +1,13 @@
-
 import { useState, useEffect } from 'react';
 import { notificationService } from '@/services/notificationService';
 import { oneSignalService } from '@/services/oneSignalService';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
 
 export const useNotifications = () => {
   const [activeReminders, setActiveReminders] = useState<Map<string, number>>(new Map());
   const [oneSignalReady, setOneSignalReady] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const { updateOneSignalSubscriptionId } = useUserPreferences();
 
   useEffect(() => {
     const initNotifications = async () => {
@@ -24,10 +25,13 @@ export const useNotifications = () => {
             console.log('OneSignal subscription status:', subscribed);
             setIsSubscribed(subscribed);
 
-            // Get user IDs for debugging
+            // Get user IDs for debugging and save to database
             if (subscribed) {
               const userId = await oneSignalService.getUserId();
               console.log('OneSignal User ID:', userId);
+              if (userId) {
+                await updateOneSignalSubscriptionId(userId);
+              }
             }
           } catch (error) {
             console.error('Error checking OneSignal status:', error);
@@ -39,7 +43,7 @@ export const useNotifications = () => {
     };
 
     initNotifications();
-  }, []);
+  }, [updateOneSignalSubscriptionId]);
 
   const requestPermission = async (): Promise<boolean> => {
     console.log('Requesting OneSignal permission/subscription...');
@@ -53,6 +57,13 @@ export const useNotifications = () => {
     if (subscribed) {
       console.log('OneSignal subscription successful');
       setIsSubscribed(true);
+      
+      // Save the subscription ID to the database
+      const userId = await oneSignalService.getUserId();
+      if (userId) {
+        await updateOneSignalSubscriptionId(userId);
+      }
+      
       return true;
     } else {
       console.log('OneSignal subscription failed');
@@ -72,6 +83,10 @@ export const useNotifications = () => {
     if (unsubscribed) {
       console.log('OneSignal unsubscription successful');
       setIsSubscribed(false);
+      
+      // Remove the subscription ID from the database
+      await updateOneSignalSubscriptionId(null);
+      
       return true;
     } else {
       console.log('OneSignal unsubscription failed');

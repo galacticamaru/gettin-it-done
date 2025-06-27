@@ -25,22 +25,23 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get all users who have daily digest enabled
+    // Get all users who have daily digest enabled AND have a valid OneSignal subscription
     const { data: usersWithDigest, error: usersError } = await supabase
       .from('user_preferences')
-      .select('user_id')
-      .eq('daily_digest_enabled', true);
+      .select('user_id, onesignal_subscription_id')
+      .eq('daily_digest_enabled', true)
+      .not('onesignal_subscription_id', 'is', null);
 
     if (usersError) {
       console.error('Error fetching users with digest enabled:', usersError);
       throw usersError;
     }
 
-    console.log(`Found ${usersWithDigest?.length || 0} users with daily digest enabled`);
+    console.log(`Found ${usersWithDigest?.length || 0} users with daily digest enabled and valid OneSignal subscriptions`);
 
     if (!usersWithDigest || usersWithDigest.length === 0) {
       return new Response(
-        JSON.stringify({ message: 'No users with daily digest enabled' }),
+        JSON.stringify({ message: 'No users with daily digest enabled and valid OneSignal subscriptions' }),
         { 
           status: 200, 
           headers: { "Content-Type": "application/json", ...corsHeaders } 
@@ -117,12 +118,7 @@ const handler = async (req: Request): Promise<Response> => {
           }
         }
 
-        // Get user's OneSignal subscription ID if available
-        // For now, we'll use a placeholder - in a real implementation, 
-        // you'd store the OneSignal user ID in the user preferences
-        const mockSubscriptionId = `user_${userPref.user_id.slice(0, 8)}`;
-
-        // Send digest notification
+        // Send digest notification using the real OneSignal subscription ID
         const notificationResponse = await fetch('https://gdopicetwkrzihvwikwu.supabase.co/functions/v1/send-notification', {
           method: 'POST',
           headers: {
@@ -131,15 +127,16 @@ const handler = async (req: Request): Promise<Response> => {
           body: JSON.stringify({
             title: 'Daily Task Digest 📋',
             message: digestMessage,
-            userSubscriptionId: mockSubscriptionId
+            userSubscriptionId: userPref.onesignal_subscription_id
           }),
         });
 
         if (notificationResponse.ok) {
           digestsSent++;
-          console.log(`Digest sent successfully to user ${userPref.user_id}`);
+          console.log(`Digest sent successfully to user ${userPref.user_id} with subscription ${userPref.onesignal_subscription_id}`);
         } else {
-          console.error(`Failed to send digest to user ${userPref.user_id}`);
+          const errorData = await notificationResponse.text();
+          console.error(`Failed to send digest to user ${userPref.user_id}:`, errorData);
         }
 
       } catch (error) {

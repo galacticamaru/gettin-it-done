@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export interface UserPreferences {
   id: string;
   daily_digest_enabled: boolean;
+  onesignal_subscription_id?: string;
 }
 
 export const useUserPreferences = () => {
@@ -32,6 +33,7 @@ export const useUserPreferences = () => {
         setPreferences({
           id: data.id,
           daily_digest_enabled: data.daily_digest_enabled,
+          onesignal_subscription_id: data.onesignal_subscription_id,
         });
       } else {
         // Create default preferences if none exist
@@ -49,6 +51,7 @@ export const useUserPreferences = () => {
         setPreferences({
           id: newPrefs.id,
           daily_digest_enabled: newPrefs.daily_digest_enabled,
+          onesignal_subscription_id: newPrefs.onesignal_subscription_id,
         });
       }
     } catch (error) {
@@ -75,6 +78,24 @@ export const useUserPreferences = () => {
     }
   };
 
+  const updateOneSignalSubscriptionId = async (subscriptionId: string | null) => {
+    if (!user || !preferences) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_preferences')
+        .update({ onesignal_subscription_id: subscriptionId })
+        .eq('id', preferences.id);
+
+      if (error) throw error;
+
+      setPreferences(prev => prev ? { ...prev, onesignal_subscription_id: subscriptionId } : null);
+      console.log('Updated OneSignal subscription ID:', subscriptionId);
+    } catch (error) {
+      console.error('Error updating OneSignal subscription ID:', error);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchPreferences();
@@ -88,6 +109,7 @@ export const useUserPreferences = () => {
     preferences,
     loading,
     updateDailyDigestEnabled,
+    updateOneSignalSubscriptionId,
     refetch: fetchPreferences,
   };
 };
