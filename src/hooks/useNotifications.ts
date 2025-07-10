@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { notificationService } from '@/services/notificationService';
 import { oneSignalService } from '@/services/oneSignalService';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
@@ -7,9 +7,18 @@ export const useNotifications = () => {
   const [activeReminders, setActiveReminders] = useState<Map<string, number>>(new Map());
   const [oneSignalReady, setOneSignalReady] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [initializationDone, setInitializationDone] = useState(false);
   const { updateOneSignalSubscriptionId } = useUserPreferences();
 
+  // Create a stable reference for updating subscription ID
+  const updateSubscriptionId = useCallback(async (userId: string | null) => {
+    await updateOneSignalSubscriptionId(userId);
+  }, [updateOneSignalSubscriptionId]);
+
   useEffect(() => {
+    // Only initialize once
+    if (initializationDone) return;
+
     const initNotifications = async () => {
       console.log('Initializing OneSignal notifications...');
 
@@ -30,20 +39,23 @@ export const useNotifications = () => {
               const userId = await oneSignalService.getUserId();
               console.log('OneSignal User ID:', userId);
               if (userId) {
-                await updateOneSignalSubscriptionId(userId);
+                await updateSubscriptionId(userId);
               }
             }
           } catch (error) {
             console.error('Error checking OneSignal status:', error);
           }
+          
+          setInitializationDone(true);
         });
       } else {
         console.log('OneSignal deferred queue not found');
+        setInitializationDone(true);
       }
     };
 
     initNotifications();
-  }, [updateOneSignalSubscriptionId]);
+  }, [updateSubscriptionId, initializationDone]);
 
   const requestPermission = async (): Promise<boolean> => {
     console.log('Requesting OneSignal permission/subscription...');
@@ -61,7 +73,7 @@ export const useNotifications = () => {
       // Save the subscription ID to the database
       const userId = await oneSignalService.getUserId();
       if (userId) {
-        await updateOneSignalSubscriptionId(userId);
+        await updateSubscriptionId(userId);
       }
       
       return true;
@@ -85,7 +97,7 @@ export const useNotifications = () => {
       setIsSubscribed(false);
       
       // Remove the subscription ID from the database
-      await updateOneSignalSubscriptionId(null);
+      await updateSubscriptionId(null);
       
       return true;
     } else {
