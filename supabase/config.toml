@@ -3,3 +3,9 @@ project_id = "gdopicetwkrzihvwikwu"
 
 [functions.send-notification]
 verify_jwt = false
+
+[functions.send-daily-digest]
+verify_jwt = false
+
+[functions.reset-recurring-tasks]
+verify_jwt = false
