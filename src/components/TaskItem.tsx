@@ -1,6 +1,8 @@
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { Move } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileTaskItem } from './MobileTaskItem';
 
 interface Task {
   id: string; // Changed from number to string
@@ -26,7 +28,20 @@ const TASK_TYPE = 'task';
 const loggedRenders = new Set<string>();
 
 export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps) => {
+  const isMobile = useIsMobile();
   const ref = useRef<HTMLDivElement>(null);
+
+  // Use mobile-optimized component on mobile devices
+  if (isMobile) {
+    return (
+      <MobileTaskItem 
+        task={task}
+        onToggle={onToggle}
+        onDelete={onDelete}
+        onReorder={onReorder}
+      />
+    );
+  }
 
   const [{ isDragging }, drag] = useDrag({
     type: TASK_TYPE,
