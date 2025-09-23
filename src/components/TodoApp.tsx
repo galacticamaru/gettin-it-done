@@ -11,6 +11,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { SettingsDrawer } from './SettingsDrawer';
 import { DragDropContext } from './DragDropContext';
 import { MobileTaskCreator } from './MobileTaskCreator';
+import { MobileTaskItem } from './MobileTaskItem';
 import { PullToRefresh } from './PullToRefresh';
 import { useTasks } from '@/hooks/useTasks';
 import { useAuth } from '@/contexts/AuthContext';
@@ -174,7 +175,7 @@ export const TodoApp = () => {
                   </div>
                 ) : (
                   filteredTasks.map(task => (
-                    <TaskItem 
+                    <MobileTaskItem 
                       key={task.id} 
                       task={task}
                       onToggle={handleToggleTask} 
