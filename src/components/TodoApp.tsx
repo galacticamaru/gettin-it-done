@@ -9,6 +9,7 @@ import { ConfettiAnimation } from './ConfettiAnimation';
 import { EmojiPicker } from './EmojiPicker';
 import { ThemeToggle } from './ThemeToggle';
 import { SettingsDrawer } from './SettingsDrawer';
+import { ProductivityStats } from './ProductivityStats';
 import { DragDropContext } from './DragDropContext';
 import { MobileTaskCreator } from './MobileTaskCreator';
 import { MobileTaskItem } from './MobileTaskItem';
@@ -152,10 +153,13 @@ export const TodoApp = () => {
                 </Button>
               </div>
 
-              {/* Task Options */}
+          {/* Task Options */}
               <TaskOptionsModal dueDate={dueDate ? new Date(dueDate) : undefined} onDueDateChange={(date) => setDueDate(date ? date.toISOString() : '')} repeatOption={repeatOption} onRepeatChange={setRepeatOption} reminder={reminder} onReminderChange={setReminder} />
             </>
           )}
+
+          {/* Productivity Stats */}
+          <ProductivityStats tasks={tasks} />
 
           {/* Filter Tabs */}
           <FilterTabs filter={filter} onFilterChange={setFilter} />

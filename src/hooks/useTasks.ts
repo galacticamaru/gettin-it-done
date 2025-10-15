@@ -7,6 +7,7 @@ export interface Task {
   text: string;
   completed: boolean;
   createdAt: string;
+  updatedAt: string;
   dueDate?: string;
   repeatOption?: string;
   reminder?: string;
@@ -38,6 +39,7 @@ export const useTasks = () => {
         text: task.text,
         completed: task.completed,
         createdAt: task.created_at,
+        updatedAt: task.updated_at,
         dueDate: task.due_date,
         repeatOption: task.repeat_option,
         reminder: task.reminder,
@@ -114,6 +116,7 @@ export const useTasks = () => {
         text: data.text,
         completed: data.completed,
         createdAt: data.created_at,
+        updatedAt: data.updated_at,
         dueDate: data.due_date,
         repeatOption: data.repeat_option,
         reminder: data.reminder,
