@@ -15,38 +15,38 @@ export const ProductivityStats = ({ tasks }: ProductivityStatsProps) => {
     <div className="space-y-4 mb-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <div className="flex items-center gap-2 mb-2">
+          <span className="text-sm font-medium text-muted-foreground">Current Streak</span>
+          <div className="flex items-center gap-2 mt-2">
             <Flame className="w-5 h-5 text-primary" />
-            <span className="text-sm font-medium text-muted-foreground">Current Streak</span>
+            <div className="text-3xl font-bold text-primary">{stats.currentStreak}</div>
           </div>
-          <div className="text-3xl font-bold text-primary">{stats.currentStreak}</div>
           <p className="text-xs text-muted-foreground mt-1">days in a row</p>
         </Card>
 
         <Card className="p-4 bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
-          <div className="flex items-center gap-2 mb-2">
+          <span className="text-sm font-medium text-muted-foreground">Longest Streak</span>
+          <div className="flex items-center gap-2 mt-2">
             <TrendingUp className="w-5 h-5 text-accent-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">Longest Streak</span>
+            <div className="text-3xl font-bold">{stats.longestStreak}</div>
           </div>
-          <div className="text-3xl font-bold">{stats.longestStreak}</div>
           <p className="text-xs text-muted-foreground mt-1">days record</p>
         </Card>
 
         <Card className="p-4 bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
-          <div className="flex items-center gap-2 mb-2">
+          <span className="text-sm font-medium text-muted-foreground">Completed</span>
+          <div className="flex items-center gap-2 mt-2">
             <CheckCircle2 className="w-5 h-5 text-secondary-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">Completed</span>
+            <div className="text-3xl font-bold">{stats.totalCompleted}</div>
           </div>
-          <div className="text-3xl font-bold">{stats.totalCompleted}</div>
           <p className="text-xs text-muted-foreground mt-1">total tasks</p>
         </Card>
 
         <Card className="p-4 bg-gradient-to-br from-success/10 to-success/5 border-success/20">
-          <div className="flex items-center gap-2 mb-2">
+          <span className="text-sm font-medium text-muted-foreground">Completion Rate</span>
+          <div className="flex items-center gap-2 mt-2">
             <Target className="w-5 h-5 text-success" />
-            <span className="text-sm font-medium text-muted-foreground">Completion Rate</span>
+            <div className="text-3xl font-bold">{stats.completionRate.toFixed(0)}%</div>
           </div>
-          <div className="text-3xl font-bold">{stats.completionRate.toFixed(0)}%</div>
           <p className="text-xs text-muted-foreground mt-1">success rate</p>
         </Card>
       </div>
