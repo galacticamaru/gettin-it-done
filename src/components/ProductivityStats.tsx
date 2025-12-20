@@ -15,7 +15,7 @@ export const ProductivityStats = ({ tasks }: ProductivityStatsProps) => {
     <div className="space-y-4 mb-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <span className="text-sm font-medium text-muted-foreground">Current Streak</span>
+          <span className="text-sm font-medium text-muted-foreground truncate">Current Streak</span>
           <div className="flex items-center gap-2 mt-2">
             <Flame className="w-5 h-5 text-primary" />
             <div className="text-3xl font-bold text-primary">{stats.currentStreak}</div>
@@ -24,7 +24,7 @@ export const ProductivityStats = ({ tasks }: ProductivityStatsProps) => {
         </Card>
 
         <Card className="p-4 bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
-          <span className="text-sm font-medium text-muted-foreground">Longest Streak</span>
+          <span className="text-sm font-medium text-muted-foreground truncate">Longest Streak</span>
           <div className="flex items-center gap-2 mt-2">
             <TrendingUp className="w-5 h-5 text-accent-foreground" />
             <div className="text-3xl font-bold">{stats.longestStreak}</div>
@@ -33,7 +33,7 @@ export const ProductivityStats = ({ tasks }: ProductivityStatsProps) => {
         </Card>
 
         <Card className="p-4 bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
-          <span className="text-sm font-medium text-muted-foreground">Completed</span>
+          <span className="text-sm font-medium text-muted-foreground truncate">Completed</span>
           <div className="flex items-center gap-2 mt-2">
             <CheckCircle2 className="w-5 h-5 text-secondary-foreground" />
             <div className="text-3xl font-bold">{stats.totalCompleted}</div>
@@ -42,7 +42,7 @@ export const ProductivityStats = ({ tasks }: ProductivityStatsProps) => {
         </Card>
 
         <Card className="p-4 bg-gradient-to-br from-success/10 to-success/5 border-success/20">
-          <span className="text-sm font-medium text-muted-foreground">Completion Rate</span>
+          <span className="text-sm font-medium text-muted-foreground truncate">Completion Rate</span>
           <div className="flex items-center gap-2 mt-2">
             <Target className="w-5 h-5 text-success" />
             <div className="text-3xl font-bold">{stats.completionRate.toFixed(0)}%</div>
