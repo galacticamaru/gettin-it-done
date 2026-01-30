@@ -13,7 +13,7 @@ export const ProductivityStats = ({ tasks }: ProductivityStatsProps) => {
 
   return (
     <div className="space-y-4 mb-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
           <span className="text-sm font-medium text-muted-foreground truncate">Current Streak</span>
           <div className="flex items-center gap-2 mt-2">
