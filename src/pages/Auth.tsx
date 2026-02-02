@@ -37,18 +37,18 @@ const Auth = () => {
 
   if (showEmailConfirmation) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="max-w-md w-full px-6">
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">📧</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
               Check your email!
             </h1>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               We've sent you an email to confirm your account. Click the link in the email to complete your registration.
             </p>
-            <p className="text-sm text-gray-500">
-              Email sent to: <strong>{email}</strong>
+            <p className="text-sm text-muted-foreground">
+              Email sent to: <strong className="text-foreground">{email}</strong>
             </p>
           </div>
 
@@ -68,13 +68,13 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="max-w-md w-full px-6">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
             {isSignUp ? 'Create your account' : 'Welcome back!'}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             {isSignUp ? 'Start gettin it done today' : 'Continue gettin it done'}
           </p>
         </div>
@@ -103,13 +103,13 @@ const Auth = () => {
           </div>
 
           {error && (
-            <div className="text-red-500 text-sm text-center">{error}</div>
+            <div className="text-destructive text-sm text-center">{error}</div>
           )}
 
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-medium py-3 rounded-full"
+            className="w-full bg-yellow-400 hover:bg-yellow-500 dark:bg-yellow-500 dark:hover:bg-yellow-600 text-gray-900 font-medium py-3 rounded-full"
           >
             {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
           </Button>
@@ -118,7 +118,7 @@ const Auth = () => {
         <div className="text-center mt-6">
           <button
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-gray-600 hover:text-gray-900"
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
           </button>
