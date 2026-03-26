@@ -3,7 +3,6 @@ import { useDrag, useDrop } from 'react-dnd';
 import { useSpring, animated } from 'react-spring';
 import { useDrag as useGestureDrag } from '@use-gesture/react';
 import { Move, Check, X } from 'lucide-react';
-import { getTaskEmoji } from '@/lib/task-utils';
 
 interface Task {
   id: string;
@@ -116,6 +115,19 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
       navigator.vibrate([50, 50, 50]);
     }
     onDelete(task.id);
+  };
+
+  const getTaskEmoji = (text: string) => {
+    const lower = text.toLowerCase();
+    if (lower.includes('medication') || lower.includes('medicine')) return '💊';
+    if (lower.includes('exercise') || lower.includes('workout')) return '💪';
+    if (lower.includes('book') || lower.includes('read')) return '📚';
+    if (lower.includes('shop') || lower.includes('buy')) return '🛒';
+    if (lower.includes('call') || lower.includes('phone')) return '📞';
+    if (lower.includes('email') || lower.includes('mail')) return '📧';
+    if (lower.includes('clean')) return '🧹';
+    if (lower.includes('cook') || lower.includes('food')) return '🍳';
+    return '📝';
   };
 
   // Connect both drag and drop to the ref
