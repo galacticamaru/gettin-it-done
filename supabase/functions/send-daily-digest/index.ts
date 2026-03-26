@@ -79,13 +79,24 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         // Create digest summary
-        const activeTasks = tasks.filter(task => !task.completed);
-        const completedTasks = tasks.filter(task => task.completed);
-        const dueTasks = tasks.filter(task => 
-          task.due_date && 
-          new Date(task.due_date) >= today && 
-          new Date(task.due_date) < tomorrow
-        );
+        const activeTasks = [];
+        const completedTasks = [];
+        const dueTasks = [];
+
+        for (const task of tasks) {
+          if (task.completed) {
+            completedTasks.push(task);
+          } else {
+            activeTasks.push(task);
+          }
+
+          if (task.due_date) {
+            const dueDate = new Date(task.due_date);
+            if (dueDate >= today && dueDate < tomorrow) {
+              dueTasks.push(task);
+            }
+          }
+        }
 
         let digestMessage = '📋 Your Daily Task Digest:\n\n';
         
