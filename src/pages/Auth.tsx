@@ -22,14 +22,75 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
-        await signUp(email, password);
-        setShowEmailConfirmation(true);
+        // We are trying to sign up.
+        // First try to sign in to see if the user already exists.
+        let loginSuccess = false;
+        try {
+          await signIn(email, password);
+          loginSuccess = true;
+        } catch (signInErr: unknown) {
+          if (signInErr instanceof Error && signInErr.message === 'Email not confirmed') {
+            // User exists, password is correct, but not confirmed yet
+            setShowEmailConfirmation(true);
+            setLoading(false);
+            return;
+          } else if (signInErr instanceof Error && signInErr.message === 'Invalid login credentials') {
+            // Password is wrong OR user doesn't exist
+            // We can't distinguish, so we try signing up now
+          } else {
+            // Some other error, throw it so the catch block handles it
+            throw signInErr;
+          }
+        }
+
+        if (loginSuccess) {
+          // They already had an account and password was correct
+          navigate('/');
+          return;
+        }
+
+        // If login failed with Invalid login credentials, try to sign up
+        try {
+          const res = await signUp(email, password);
+          // A known Supabase quirk is that signing up an existing user
+          // might return no error but an empty identities array.
+          if (res?.user && (!res.user.identities || res.user.identities.length === 0)) {
+            // The user already exists. Since sign in failed with "Invalid login credentials",
+            // it means the password provided during sign up is incorrect for the existing account.
+            setIsSignUp(false);
+            setError('Account already exists. Please sign in with the correct password.');
+            setLoading(false);
+            return;
+          }
+          setShowEmailConfirmation(true);
+        } catch (signUpErr: unknown) {
+          // For instance, "User already registered" (if supabase changed behavior)
+          if (signUpErr instanceof Error && signUpErr.message?.toLowerCase().includes('already registered')) {
+            setIsSignUp(false);
+            setError('Account already exists. Please sign in.');
+          } else if (signUpErr instanceof Error && signUpErr.message?.toLowerCase().includes('rate limit')) {
+            // If they hit rate limit while signing up an existing account (or new one too many times)
+            // It could be they have an account already or just spammed the button.
+            // Since sign in failed previously with "Invalid login credentials",
+            // it means the password provided during sign up is likely incorrect for the existing account.
+            setIsSignUp(false);
+            setError('Account already exists or rate limited. Please sign in.');
+            setLoading(false);
+            return;
+          } else {
+            throw signUpErr;
+          }
+        }
       } else {
         await signIn(email, password);
         navigate('/');
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'An error occurred');
+      } else {
+        setError('An error occurred');
+      }
     } finally {
       setLoading(false);
     }
