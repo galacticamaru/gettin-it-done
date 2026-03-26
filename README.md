@@ -1,73 +1,86 @@
-# Welcome to your Lovable project
+# Gettin' It Done
 
-## Project info
+**Production URL**: [https://gettin-it-done.lovable.app](https://gettin-it-done.lovable.app)
 
-**URL**: https://lovable.dev/projects/40750f37-8eb8-48b2-91db-b7497085fdf3
+Gettin' It Done is a modular task management application built with modern web technologies.
 
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/40750f37-8eb8-48b2-91db-b7497085fdf3) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
+## Tech Stack
 
 This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Frontend:** React, Vite, TypeScript
+- **Styling:** Tailwind CSS, shadcn/ui, lucide-react
+- **Date Manipulation:** date-fns
+- **Backend & Auth:** Supabase (PostgreSQL, Authentication, Row Level Security)
+- **Serverless:** Supabase Edge Functions (Deno)
+- **Package Manager & Test Runner:** npm (for primary deps), Bun (for unit testing)
 
-## How can I deploy this project?
+## Project Structure
 
-Simply open [Lovable](https://lovable.dev/projects/40750f37-8eb8-48b2-91db-b7497085fdf3) and click on Share -> Publish.
+The codebase is organized into modular directories under `src/`:
 
-## Can I connect a custom domain to my Lovable project?
+- `components/`: Reusable UI components.
+- `contexts/`: React context providers (e.g., AuthContext, ThemeContext).
+- `hooks/`: Custom React hooks.
+- `integrations/`: Third-party service integrations.
+- `lib/`: Utility functions (e.g., `task-utils.ts` for centralized task logic).
+- `pages/`: Route components.
+- `services/`: API and external service abstractions.
+- `types/`: TypeScript type definitions.
 
-Yes, you can!
+Supabase Edge Functions are located in the `supabase/functions/` directory.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Getting Started
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Prerequisites
+
+- Node.js & npm (use `npm install --legacy-peer-deps` to avoid peer dependency conflicts).
+- Bun (for testing).
+
+### Installation
+
+1. Clone the repository:
+   ```sh
+   git clone <YOUR_GIT_URL>
+   cd <YOUR_PROJECT_NAME>
+   ```
+
+2. Install dependencies:
+   ```sh
+   npm install --legacy-peer-deps
+   ```
+
+### Running Locally
+
+Start the development server with auto-reloading and an instant preview:
+
+```sh
+npm run dev
+```
+
+The development server typically runs on `http://localhost:5173`.
+
+## Testing & Linting
+
+We use Bun for running unit tests and ESLint for code quality.
+
+**Run tests:**
+```sh
+bun test
+```
+
+**Run linter:**
+```sh
+npm run lint
+```
+
+## Performance & Best Practices
+
+- **Array Methods:** Prioritize reducing array traversals. Consolidate multiple `.filter()` calls into a single loop when possible.
+- **Supabase Bulk Updates:** Use `.upsert()` with an array of objects to minimize network roundtrips. Ensure arrays are chunked (e.g., chunks of 100) when using `.in()` queries to prevent URI length limits.
+- **Row Level Security:** Include `user_id` in database operations (especially upserts to the `user_tasks` table) to comply with Row Level Security (RLS) constraints.
+- **Edge Functions:** Must implement a restricted CORS policy validating the `Origin` header against an allowlist (including the production URL and localhost) and returning the `Vary: Origin` header.
+
+## Deployment
+
+Changes pushed to the main branch are automatically reflected in the production environment via Lovable. You can also manually publish through the Lovable interface.
