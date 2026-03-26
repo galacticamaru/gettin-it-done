@@ -68,31 +68,28 @@ export const useTasks = () => {
     try {
       console.log('Adding new task at the top of the list');
       
-      // First, get all existing tasks to update their sort orders
-      const { data: existingTasks, error: fetchError } = await supabase
+      // Calculate new sort_order based on existing tasks without fetching and updating them all.
+      // We just need the minimum sort_order currently in use.
+      let newSortOrder = 0;
+
+      const { data: minTaskData, error: minTaskError } = await supabase
         .from('user_tasks')
-        .select('id, sort_order')
-        .eq('user_id', user.id);
+        .select('sort_order')
+        .eq('user_id', user.id)
+        .order('sort_order', { ascending: true })
+        .limit(1)
+        .maybeSingle();
 
-      if (fetchError) {
-        console.error('Error fetching existing tasks:', fetchError);
-        throw fetchError;
+      if (minTaskError) {
+        console.error('Error fetching minimum sort_order:', minTaskError);
+      } else if (minTaskData && typeof minTaskData.sort_order === 'number') {
+        newSortOrder = minTaskData.sort_order - 1;
+      } else if (tasks.length > 0 && typeof tasks[0].sortOrder === 'number') {
+        // Fallback to local state if db query somehow didn't return a number
+        newSortOrder = tasks[0].sortOrder - 1;
       }
 
-      // Update all existing tasks' sort_order by incrementing by 1
-      if (existingTasks && existingTasks.length > 0) {
-        const updatePromises = existingTasks.map(task => 
-          supabase
-            .from('user_tasks')
-            .update({ sort_order: (task.sort_order || 0) + 1 })
-            .eq('id', task.id)
-        );
-
-        await Promise.all(updatePromises);
-        console.log('Incremented all existing task sort orders');
-      }
-
-      // Now insert the new task with sort_order = 0
+      // Now insert the new task with the new sort_order
       const { data, error } = await supabase
         .from('user_tasks')
         .insert({
@@ -102,14 +99,14 @@ export const useTasks = () => {
           repeat_option: taskData.repeatOption !== 'none' ? taskData.repeatOption : null,
           reminder: taskData.reminder !== 'none' ? taskData.reminder : null,
           emoji: taskData.emoji || null,
-          sort_order: 0,
+          sort_order: newSortOrder,
         } as any)
         .select()
         .single();
 
       if (error) throw error;
 
-      console.log('Added new task with sort_order 0:', data);
+      console.log(`Added new task with sort_order ${newSortOrder}:`, data);
 
       const newTask: Task = {
         id: data.id,
@@ -124,10 +121,10 @@ export const useTasks = () => {
         sortOrder: data.sort_order,
       };
 
-      // Update local state - add new task at beginning and increment sort orders
+      // Update local state - add new task at beginning, keeping existing tasks untouched
       const updatedTasks = [
         newTask,
-        ...tasks.map(task => ({ ...task, sortOrder: (task.sortOrder || 0) + 1 }))
+        ...tasks
       ];
 
       console.log('Updated local task list:', updatedTasks);
