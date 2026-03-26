@@ -54,8 +54,8 @@ export const TaskOptionsModal = ({
       {/* Calendar Modal */}
       <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="p-1 h-auto">
-            <Calendar className={cn("w-4 h-4", dueDate && "text-yellow-600")} />
+          <Button variant="ghost" size="sm" className="p-1 h-auto" aria-label="Set due date" title="Set due date">
+            <Calendar className={cn("w-4 h-4", dueDate && "text-yellow-600")} aria-hidden="true" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -76,8 +76,8 @@ export const TaskOptionsModal = ({
       {/* Repeat Modal */}
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="p-1 h-auto">
-            <Repeat className={cn("w-4 h-4", repeatOption !== 'none' && "text-yellow-600")} />
+          <Button variant="ghost" size="sm" className="p-1 h-auto" aria-label="Set repeat" title="Set repeat">
+            <Repeat className={cn("w-4 h-4", repeatOption !== 'none' && "text-yellow-600")} aria-hidden="true" />
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
@@ -124,6 +124,8 @@ export const TaskOptionsModal = ({
             className="p-1 h-auto"
             disabled={isReminderDisabled}
             onClick={handleBellClick}
+            aria-label="Set reminder"
+            title="Set reminder"
           >
             <Bell 
               className={cn(
@@ -131,6 +133,7 @@ export const TaskOptionsModal = ({
                 reminder !== 'none' && "text-yellow-600",
                 isReminderDisabled && "text-gray-300"
               )} 
+              aria-hidden="true"
             />
           </Button>
         </DialogTrigger>
