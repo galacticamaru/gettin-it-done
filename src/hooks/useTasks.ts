@@ -205,19 +205,20 @@ export const useTasks = () => {
 
     // Update sort orders in database
     try {
+      if (!user) return;
       console.log('💾 Saving order to database...');
       const updates = updatedTasks.map((task, index) => ({
         id: task.id,
+        user_id: user.id,
         sort_order: index
       }));
 
-      for (const update of updates) {
-        console.log('📝 Updating task:', update.id, 'to sort_order:', update.sort_order);
-        await supabase
-          .from('user_tasks')
-          .update({ sort_order: update.sort_order } as any)
-          .eq('id', update.id);
-      }
+      console.log('📝 Batch updating task orders');
+      const { error } = await supabase
+        .from('user_tasks')
+        .upsert(updates as any);
+
+      if (error) throw error;
       console.log('✅ Successfully saved order to database');
     } catch (error) {
       console.error('❌ Error updating task order:', error);
