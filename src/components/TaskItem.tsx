@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { Move } from 'lucide-react';
+import { getTaskEmoji } from '@/lib/task-utils';
 
 interface Task {
   id: string; // Changed from number to string
@@ -94,18 +95,6 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
     }
   }
 
-  const getTaskEmoji = (text: string) => {
-    const lower = text.toLowerCase();
-    if (lower.includes('medication') || lower.includes('medicine')) return '💊';
-    if (lower.includes('exercise') || lower.includes('workout')) return '💪';
-    if (lower.includes('book') || lower.includes('read')) return '📚';
-    if (lower.includes('shop') || lower.includes('buy')) return '🛒';
-    if (lower.includes('call') || lower.includes('phone')) return '📞';
-    if (lower.includes('email') || lower.includes('mail')) return '📧';
-    if (lower.includes('clean')) return '🧹';
-    if (lower.includes('cook') || lower.includes('food')) return '🍳';
-    return '📝';
-  };
 
   return (
     <div
