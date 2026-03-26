@@ -56,24 +56,48 @@ const handler = async (req: Request): Promise<Response> => {
 
     let digestsSent = 0;
 
+    // Fetch tasks for all users at once
+    const userIds = usersWithDigest.map(u => u.user_id);
+
+    // Chunk userIds to avoid URL length limits if there are many users
+    const chunkSize = 100;
+    const allTasks = [];
+
+    for (let i = 0; i < userIds.length; i += chunkSize) {
+      const chunk = userIds.slice(i, i + chunkSize);
+      const { data: tasks, error: tasksError } = await supabase
+        .from('user_tasks')
+        .select('user_id, text, completed, due_date, reminder')
+        .in('user_id', chunk)
+        .or(`due_date.gte.${today.toISOString()},due_date.lt.${tomorrow.toISOString()},due_date.is.null`)
+        .order('completed', { ascending: true })
+        .order('created_at', { ascending: false });
+
+      if (tasksError) {
+        console.error('Error fetching tasks batch:', tasksError);
+        continue;
+      }
+
+      if (tasks) {
+        allTasks.push(...tasks);
+      }
+    }
+
+    // Group tasks by user
+    const tasksByUser = allTasks.reduce((acc, task) => {
+      if (!acc[task.user_id]) {
+        acc[task.user_id] = [];
+      }
+      acc[task.user_id].push(task);
+      return acc;
+    }, {} as Record<string, { text: string; completed: boolean; due_date: string | null; reminder: string | null }[]>);
+
     // Process each user
     for (const userPref of usersWithDigest) {
       try {
-        // Get user's tasks for today
-        const { data: tasks, error: tasksError } = await supabase
-          .from('user_tasks')
-          .select('text, completed, due_date, reminder')
-          .eq('user_id', userPref.user_id)
-          .or(`due_date.gte.${today.toISOString()},due_date.lt.${tomorrow.toISOString()},due_date.is.null`)
-          .order('completed', { ascending: true })
-          .order('created_at', { ascending: false });
+        const tasks = tasksByUser[userPref.user_id] || [];
 
-        if (tasksError) {
-          console.error(`Error fetching tasks for user ${userPref.user_id}:`, tasksError);
-          continue;
-        }
-
-        if (!tasks || tasks.length === 0) {
+        if (tasks.length === 0) {
           console.log(`No tasks found for user ${userPref.user_id}, skipping digest`);
           continue;
         }
@@ -157,10 +181,10 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in send-daily-digest function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
