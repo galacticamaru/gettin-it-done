@@ -62,14 +62,19 @@ export const useTaskStats = (tasks: Task[]): TaskStats => {
     }
     
     // Calculate weekly trend (last 7 days)
+    // Pre-calculate completed task counts per day
+    const completedTasksByDate = new Map<string, number>();
+    for (const task of completedTasks) {
+      if (task.updatedAt) {
+        const taskDate = format(startOfDay(parseISO(task.updatedAt)), 'yyyy-MM-dd');
+        completedTasksByDate.set(taskDate, (completedTasksByDate.get(taskDate) || 0) + 1);
+      }
+    }
+
     const weeklyTrend = Array.from({ length: 7 }, (_, i) => {
       const date = subDays(today, 6 - i);
       const dateStr = format(date, 'yyyy-MM-dd');
-      const completed = completedTasks.filter(task => {
-        if (!task.updatedAt) return false;
-        const taskDate = format(startOfDay(parseISO(task.updatedAt)), 'yyyy-MM-dd');
-        return taskDate === dateStr;
-      }).length;
+      const completed = completedTasksByDate.get(dateStr) || 0;
       
       return {
         date: format(date, 'EEE'),
