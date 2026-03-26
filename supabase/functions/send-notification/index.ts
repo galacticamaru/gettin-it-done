@@ -1,9 +1,19 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = [
+  "https://gettin-it-done.lovable.app",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+];
+
+const getCorsHeaders = (origin: string | null) => {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Vary': 'Origin',
+  };
 };
 
 interface NotificationRequest {
@@ -13,6 +23,9 @@ interface NotificationRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -54,7 +67,7 @@ const handler = async (req: Request): Promise<Response> => {
       include_subscription_ids: [userSubscriptionId],
       headings: { en: title },
       contents: { en: message },
-      web_url: window.location?.origin || 'https://gettin-it-done.lovable.app/',
+      web_url: origin || 'https://gettin-it-done.lovable.app/',
       chrome_web_icon: '/favicon.ico',
       chrome_web_badge: '/favicon.ico',
       data: {
