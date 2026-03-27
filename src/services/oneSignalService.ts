@@ -80,18 +80,38 @@ export class OneSignalService {
         return false;
       }
 
-      // Opt in to push notifications
-      await window.OneSignal.User.PushSubscription.optIn();
-      console.log('Successfully called OneSignal optIn');
+      return new Promise((resolve) => {
+        // Handle timeout
+        const timeout = setTimeout(async () => {
+          if (window.OneSignal) {
+             window.OneSignal.User.PushSubscription.removeEventListener("change", changeListener);
+          }
+          console.warn("OneSignal optIn timed out. Checking current status.");
+          resolve(await this.isSubscribed());
+        }, 5000);
+
+        const changeListener = (event: any) => {
+          if (event && event.current && event.current.optedIn === true) {
+            clearTimeout(timeout);
+            window.OneSignal!.User.PushSubscription.removeEventListener("change", changeListener);
+            console.log('Subscription verification:', true);
+            resolve(true);
+          }
+        };
+
+        window.OneSignal!.User.PushSubscription.addEventListener("change", changeListener);
+
+        // Opt in to push notifications
+        window.OneSignal!.User.PushSubscription.optIn().then(() => {
+          console.log('Successfully called OneSignal optIn');
+        }).catch((e) => {
+          console.error("Error calling optIn", e);
+          clearTimeout(timeout);
+          window.OneSignal!.User.PushSubscription.removeEventListener("change", changeListener);
+          resolve(false);
+        });
+      });
       
-      // Wait a moment for the subscription to be processed
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Verify subscription
-      const subscribed = await this.isSubscribed();
-      console.log('Subscription verification:', subscribed);
-      
-      return subscribed;
     } catch (error) {
       console.error('Error subscribing user to OneSignal:', error);
       return false;
@@ -111,18 +131,39 @@ export class OneSignalService {
         return true;
       }
 
-      // Opt out of push notifications
-      await window.OneSignal.User.PushSubscription.optOut();
-      console.log('Successfully called OneSignal optOut');
+      return new Promise((resolve) => {
+        // Handle timeout
+        const timeout = setTimeout(async () => {
+          if (window.OneSignal) {
+             window.OneSignal.User.PushSubscription.removeEventListener("change", changeListener);
+          }
+          console.warn("OneSignal optOut timed out. Checking current status.");
+          const subbed = await this.isSubscribed();
+          resolve(!subbed);
+        }, 5000);
+
+        const changeListener = (event: any) => {
+          if (event && event.current && event.current.optedIn === false) {
+            clearTimeout(timeout);
+            window.OneSignal!.User.PushSubscription.removeEventListener("change", changeListener);
+            console.log('Unsubscription verification - still subscribed: false');
+            resolve(true); // successfully unsubscribed
+          }
+        };
+
+        window.OneSignal!.User.PushSubscription.addEventListener("change", changeListener);
+
+        // Opt out of push notifications
+        window.OneSignal!.User.PushSubscription.optOut().then(() => {
+           console.log('Successfully called OneSignal optOut');
+        }).catch((e) => {
+           console.error("Error calling optOut", e);
+           clearTimeout(timeout);
+           window.OneSignal!.User.PushSubscription.removeEventListener("change", changeListener);
+           resolve(false);
+        });
+      });
       
-      // Wait a moment for the unsubscription to be processed
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Verify unsubscription
-      const stillSubscribed = await this.isSubscribed();
-      console.log('Unsubscription verification - still subscribed:', stillSubscribed);
-      
-      return !stillSubscribed;
     } catch (error) {
       console.error('Error unsubscribing user from OneSignal:', error);
       return false;
