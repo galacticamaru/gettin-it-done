@@ -51,8 +51,9 @@ export class OneSignalService {
 
     try {
       const subscriptionId = await window.OneSignal.User.PushSubscription.id;
-      console.log('OneSignal subscription ID:', subscriptionId);
-      return !!subscriptionId;
+      const optedIn = await window.OneSignal.User.PushSubscription.optedIn;
+      console.log('OneSignal subscription ID:', subscriptionId, 'optedIn:', optedIn);
+      return !!subscriptionId && optedIn;
     } catch (error) {
       console.error('Error checking OneSignal subscription:', error);
       return false;
