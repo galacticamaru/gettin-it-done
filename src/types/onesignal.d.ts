@@ -11,6 +11,9 @@ declare global {
           optIn(): Promise<void>;
           optOut(): Promise<void>;
           id: Promise<string | null>;
+          optedIn: Promise<boolean>;
+          addEventListener(event: 'change', listener: (e: any) => void): void;
+          removeEventListener(event: 'change', listener: (e: any) => void): void;
         };
       };
     };
