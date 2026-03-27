@@ -165,9 +165,11 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
                 ? 'bg-green-500 border-green-500' 
                 : 'border-border hover:border-green-400 active:scale-95'
             }`}
+            aria-label={task.completed ? "Mark task as incomplete" : "Mark task as complete"}
+            title={task.completed ? "Mark task as incomplete" : "Mark task as complete"}
           >
             {task.completed && (
-              <Check className="w-6 h-6 text-white" />
+              <Check className="w-6 h-6 text-white" aria-hidden="true" />
             )}
           </button>
           
@@ -200,16 +202,22 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
 
           {/* Enhanced drag handle with better touch target */}
           <div className="flex items-center gap-3">
-            <div className="drag-handle text-muted-foreground hover:text-foreground transition-colors p-2 touch-manipulation">
-              <Move className="h-6 w-6" />
+            <div
+              className="drag-handle text-muted-foreground hover:text-foreground transition-colors p-2 touch-manipulation"
+              aria-label="Drag to reorder task"
+              title="Drag to reorder task"
+            >
+              <Move className="h-6 w-6" aria-hidden="true" />
             </div>
             
             {/* Enhanced delete button with better touch target */}
             <button
               onClick={() => onDelete(task.id)}
               className="text-muted-foreground hover:text-destructive transition-colors p-3 rounded-full hover:bg-destructive/10 active:scale-95 touch-manipulation"
+              aria-label="Delete task"
+              title="Delete task"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
         </div>

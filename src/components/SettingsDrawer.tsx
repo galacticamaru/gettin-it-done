@@ -28,8 +28,8 @@ export const SettingsDrawer = () => {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="ghost" size="sm" className="p-2">
-          <Cog className="h-4 w-4" />
+        <Button variant="ghost" size="sm" className="p-2" aria-label="Open settings" title="Settings">
+          <Cog className="h-4 w-4" aria-hidden="true" />
         </Button>
       </DrawerTrigger>
       <DrawerContent>

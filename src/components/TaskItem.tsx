@@ -111,9 +111,11 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
               ? 'bg-green-500 border-green-500' 
               : 'border-border hover:border-green-400'
           }`}
+          aria-label={task.completed ? "Mark task as incomplete" : "Mark task as complete"}
+          title={task.completed ? "Mark task as incomplete" : "Mark task as complete"}
         >
           {task.completed && (
-            <span className="text-white text-sm font-bold">✓</span>
+            <span className="text-white text-sm font-bold" aria-hidden="true">✓</span>
           )}
         </button>
         
@@ -142,15 +144,21 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="drag-handle text-muted-foreground hover:text-foreground transition-colors cursor-grab active:cursor-grabbing">
-          <Move className="h-4 w-4" />
+        <div
+          className="drag-handle text-muted-foreground hover:text-foreground transition-colors cursor-grab active:cursor-grabbing"
+          aria-label="Drag to reorder task"
+          title="Drag to reorder task"
+        >
+          <Move className="h-4 w-4" aria-hidden="true" />
         </div>
         
         <button
           onClick={() => onDelete(task.id)}
           className="text-muted-foreground hover:text-destructive transition-colors"
+          aria-label="Delete task"
+          title="Delete task"
         >
-          ×
+          <span aria-hidden="true">×</span>
         </button>
       </div>
     </div>
