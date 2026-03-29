@@ -39,6 +39,7 @@ export const EmojiPicker = ({ selectedEmoji, onEmojiSelect, className }: EmojiPi
           variant="ghost"
           size="sm"
           className={`text-xl p-1 h-auto ${className || ''}`}
+          aria-label="Choose an emoji"
         >
           {selectedEmoji || '😀'}
         </Button>
@@ -63,7 +64,7 @@ export const EmojiPicker = ({ selectedEmoji, onEmojiSelect, className }: EmojiPi
                   <button
                     key={emoji}
                     onClick={() => handleEmojiClick(emoji)}
-                    className="text-lg hover:bg-gray-100 rounded p-1 transition-colors"
+                    className="text-lg hover:bg-gray-100 rounded p-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     {emoji}
                   </button>

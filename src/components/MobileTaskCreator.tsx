@@ -56,8 +56,9 @@ export const MobileTaskCreator = ({
         <Button
           size="lg"
           className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg touch-manipulation z-50"
+          aria-label="Create new task"
         >
-          <Plus className="h-6 w-6" />
+          <Plus className="h-6 w-6" aria-hidden="true" />
         </Button>
       </DrawerTrigger>
       
@@ -76,8 +77,9 @@ export const MobileTaskCreator = ({
                 size="lg"
                 className="h-12 w-12 rounded-xl touch-manipulation"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                aria-label="Choose an emoji"
               >
-                {selectedEmoji || <Smile className="h-5 w-5" />}
+                {selectedEmoji || <Smile className="h-5 w-5" aria-hidden="true" />}
               </Button>
               
               <Input
@@ -86,6 +88,7 @@ export const MobileTaskCreator = ({
                 placeholder="What do you need to do?"
                 className="flex-1 h-12 text-lg px-4 rounded-xl touch-manipulation"
                 autoFocus
+                aria-label="Task description"
               />
             </div>
             
@@ -106,11 +109,12 @@ export const MobileTaskCreator = ({
           <div className="grid grid-cols-1 gap-4">
             {/* Due Date */}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <Calendar className="h-4 w-4" />
+              <label htmlFor="mobile-due-date" className="flex items-center gap-2 text-sm font-medium">
+                <Calendar className="h-4 w-4" aria-hidden="true" />
                 Due Date
               </label>
               <Input
+                id="mobile-due-date"
                 type="datetime-local"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
@@ -120,11 +124,12 @@ export const MobileTaskCreator = ({
 
             {/* Repeat Option */}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <Repeat className="h-4 w-4" />
+              <label htmlFor="mobile-repeat-option" className="flex items-center gap-2 text-sm font-medium">
+                <Repeat className="h-4 w-4" aria-hidden="true" />
                 Repeat
               </label>
               <select
+                id="mobile-repeat-option"
                 value={repeatOption}
                 onChange={(e) => setRepeatOption(e.target.value)}
                 className="w-full h-12 px-3 text-lg border border-input bg-background rounded-md touch-manipulation"
@@ -138,11 +143,12 @@ export const MobileTaskCreator = ({
 
             {/* Reminder */}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <Clock className="h-4 w-4" />
+              <label htmlFor="mobile-reminder" className="flex items-center gap-2 text-sm font-medium">
+                <Clock className="h-4 w-4" aria-hidden="true" />
                 Reminder
               </label>
               <select
+                id="mobile-reminder"
                 value={reminder}
                 onChange={(e) => setReminder(e.target.value)}
                 className="w-full h-12 px-3 text-lg border border-input bg-background rounded-md touch-manipulation"
