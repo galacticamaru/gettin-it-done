@@ -39,7 +39,8 @@ export const EmojiPicker = ({ selectedEmoji, onEmojiSelect, className }: EmojiPi
           variant="ghost"
           size="sm"
           className={`text-xl p-1 h-auto ${className || ''}`}
-          aria-label="Choose an emoji"
+          aria-label={selectedEmoji ? `Change emoji, currently ${selectedEmoji}` : "Choose an emoji"}
+          title={selectedEmoji ? `Change emoji, currently ${selectedEmoji}` : "Choose an emoji"}
         >
           {selectedEmoji || '😀'}
         </Button>
