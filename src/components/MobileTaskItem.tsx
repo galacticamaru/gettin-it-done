@@ -130,13 +130,13 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
     return '📝';
   };
 
-  // Connect both drag and drop to the ref
-  drag(drop(ref));
+  // Only connect drop to the main ref so the whole item accepts drops.
+  drop(ref);
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden mb-2">
       {/* Swipe action backgrounds */}
-      <div className="absolute inset-0 flex">
+      <div className="absolute inset-0 flex rounded-2xl overflow-hidden">
         {/* Complete action (right swipe) */}
         <div className={`flex-1 flex items-center justify-start pl-6 transition-all duration-200 ${
           swiped === 'complete' ? 'bg-green-500' : 'bg-green-400/20'
@@ -215,9 +215,11 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
           {/* Enhanced drag handle with better touch target */}
           <div className="flex items-center gap-3">
             <div
-              className="drag-handle text-muted-foreground hover:text-foreground transition-colors p-2 touch-manipulation"
+              ref={drag}
+              className="drag-handle text-muted-foreground hover:text-foreground transition-colors p-2 touch-none"
               aria-label="Drag to reorder task"
               title="Drag to reorder task"
+              style={{ cursor: 'grab' }}
             >
               <Move className="h-6 w-6" aria-hidden="true" />
             </div>
