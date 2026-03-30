@@ -13,7 +13,7 @@ This project is built with:
 - **Date Manipulation:** date-fns
 - **Backend & Auth:** Supabase (PostgreSQL, Authentication, Row Level Security)
 - **Serverless:** Supabase Edge Functions (Deno)
-- **Package Manager & Test Runner:** npm (for primary deps), Bun (for unit testing)
+- **Package Manager & Test Runner:** npm (for primary deps), Vitest (for unit testing)
 
 ## Project Structure
 
@@ -35,7 +35,6 @@ Supabase Edge Functions are located in the `supabase/functions/` directory.
 ### Prerequisites
 
 - Node.js & npm (use `npm install --legacy-peer-deps` to avoid peer dependency conflicts).
-- Bun (for testing).
 
 ### Installation
 
@@ -62,11 +61,11 @@ The development server typically runs on `http://localhost:5173`.
 
 ## Testing & Linting
 
-We use Bun for running unit tests and ESLint for code quality.
+We use Vitest for running unit tests and ESLint for code quality.
 
 **Run tests:**
 ```sh
-bun test
+npx vitest
 ```
 
 **Run linter:**
