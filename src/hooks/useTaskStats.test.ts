@@ -1,9 +1,9 @@
-import { expect, test, describe, setSystemTime, beforeEach, afterEach, mock } from "bun:test";
+import { expect, test, describe, beforeEach, afterEach, vi } from "vitest";
 import { useTaskStats } from "./useTaskStats";
 import { Task } from "./useTasks";
 import { startOfDay, subDays } from "date-fns";
 
-mock.module("react", () => ({
+vi.mock("react", () => ({
   useMemo: (cb: () => any) => cb(),
 }));
 
@@ -13,12 +13,12 @@ describe("useTaskStats", () => {
   beforeEach(() => {
     // Set system time to a fixed date for reliable testing
     // We'll use 2024-01-10T12:00:00Z (a Wednesday)
-    setSystemTime(FIXED_DATE);
+    vi.useFakeTimers({ now: FIXED_DATE });
   });
 
   afterEach(() => {
     // Restore system time after each test
-    setSystemTime();
+    vi.useRealTimers();
   });
 
   const createTask = (overrides: Partial<Task>): Task => ({
