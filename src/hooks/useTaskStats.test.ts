@@ -1,4 +1,4 @@
-import { expect, test, describe, setSystemTime, beforeEach, afterEach, mock } from "bun:test";
+import { expect, test, describe, beforeEach, afterEach, vi } from "vitest";
 import { useTaskStats } from "./useTaskStats";
 import { Task } from "./useTasks";
 import { startOfDay, subDays } from "date-fns";
