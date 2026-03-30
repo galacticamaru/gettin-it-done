@@ -40,6 +40,7 @@ export const DesktopTaskInput = ({
           onChange={e => setNewTask(e.target.value)}
           onKeyPress={e => e.key === 'Enter' && handleAddTask()}
           className="border-0 bg-transparent focus-visible:ring-0"
+          aria-label="New task description"
         />
         <Button
           onClick={handleAddTask}
