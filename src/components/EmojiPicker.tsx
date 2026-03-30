@@ -53,6 +53,7 @@ export const EmojiPicker = ({ selectedEmoji, onEmojiSelect, className }: EmojiPi
               size="sm"
               onClick={() => handleEmojiClick('')}
               className="text-sm"
+              aria-label="No emoji"
             >
               No emoji
             </Button>
@@ -66,6 +67,7 @@ export const EmojiPicker = ({ selectedEmoji, onEmojiSelect, className }: EmojiPi
                     key={emoji}
                     onClick={() => handleEmojiClick(emoji)}
                     className="text-lg hover:bg-gray-100 rounded p-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    aria-label={`Select ${emoji} emoji`}
                   >
                     {emoji}
                   </button>

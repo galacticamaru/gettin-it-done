@@ -114,6 +114,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               onChange={(e) => setFirstTask(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addTaskToOnboarding()}
               className="border-0 bg-transparent focus-visible:ring-0 text-foreground"
+              aria-label="New task description"
             />
             <Button 
               onClick={addTaskToOnboarding}
@@ -194,6 +195,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               onChange={(e) => setFirstTask(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addTaskToOnboarding()}
               className="border-0 bg-transparent focus-visible:ring-0 text-foreground"
+              aria-label="New task description"
             />
             <Button 
               onClick={addTaskToOnboarding}
