@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
-import { useTasks } from '@/hooks/useTasks';
 
-export const useTaskCreation = () => {
-  const { addTask } = useTasks();
+export const useTaskCreation = (addTask: (taskData: {
+  text: string;
+  dueDate?: Date;
+  repeatOption?: string;
+  reminder?: string;
+  emoji?: string;
+}) => Promise<string | null>) => {
   const { scheduleTaskReminder, scheduleDueDateNotification } = useNotifications();
 
   const [newTask, setNewTask] = useState('');

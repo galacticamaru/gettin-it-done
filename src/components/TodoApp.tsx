@@ -22,6 +22,7 @@ export const TodoApp = () => {
   const {
     tasks,
     loading,
+    addTask,
     toggleTask,
     deleteTask,
     reorderTasks,
@@ -35,7 +36,7 @@ export const TodoApp = () => {
     reminder, setReminder,
     selectedEmoji, setSelectedEmoji,
     handleAddTask
-  } = useTaskCreation();
+  } = useTaskCreation(addTask);
 
   const [filter, setFilter] = useState<Filter>('all');
   const [celebratingTaskId, setCelebratingTaskId] = useState<string | null>(null);
