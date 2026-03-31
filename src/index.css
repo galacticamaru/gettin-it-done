@@ -35,7 +35,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -93,8 +93,17 @@
     @apply border-border;
   }
 
+  html {
+    font-size: 16px;
+  }
+
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+  }
+
+  button, a, input, select, textarea {
+    min-height: 44px;
   }
 
   /* Ensure yellow brand colors work well in both themes */
