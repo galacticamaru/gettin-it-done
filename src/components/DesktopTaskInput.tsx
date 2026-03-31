@@ -38,13 +38,14 @@ export const DesktopTaskInput = ({
           placeholder="Add a new task"
           value={newTask}
           onChange={e => setNewTask(e.target.value)}
-          onKeyPress={e => e.key === 'Enter' && handleAddTask()}
+          onKeyPress={e => e.key === 'Enter' && newTask.trim() && handleAddTask()}
           className="border-0 bg-transparent focus-visible:ring-0"
           aria-label="New task description"
         />
         <Button
           onClick={handleAddTask}
           size="sm"
+          disabled={!newTask.trim()}
           className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-medium px-4 py-2 rounded-full dark:bg-yellow-500 dark:hover:bg-yellow-600"
         >
           Add
