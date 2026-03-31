@@ -112,13 +112,14 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               placeholder="Add a new task"
               value={firstTask}
               onChange={(e) => setFirstTask(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addTaskToOnboarding()}
+              onKeyPress={(e) => e.key === 'Enter' && firstTask.trim() && addTaskToOnboarding()}
               className="border-0 bg-transparent focus-visible:ring-0 text-foreground"
               aria-label="New task description"
             />
             <Button 
               onClick={addTaskToOnboarding}
               size="sm" 
+              disabled={!firstTask.trim()}
               className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 dark:bg-yellow-500 dark:hover:bg-yellow-600"
             >
               Add
@@ -193,13 +194,14 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               placeholder="Add a new task"
               value={firstTask}
               onChange={(e) => setFirstTask(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addTaskToOnboarding()}
+              onKeyPress={(e) => e.key === 'Enter' && firstTask.trim() && addTaskToOnboarding()}
               className="border-0 bg-transparent focus-visible:ring-0 text-foreground"
               aria-label="New task description"
             />
             <Button 
               onClick={addTaskToOnboarding}
               size="sm" 
+              disabled={!firstTask.trim()}
               className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 dark:bg-yellow-500 dark:hover:bg-yellow-600"
             >
               Add
