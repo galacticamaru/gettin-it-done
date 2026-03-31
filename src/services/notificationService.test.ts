@@ -1,4 +1,4 @@
-import { expect, test, describe, beforeAll, afterAll, setSystemTime } from 'bun:test';
+import { expect, test, describe, beforeAll, afterAll, vi } from 'vitest';
 import { NotificationService } from './notificationService';
 
 describe('NotificationService.calculateReminderTime', () => {
@@ -6,11 +6,12 @@ describe('NotificationService.calculateReminderTime', () => {
   const fixedTime = new Date('2024-01-01T12:00:00.000Z');
 
   beforeAll(() => {
-    setSystemTime(fixedTime);
+    vi.useFakeTimers();
+    vi.setSystemTime(fixedTime);
   });
 
   afterAll(() => {
-    setSystemTime();
+    vi.useRealTimers();
   });
 
   describe('when no dueDate is provided (relative to now)', () => {
