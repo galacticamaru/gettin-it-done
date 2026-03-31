@@ -8,7 +8,9 @@ import { DragDropContext } from './DragDropContext';
 import { MobileTaskCreator } from './MobileTaskCreator';
 import { DesktopTaskInput } from './DesktopTaskInput';
 import { TaskList } from './TaskList';
+import { BottomNav } from './BottomNav';
 import { useTasks } from '@/hooks/useTasks';
+import { User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -39,7 +41,29 @@ export const TodoApp = () => {
   } = useTaskCreation(addTask);
 
   const [filter, setFilter] = useState<Filter>('all');
+  const [navTab, setNavTab] = useState<'home' | 'tasks' | 'completed' | 'profile'>('home');
   const [celebratingTaskId, setCelebratingTaskId] = useState<string | null>(null);
+
+  // Sync nav tab with filter
+  const handleNavTabChange = (tab: 'home' | 'tasks' | 'completed' | 'profile') => {
+    setNavTab(tab);
+    if (tab === 'home') setFilter('all');
+    if (tab === 'tasks') setFilter('active');
+    if (tab === 'completed') setFilter('completed');
+    if (tab === 'profile') {
+      // Profile tab might show something else or we could prompt sign out.
+      // For now we'll show all tasks but we can also trigger sign out or open a profile modal if requested later.
+      // Will just act as 'all' for now until actual profile section is implemented.
+    }
+  };
+
+  // Sync filter with nav tab (if filter tabs are still used on desktop/mobile)
+  const handleFilterChange = (newFilter: Filter) => {
+    setFilter(newFilter);
+    if (newFilter === 'all') setNavTab('home');
+    if (newFilter === 'active') setNavTab('tasks');
+    if (newFilter === 'completed') setNavTab('completed');
+  };
 
   const handleToggleTask = async (id: string) => {
     const task = tasks.find(t => t.id === id);
@@ -81,7 +105,7 @@ export const TodoApp = () => {
 
   return (
     <DragDropContext>
-      <div className={`min-h-screen bg-background ${isMobile ? 'mobile-scroll' : ''}`}>
+      <div className={`min-h-screen bg-background ${isMobile ? 'mobile-scroll pb-24' : ''}`}>
         <div className={`${isMobile ? 'px-4 py-4' : 'max-w-md mx-auto px-6 py-8'}`}>
           <div className={`flex justify-between items-start ${isMobile ? 'mb-6' : 'mb-8'}`}>
             <div className="text-center flex-1">
@@ -107,28 +131,40 @@ export const TodoApp = () => {
             <DesktopTaskInput
               newTask={newTask} setNewTask={setNewTask}
               dueDate={dueDate} setDueDate={setDueDate}
-              repeatOption={repeatOption} setRepeatOption={setRepeatOption}
-              reminder={reminder} setReminder={setReminder}
+
+
               selectedEmoji={selectedEmoji} setSelectedEmoji={setSelectedEmoji}
               handleAddTask={handleAddTask}
             />
           )}
 
           <ProductivityStats tasks={tasks} />
-          <FilterTabs filter={filter} onFilterChange={setFilter} />
+          {!isMobile && <FilterTabs filter={filter} onFilterChange={handleFilterChange} />}
 
-          <TaskList
-            tasks={filteredTasks}
-            isMobile={isMobile}
-            filter={filter}
-            celebratingTaskId={celebratingTaskId}
-            handleToggleTask={handleToggleTask}
-            handleDeleteTask={handleDeleteTask}
-            reorderTasks={reorderTasks}
-            fetchTasks={fetchTasks}
-          />
+          {isMobile && navTab === 'profile' ? (
+            <div className="flex flex-col items-center justify-center py-12 space-y-4">
+              <div className="h-20 w-20 bg-muted rounded-full flex items-center justify-center text-muted-foreground">
+                <User size={40} className="opacity-50" />
+              </div>
+              <p className="text-lg font-medium">{user?.email}</p>
+              <Button onClick={signOut} variant="outline" className="mt-4">
+                Sign Out
+              </Button>
+            </div>
+          ) : (
+            <TaskList
+              tasks={filteredTasks}
+              isMobile={isMobile}
+              filter={filter}
+              celebratingTaskId={celebratingTaskId}
+              handleToggleTask={handleToggleTask}
+              handleDeleteTask={handleDeleteTask}
+              reorderTasks={reorderTasks}
+              fetchTasks={fetchTasks}
+            />
+          )}
 
-          {tasks.length > 0 && (
+          {tasks.length > 0 && navTab !== 'profile' && (
             <div className={`text-center text-sm text-muted-foreground ${isMobile ? 'mt-6 pb-4' : 'mt-8'}`}>
               <p>
                 {tasks.filter(t => t.completed).length} of {tasks.length} tasks completed
@@ -141,24 +177,19 @@ export const TodoApp = () => {
             </div>
           )}
 
-          {isMobile && (
-            <div className="fixed bottom-20 left-4 right-4 flex justify-center">
-              <Button onClick={signOut} variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground bg-card border shadow-sm">
-                Sign Out
-              </Button>
-            </div>
-          )}
         </div>
         
-        {isMobile && (
+        {isMobile && navTab !== 'profile' && (
           <MobileTaskCreator
             newTask={newTask} setNewTask={setNewTask}
             dueDate={dueDate} setDueDate={setDueDate}
-            repeatOption={repeatOption} setRepeatOption={setRepeatOption}
-            reminder={reminder} setReminder={setReminder}
             selectedEmoji={selectedEmoji} setSelectedEmoji={setSelectedEmoji}
             onAddTask={handleAddTask}
           />
+        )}
+
+        {isMobile && (
+          <BottomNav currentTab={navTab} onTabChange={handleNavTabChange} />
         )}
       </div>
     </DragDropContext>
