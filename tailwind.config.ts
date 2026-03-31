@@ -68,6 +68,10 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
+          boxShadow: {
+            'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+            'soft-md': '0 8px 30px -4px rgba(0, 0, 0, 0.08)',
+          },
           keyframes: {
             'accordion-down': {
               from: {
@@ -119,5 +123,6 @@ export default {
           }
 		}
 	},
+	// @ts-expect-error - tailwindcss-animate doesn't have proper types for ES modules
 	plugins: [require("tailwindcss-animate")],
 } satisfies Config;
