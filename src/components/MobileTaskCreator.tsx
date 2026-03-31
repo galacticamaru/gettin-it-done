@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { Plus, Calendar, Repeat, Clock, Smile } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Plus, Calendar, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { EmojiPicker } from '@/components/EmojiPicker';
+import { toast } from 'sonner';
 
 interface MobileTaskCreatorProps {
   newTask: string;
@@ -24,35 +25,42 @@ export const MobileTaskCreator = ({
   setNewTask,
   dueDate,
   setDueDate,
-  repeatOption,
-  setRepeatOption,
-  reminder,
-  setReminder,
   selectedEmoji,
   setSelectedEmoji,
   onAddTask,
 }: MobileTaskCreatorProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Autofocus input when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      // Small timeout ensures the dialog is fully rendered before focusing
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    } else {
+      setShowEmojiPicker(false);
+    }
+  }, [isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newTask.trim()) {
       onAddTask();
+      toast.success('Task created successfully');
       setIsOpen(false);
+      // Clear specific local state if needed
+      setDueDate('');
+      setSelectedEmoji('');
     }
   };
 
-  const clearOptions = () => {
-    setDueDate('');
-    setRepeatOption('');
-    setReminder('');
-    setSelectedEmoji('');
-  };
-
   return (
-    <Drawer open={isOpen} onOpenChange={setIsOpen}>
-      <DrawerTrigger asChild>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
         <Button
           size="lg"
           className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-lg touch-manipulation z-40"
@@ -60,22 +68,21 @@ export const MobileTaskCreator = ({
         >
           <Plus className="h-6 w-6" aria-hidden="true" />
         </Button>
-      </DrawerTrigger>
+      </DialogTrigger>
       
-      <DrawerContent className="max-h-[85vh]">
-        <DrawerHeader className="pb-2">
-          <DrawerTitle className="text-xl">Create New Task</DrawerTitle>
-        </DrawerHeader>
+      {/* We add VisuallyHidden DialogTitle for accessibility */}
+      <DialogContent className="sm:max-w-md w-[95%] rounded-2xl p-6 top-[30%] translate-y-[-30%]">
+        <DialogTitle className="sr-only">Create New Task</DialogTitle>
+        <DialogDescription className="sr-only">Enter task details below</DialogDescription>
         
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Task input with emoji */}
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-3">
             <div className="flex gap-3">
               <Button
                 type="button"
                 variant="outline"
                 size="lg"
-                className="h-12 w-12 rounded-xl touch-manipulation"
+                className="h-12 w-12 rounded-xl touch-manipulation shrink-0"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 aria-label="Choose an emoji"
               >
@@ -83,108 +90,52 @@ export const MobileTaskCreator = ({
               </Button>
               
               <Input
+                ref={inputRef}
                 value={newTask}
                 onChange={(e) => setNewTask(e.target.value)}
                 placeholder="What do you need to do?"
-                className="flex-1 h-12 text-lg px-4 rounded-xl touch-manipulation"
-                autoFocus
+                className="flex-1 h-12 text-lg px-4 rounded-xl touch-manipulation border-none bg-secondary/50 focus-visible:ring-1"
                 aria-label="Task description"
               />
             </div>
             
             {showEmojiPicker && (
-              <div className="bg-card border rounded-xl p-4">
+              <div className="bg-card border rounded-xl p-4 absolute z-50 shadow-md">
                 <EmojiPicker
                   selectedEmoji={selectedEmoji}
                   onEmojiSelect={(emoji) => {
                     setSelectedEmoji(emoji);
                     setShowEmojiPicker(false);
+                    inputRef.current?.focus();
                   }}
                 />
               </div>
             )}
           </div>
 
-          {/* Task options */}
-          <div className="grid grid-cols-1 gap-4">
-            {/* Due Date */}
-            <div className="space-y-2">
-              <label htmlFor="mobile-due-date" className="flex items-center gap-2 text-sm font-medium">
-                <Calendar className="h-4 w-4" aria-hidden="true" />
-                Due Date
-              </label>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <Input
-                id="mobile-due-date"
                 type="datetime-local"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="h-12 text-lg touch-manipulation"
+                className="pl-10 h-12 text-sm touch-manipulation bg-secondary/20 border-secondary rounded-xl"
+                aria-label="Due Date"
               />
             </div>
 
-            {/* Repeat Option */}
-            <div className="space-y-2">
-              <label htmlFor="mobile-repeat-option" className="flex items-center gap-2 text-sm font-medium">
-                <Repeat className="h-4 w-4" aria-hidden="true" />
-                Repeat
-              </label>
-              <select
-                id="mobile-repeat-option"
-                value={repeatOption}
-                onChange={(e) => setRepeatOption(e.target.value)}
-                className="w-full h-12 px-3 text-lg border border-input bg-background rounded-md touch-manipulation"
-              >
-                <option value="">No repeat</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-              </select>
-            </div>
-
-            {/* Reminder */}
-            <div className="space-y-2">
-              <label htmlFor="mobile-reminder" className="flex items-center gap-2 text-sm font-medium">
-                <Clock className="h-4 w-4" aria-hidden="true" />
-                Reminder
-              </label>
-              <select
-                id="mobile-reminder"
-                value={reminder}
-                onChange={(e) => setReminder(e.target.value)}
-                className="w-full h-12 px-3 text-lg border border-input bg-background rounded-md touch-manipulation"
-              >
-                <option value="">No reminder</option>
-                <option value="5 minutes before">5 minutes before</option>
-                <option value="15 minutes before">15 minutes before</option>
-                <option value="30 minutes before">30 minutes before</option>
-                <option value="1 hour before">1 hour before</option>
-                <option value="1 day before">1 day before</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              onClick={clearOptions}
-              className="flex-1 h-12 touch-manipulation"
-            >
-              Clear Options
-            </Button>
             <Button
               type="submit"
               size="lg"
               disabled={!newTask.trim()}
-              className="flex-1 h-12 touch-manipulation"
+              className="h-12 px-6 rounded-xl touch-manipulation font-medium shrink-0"
             >
-              Add Task
+              Save
             </Button>
           </div>
         </form>
-      </DrawerContent>
-    </Drawer>
+      </DialogContent>
+    </Dialog>
   );
 };
