@@ -55,7 +55,7 @@ export const MobileTaskCreator = ({
       <DrawerTrigger asChild>
         <Button
           size="lg"
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg touch-manipulation z-50"
+          className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-lg touch-manipulation z-40"
           aria-label="Create new task"
         >
           <Plus className="h-6 w-6" aria-hidden="true" />

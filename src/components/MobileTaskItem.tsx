@@ -29,7 +29,7 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
   const ref = useRef<HTMLDivElement>(null);
   const [swiped, setSwiped] = useState<'complete' | 'delete' | null>(null);
 
-  const [{ isDragging }, drag] = useDrag({
+  const [{ isDragging }, drag, dragPreview] = useDrag({
     type: TASK_TYPE,
     item: () => ({ id: task.id.toString() }),
     collect: (monitor) => ({
@@ -132,9 +132,10 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
 
   // Only connect drop to the main ref so the whole item accepts drops.
   drop(ref);
+  dragPreview(ref);
 
   return (
-    <div className="relative overflow-hidden mb-2">
+    <div ref={ref} className="relative overflow-hidden mb-2">
       {/* Swipe action backgrounds */}
       <div className="absolute inset-0 flex rounded-2xl overflow-hidden">
         {/* Complete action (right swipe) */}
@@ -158,7 +159,6 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
 
       {/* Main task item */}
       <animated.div
-        ref={ref}
         {...bind()}
         style={{
           x: springs.x,

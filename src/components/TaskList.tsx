@@ -1,7 +1,6 @@
 import { ConfettiAnimation } from './ConfettiAnimation';
 import { MobileTaskItem } from './MobileTaskItem';
 import { TaskItem } from './TaskItem';
-import { PullToRefresh } from './PullToRefresh';
 
 interface Task {
   id: string;
@@ -51,25 +50,23 @@ export const TaskList = ({
 
   if (isMobile) {
     return (
-      <PullToRefresh onRefresh={async () => { await fetchTasks(); }}>
-        <div className="space-y-3 relative pb-24">
-          <ConfettiAnimation isVisible={celebratingTaskId !== null} />
+      <div className="space-y-3 relative pb-24">
+        <ConfettiAnimation isVisible={celebratingTaskId !== null} />
 
-          {tasks.length === 0 ? (
-            <EmptyState />
-          ) : (
-            tasks.map(task => (
-              <MobileTaskItem
-                key={task.id}
-                task={task}
-                onToggle={handleToggleTask}
-                onDelete={handleDeleteTask}
-                onReorder={reorderTasks}
-              />
-            ))
-          )}
-        </div>
-      </PullToRefresh>
+        {tasks.length === 0 ? (
+          <EmptyState />
+        ) : (
+          tasks.map(task => (
+            <MobileTaskItem
+              key={task.id}
+              task={task}
+              onToggle={handleToggleTask}
+              onDelete={handleDeleteTask}
+              onReorder={reorderTasks}
+            />
+          ))
+        )}
+      </div>
     );
   }
 
