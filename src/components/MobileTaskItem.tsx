@@ -172,7 +172,7 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
           {/* Enhanced touch target for completion toggle */}
           <button
             onClick={() => onToggle(task.id)}
-            className={`w-12 h-12 rounded-full border-3 flex items-center justify-center transition-all touch-manipulation ${
+            className={`w-12 h-12 rounded-full border-3 flex items-center justify-center transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
               task.completed 
                 ? 'bg-green-500 border-green-500' 
                 : 'border-border hover:border-green-400 active:scale-95'
@@ -227,7 +227,7 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
             {/* Enhanced delete button with better touch target */}
             <button
               onClick={() => onDelete(task.id)}
-              className="text-muted-foreground hover:text-destructive transition-colors p-3 rounded-full hover:bg-destructive/10 active:scale-95 touch-manipulation"
+              className="text-muted-foreground hover:text-destructive transition-colors p-3 rounded-full hover:bg-destructive/10 active:scale-95 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2"
               aria-label="Delete task"
               title="Delete task"
             >

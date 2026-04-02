@@ -32,7 +32,7 @@ export const DesktopTaskInput = ({
 }: DesktopTaskInputProps) => {
   return (
     <>
-      <div className="flex items-center gap-3 p-4 bg-card rounded-2xl shadow-sm mb-4 border">
+      <div className="flex items-center gap-3 p-4 bg-card rounded-2xl shadow-sm mb-4 border transition-shadow focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
         <EmojiPicker selectedEmoji={selectedEmoji} onEmojiSelect={setSelectedEmoji} />
         <Input
           placeholder="Add a new task"
