@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { notificationService } from '@/services/notificationService';
 import { oneSignalService } from '@/services/oneSignalService';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
@@ -10,10 +10,13 @@ export const useNotifications = () => {
   const [initializationDone, setInitializationDone] = useState(false);
   const { updateOneSignalSubscriptionId } = useUserPreferences();
 
-  // Create a stable reference for updating subscription ID
+  // Stable ref so the useEffect doesn't re-run when the callback identity changes
+  const updateSubscriptionIdRef = useRef(updateOneSignalSubscriptionId);
+  updateSubscriptionIdRef.current = updateOneSignalSubscriptionId;
+
   const updateSubscriptionId = useCallback(async (userId: string | null) => {
-    await updateOneSignalSubscriptionId(userId);
-  }, [updateOneSignalSubscriptionId]);
+    await updateSubscriptionIdRef.current(userId);
+  }, []);
 
   useEffect(() => {
     // Only initialize once
