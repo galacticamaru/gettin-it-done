@@ -210,7 +210,8 @@ export const useTasks = () => {
       const updates = updatedTasks.map((task, index) => ({
         id: task.id,
         user_id: user.id,
-        sort_order: index
+        sort_order: index,
+        text: task.text
       }));
 
       console.log('📝 Batch updating task orders');
