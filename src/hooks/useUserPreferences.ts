@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -78,8 +78,17 @@ export const useUserPreferences = () => {
     }
   };
 
-  const updateOneSignalSubscriptionId = async (subscriptionId: string | null) => {
+  const lastSubscriptionIdRef = useRef<string | null | undefined>(undefined);
+
+  const updateOneSignalSubscriptionId = useCallback(async (subscriptionId: string | null) => {
     if (!user || !preferences) return;
+
+    // Early-exit: skip if value hasn't changed
+    if (lastSubscriptionIdRef.current === subscriptionId) return;
+    if (preferences.onesignal_subscription_id === subscriptionId) {
+      lastSubscriptionIdRef.current = subscriptionId;
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -89,12 +98,13 @@ export const useUserPreferences = () => {
 
       if (error) throw error;
 
+      lastSubscriptionIdRef.current = subscriptionId;
       setPreferences(prev => prev ? { ...prev, onesignal_subscription_id: subscriptionId } : null);
       console.log('Updated OneSignal subscription ID:', subscriptionId);
     } catch (error) {
       console.error('Error updating OneSignal subscription ID:', error);
     }
-  };
+  }, [user, preferences]);
 
   useEffect(() => {
     if (user) {
