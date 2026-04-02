@@ -28,6 +28,19 @@
           serviceWorkerUpdaterPath: "/OneSignalSDK.sw.js",
           serviceWorkerParam: { scope: "/" },
           allowLocalhostAsSecureOrigin: true,
+          notifyButton: {
+            enable: false,
+          },
+          promptOptions: {
+            slidedown: {
+              prompts: [
+                {
+                  type: "push",
+                  autoPrompt: false
+                }
+              ]
+            }
+          }
         });
       });
     </script>
