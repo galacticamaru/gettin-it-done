@@ -20,6 +20,9 @@ interface OnboardingTask {
   completed: boolean;
   emoji: string;
   createdAt: string;
+  dueDate?: string;
+  repeatOption?: string;
+  reminder?: string;
 }
 
 type Filter = 'all' | 'completed' | 'active';
@@ -57,7 +60,10 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
         text: newTask.trim(),
         completed: false,
         emoji: selectedEmoji || getTaskEmoji(newTask.trim()),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        dueDate: dueDate || undefined,
+        repeatOption: repeatOption !== 'none' ? repeatOption : undefined,
+        reminder: reminder !== 'none' ? reminder : undefined,
       };
       setOnboardingTasks([...onboardingTasks, task]);
       setNewTask('');
