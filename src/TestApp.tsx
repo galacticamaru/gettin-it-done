@@ -62,8 +62,6 @@ export default function TestApp() {
             <MobileTaskItem
               key={task.id}
               task={task as any}
-              index={index}
-              moveTask={handleReorder}
               onToggle={() => {}}
               onDelete={() => {}}
             />
