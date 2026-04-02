@@ -131,8 +131,8 @@ export const TodoApp = () => {
             <DesktopTaskInput
               newTask={newTask} setNewTask={setNewTask}
               dueDate={dueDate} setDueDate={setDueDate}
-
-
+              repeatOption={repeatOption} setRepeatOption={setRepeatOption}
+              reminder={reminder} setReminder={setReminder}
               selectedEmoji={selectedEmoji} setSelectedEmoji={setSelectedEmoji}
               handleAddTask={handleAddTask}
             />
@@ -183,6 +183,8 @@ export const TodoApp = () => {
           <MobileTaskCreator
             newTask={newTask} setNewTask={setNewTask}
             dueDate={dueDate} setDueDate={setDueDate}
+            repeatOption={repeatOption} setRepeatOption={setRepeatOption}
+            reminder={reminder} setReminder={setReminder}
             selectedEmoji={selectedEmoji} setSelectedEmoji={setSelectedEmoji}
             onAddTask={handleAddTask}
           />

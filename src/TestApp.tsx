@@ -34,6 +34,30 @@ export default function TestApp() {
         <h1 className="text-xl font-bold mb-4">Task Reorder Test App</h1>
 
         <div className="space-y-4" id="task-list">
+          {/* Inject DesktopTaskInput temporarily to test */}
+          {(() => {
+            const { DesktopTaskInput } = require('./components/DesktopTaskInput');
+            const { useTaskCreation } = require('./hooks/useTaskCreation');
+            const {
+              newTask, setNewTask,
+              dueDate, setDueDate,
+              repeatOption, setRepeatOption,
+              reminder, setReminder,
+              selectedEmoji, setSelectedEmoji,
+              handleAddTask
+            } = useTaskCreation(async () => null);
+
+            return (
+              <DesktopTaskInput
+                newTask={newTask} setNewTask={setNewTask}
+                dueDate={dueDate} setDueDate={setDueDate}
+                repeatOption={repeatOption} setRepeatOption={setRepeatOption}
+                reminder={reminder} setReminder={setReminder}
+                selectedEmoji={selectedEmoji} setSelectedEmoji={setSelectedEmoji}
+                handleAddTask={handleAddTask}
+              />
+            );
+          })()}
           {tasks.map((task, index) => (
             <MobileTaskItem
               key={task.id}
