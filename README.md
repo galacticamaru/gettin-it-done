@@ -11,9 +11,12 @@ This project is built with:
 - **Frontend:** React, Vite, TypeScript
 - **Styling:** Tailwind CSS, shadcn/ui, lucide-react
 - **Date Manipulation:** date-fns
+- **Drag & Drop:** React DnD (with Touch Backend support)
+- **Notifications:** OneSignal Web SDK v16
+- **PWA:** Vite PWA
 - **Backend & Auth:** Supabase (PostgreSQL, Authentication, Row Level Security)
 - **Serverless:** Supabase Edge Functions (Deno)
-- **Package Manager & Test Runner:** npm (for primary deps), Vitest (for unit testing)
+- **Package Manager & Test Runner:** pnpm (for primary deps), Vitest (for unit testing)
 
 ## Project Structure
 
@@ -34,7 +37,7 @@ Supabase Edge Functions are located in the `supabase/functions/` directory.
 
 ### Prerequisites
 
-- Node.js & npm (use `npm install --legacy-peer-deps` to avoid peer dependency conflicts).
+- Node.js & pnpm.
 
 ### Installation
 
@@ -46,7 +49,7 @@ Supabase Edge Functions are located in the `supabase/functions/` directory.
 
 2. Install dependencies:
    ```sh
-   npm install --legacy-peer-deps
+   pnpm install
    ```
 
 ### Running Locally
@@ -54,10 +57,10 @@ Supabase Edge Functions are located in the `supabase/functions/` directory.
 Start the development server with auto-reloading and an instant preview:
 
 ```sh
-npm run dev
+pnpm run dev
 ```
 
-The development server typically runs on `http://localhost:5173`.
+The development server typically runs on `http://localhost:8080`.
 
 ## Testing & Linting
 
@@ -65,12 +68,12 @@ We use Vitest for running unit tests and ESLint for code quality.
 
 **Run tests:**
 ```sh
-npx vitest
+pnpm exec vitest run
 ```
 
 **Run linter:**
 ```sh
-npm run lint
+pnpm lint
 ```
 
 ## Performance & Best Practices
