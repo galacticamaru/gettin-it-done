@@ -117,7 +117,7 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
       <div className="flex items-center gap-3 flex-1">
         <button
           onClick={() => onToggle(task.id)}
-          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
             task.completed 
               ? 'bg-green-500 border-green-500' 
               : 'border-border hover:border-green-400'
@@ -165,7 +165,7 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
         
         <button
           onClick={() => onDelete(task.id)}
-          className="text-muted-foreground hover:text-destructive transition-colors"
+          className="text-muted-foreground hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 rounded-sm"
           aria-label="Delete task"
           title="Delete task"
         >
