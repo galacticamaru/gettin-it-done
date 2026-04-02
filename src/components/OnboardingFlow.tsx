@@ -1,33 +1,48 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Calendar, Bell, Repeat, Plus } from 'lucide-react';
-import { EmojiPicker } from './EmojiPicker';
+import { Calendar, Bell, Repeat } from 'lucide-react';
 import { FilterTabs } from './FilterTabs';
 import { useNavigate } from 'react-router-dom';
+import { DesktopTaskInput } from './DesktopTaskInput';
+import { MobileTaskCreator } from './MobileTaskCreator';
+import { TaskList } from './TaskList';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { DragDropContext } from './DragDropContext';
 
 interface OnboardingFlowProps {
   onComplete: () => void;
 }
 
 interface OnboardingTask {
-  id: number;
+  id: string;
   text: string;
   completed: boolean;
   emoji: string;
+  createdAt: string;
+  dueDate?: string;
+  repeatOption?: string;
+  reminder?: string;
 }
 
 type Filter = 'all' | 'completed' | 'active';
 
 export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
+  const isMobile = useIsMobile();
   const [currentStep, setCurrentStep] = useState(0);
-  const [firstTask, setFirstTask] = useState('');
-  const [firstTaskEmoji, setFirstTaskEmoji] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [onboardingTasks, setOnboardingTasks] = useState<OnboardingTask[]>([
-    { id: 1, text: 'Take my medication', completed: false, emoji: '💊' }
+    { id: '1', text: 'Take my medication', completed: false, emoji: '💊', createdAt: new Date().toISOString() }
   ]);
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
+
+  // States for Task Creation
+  const [newTask, setNewTask] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [repeatOption, setRepeatOption] = useState('none');
+  const [reminder, setReminder] = useState('none');
+  const [selectedEmoji, setSelectedEmoji] = useState('');
+
   const navigate = useNavigate();
 
   const handleNextStep = () => {
@@ -39,20 +54,27 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   };
 
   const addTaskToOnboarding = () => {
-    if (firstTask.trim()) {
-      const newTask: OnboardingTask = {
-        id: Date.now(),
-        text: firstTask.trim(),
+    if (newTask.trim()) {
+      const task: OnboardingTask = {
+        id: Date.now().toString(),
+        text: newTask.trim(),
         completed: false,
-        emoji: firstTaskEmoji || getTaskEmoji(firstTask.trim())
+        emoji: selectedEmoji || getTaskEmoji(newTask.trim()),
+        createdAt: new Date().toISOString(),
+        dueDate: dueDate || undefined,
+        repeatOption: repeatOption !== 'none' ? repeatOption : undefined,
+        reminder: reminder !== 'none' ? reminder : undefined,
       };
-      setOnboardingTasks([...onboardingTasks, newTask]);
-      setFirstTask('');
-      setFirstTaskEmoji('');
+      setOnboardingTasks([...onboardingTasks, task]);
+      setNewTask('');
+      setSelectedEmoji('');
+      setDueDate('');
+      setRepeatOption('none');
+      setReminder('none');
     }
   };
 
-  const toggleOnboardingTask = (id: number) => {
+  const toggleOnboardingTask = async (id: string) => {
     setOnboardingTasks(tasks => 
       tasks.map(task => 
         task.id === id ? { ...task, completed: !task.completed } : task
@@ -60,13 +82,26 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     );
   };
 
-  const updateTaskEmoji = (id: number, emoji: string) => {
-    setOnboardingTasks(tasks => 
-      tasks.map(task => 
-        task.id === id ? { ...task, emoji: emoji || getTaskEmoji(task.text) } : task
-      )
-    );
+  const deleteOnboardingTask = async (id: string) => {
+    setOnboardingTasks(tasks => tasks.filter(task => task.id !== id));
   };
+
+  const reorderTasks = (dragId: string, hoverId: string) => {
+    setOnboardingTasks((prevTasks) => {
+      const dragIndex = prevTasks.findIndex((t) => t.id === dragId);
+      const hoverIndex = prevTasks.findIndex((t) => t.id === hoverId);
+
+      if (dragIndex === -1 || hoverIndex === -1) return prevTasks;
+
+      const newTasks = [...prevTasks];
+      const [draggedTask] = newTasks.splice(dragIndex, 1);
+      newTasks.splice(hoverIndex, 0, draggedTask);
+
+      return newTasks;
+    });
+  };
+
+  const noopFetchTasks = async () => {};
 
   // Filter tasks based on current filter
   const filteredTasks = onboardingTasks.filter(task => {
@@ -97,292 +132,143 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     return highlightedText;
   };
 
+  const renderSharedContent = () => (
+    <div className="space-y-6">
+      {!isMobile && (
+        <DesktopTaskInput
+          newTask={newTask}
+          setNewTask={setNewTask}
+          dueDate={dueDate}
+          setDueDate={setDueDate}
+          repeatOption={repeatOption}
+          setRepeatOption={setRepeatOption}
+          reminder={reminder}
+          setReminder={setReminder}
+          selectedEmoji={selectedEmoji}
+          setSelectedEmoji={setSelectedEmoji}
+          handleAddTask={addTaskToOnboarding}
+        />
+      )}
+
+      {isMobile && (
+        <MobileTaskCreator
+          newTask={newTask}
+          setNewTask={setNewTask}
+          dueDate={dueDate}
+          setDueDate={setDueDate}
+          repeatOption={repeatOption}
+          setRepeatOption={setRepeatOption}
+          reminder={reminder}
+          setReminder={setReminder}
+          selectedEmoji={selectedEmoji}
+          setSelectedEmoji={setSelectedEmoji}
+          onAddTask={addTaskToOnboarding}
+        />
+      )}
+
+      <div className="flex flex-col items-center gap-2 pt-2">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground justify-center">
+          <Calendar
+            className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors"
+            onMouseEnter={() => setHoveredIcon('calendar')}
+            onMouseLeave={() => setHoveredIcon(null)}
+          />
+          <Repeat
+            className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors"
+            onMouseEnter={() => setHoveredIcon('repeat')}
+            onMouseLeave={() => setHoveredIcon(null)}
+          />
+          <Bell
+            className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors"
+            onMouseEnter={() => setHoveredIcon('bell')}
+            onMouseLeave={() => setHoveredIcon(null)}
+          />
+        </div>
+        <p className="text-sm text-muted-foreground text-center px-4">
+          <span dangerouslySetInnerHTML={{
+            __html: getHighlightedText(
+              "Add a due date, configure whether the task repeats and set reminders so you can keep gettin it done!",
+              hoveredIcon === 'calendar' ? ['due date'] :
+              hoveredIcon === 'repeat' ? ['task repeats'] :
+              hoveredIcon === 'bell' ? ['reminders'] : []
+            )
+          }} />
+        </p>
+      </div>
+
+      {!isMobile && <FilterTabs filter={filter} onFilterChange={setFilter} />}
+
+      <TaskList
+        tasks={filteredTasks}
+        isMobile={isMobile}
+        filter={filter}
+        celebratingTaskId={null}
+        handleToggleTask={toggleOnboardingTask}
+        handleDeleteTask={deleteOnboardingTask}
+        reorderTasks={reorderTasks}
+        fetchTasks={noopFetchTasks}
+      />
+    </div>
+  );
+
   const screens = [
     {
       title: "Welcome to Gettin it Done!",
       subtitle: "Let us know something you wanna get done?",
-      content: (
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 p-4 bg-card rounded-2xl shadow-sm border border-border">
-            <EmojiPicker 
-              selectedEmoji={firstTaskEmoji}
-              onEmojiSelect={setFirstTaskEmoji}
-            />
-            <Input
-              placeholder="Add a new task"
-              value={firstTask}
-              onChange={(e) => setFirstTask(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && firstTask.trim() && addTaskToOnboarding()}
-              className="border-0 bg-transparent focus-visible:ring-0 text-foreground"
-              aria-label="New task description"
-            />
-            <Button 
-              onClick={addTaskToOnboarding}
-              size="sm" 
-              disabled={!firstTask.trim()}
-              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 dark:bg-yellow-500 dark:hover:bg-yellow-600"
-            >
-              Add
-            </Button>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Calendar 
-              className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors" 
-              onMouseEnter={() => setHoveredIcon('calendar')}
-              onMouseLeave={() => setHoveredIcon(null)}
-            />
-            <Repeat 
-              className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors"
-              onMouseEnter={() => setHoveredIcon('repeat')}
-              onMouseLeave={() => setHoveredIcon(null)}
-            />
-            <Bell 
-              className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors"
-              onMouseEnter={() => setHoveredIcon('bell')}
-              onMouseLeave={() => setHoveredIcon(null)}
-            />
-          </div>
-          <p className="text-sm text-muted-foreground text-center px-4">
-            <span dangerouslySetInnerHTML={{
-              __html: getHighlightedText(
-                "Add a due date, configure whether the task repeats and set reminders so you can keep gettin it done!",
-                hoveredIcon === 'calendar' ? ['due date'] :
-                hoveredIcon === 'repeat' ? ['task repeats'] :
-                hoveredIcon === 'bell' ? ['reminders'] : []
-              )
-            }} />
-          </p>
-          
-          <FilterTabs filter={filter} onFilterChange={setFilter} />
-          
-          <div className="space-y-3">
-            {filteredTasks.map((task) => (
-              <div key={task.id} className="flex items-center gap-3 p-3 bg-card rounded-2xl border border-border">
-                <EmojiPicker 
-                  selectedEmoji={task.emoji}
-                  onEmojiSelect={(emoji) => updateTaskEmoji(task.id, emoji)}
-                />
-                <span className="text-foreground">{task.text}</span>
-                <div className="flex gap-2 ml-auto">
-                  <Repeat className="w-4 h-4 text-muted-foreground" />
-                  <Bell className="w-4 h-4 text-muted-foreground" />
-                </div>
-              </div>
-            ))}
-          </div>
-          {filteredTasks.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center px-4">
-              {filter === 'completed' ? 'No completed tasks yet.' : 
-               filter === 'active' ? 'No active tasks.' : 
-               'Your tasks will appear here. Try adding a task above so you can track gettin it done.'}
-            </p>
-          )}
-        </div>
-      )
+      content: renderSharedContent()
     },
     {
       title: "Nice!",
       subtitle: "Why don't you try completing your first task.",
-      content: (
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 p-4 bg-card rounded-2xl border border-border">
-            <EmojiPicker 
-              selectedEmoji={firstTaskEmoji}
-              onEmojiSelect={setFirstTaskEmoji}
-            />
-            <Input
-              placeholder="Add a new task"
-              value={firstTask}
-              onChange={(e) => setFirstTask(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && firstTask.trim() && addTaskToOnboarding()}
-              className="border-0 bg-transparent focus-visible:ring-0 text-foreground"
-              aria-label="New task description"
-            />
-            <Button 
-              onClick={addTaskToOnboarding}
-              size="sm" 
-              disabled={!firstTask.trim()}
-              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 dark:bg-yellow-500 dark:hover:bg-yellow-600"
-            >
-              Add
-            </Button>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Calendar 
-              className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors" 
-              onMouseEnter={() => setHoveredIcon('calendar')}
-              onMouseLeave={() => setHoveredIcon(null)}
-            />
-            <Repeat 
-              className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors"
-              onMouseEnter={() => setHoveredIcon('repeat')}
-              onMouseLeave={() => setHoveredIcon(null)}
-            />
-            <Bell 
-              className="w-4 h-4 cursor-pointer hover:text-yellow-600 transition-colors"
-              onMouseEnter={() => setHoveredIcon('bell')}
-              onMouseLeave={() => setHoveredIcon(null)}
-            />
-          </div>
-          <p className="text-sm text-muted-foreground text-center px-4">
-            <span dangerouslySetInnerHTML={{
-              __html: getHighlightedText(
-                "Add a due date, configure whether the task repeats and set reminders so you can keep gettin it done!",
-                hoveredIcon === 'calendar' ? ['due date'] :
-                hoveredIcon === 'repeat' ? ['task repeats'] :
-                hoveredIcon === 'bell' ? ['reminders'] : []
-              )
-            }} />
-          </p>
-          
-          <FilterTabs filter={filter} onFilterChange={setFilter} />
-          
-          <div className="space-y-3">
-            {filteredTasks.map((task) => (
-              <div 
-                key={task.id} 
-                className={`flex items-center gap-3 p-3 rounded-2xl border border-border ${
-                  task.completed ? 'bg-success/10' : 'bg-card'
-                }`}
-              >
-                <button
-                  onClick={() => toggleOnboardingTask(task.id)}
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                    task.completed 
-                      ? 'bg-success border-success' 
-                      : 'border-muted-foreground/30 hover:border-success'
-                  }`}
-                >
-                  {task.completed && (
-                    <span className="text-white text-sm font-bold">✓</span>
-                  )}
-                </button>
-                <EmojiPicker 
-                  selectedEmoji={task.emoji}
-                  onEmojiSelect={(emoji) => updateTaskEmoji(task.id, emoji)}
-                />
-                <span className={`text-foreground ${task.completed ? 'line-through' : ''}`}>
-                  {task.text}
-                </span>
-                <div className="flex gap-2 ml-auto">
-                  <Repeat className="w-4 h-4 text-muted-foreground" />
-                  <Bell className="w-4 h-4 text-muted-foreground" />
-                </div>
-              </div>
-            ))}
-          </div>
-          {filteredTasks.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center px-4">
-              {filter === 'completed' ? 'No completed tasks yet. Complete some tasks to see them here!' : 
-               filter === 'active' ? 'No active tasks. Add a new task to get started!' : 
-               'Your tasks will appear here.'}
-            </p>
-          )}
-        </div>
-      )
+      content: renderSharedContent()
     },
     {
       title: "They've bloody done it!",
       subtitle: "Sign up with a free account to start gettin it done. 🚀",
-      content: (
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 p-4 bg-card rounded-2xl border border-border">
-            <div className="text-xl p-1">😀</div>
-            <Input
-              placeholder="Create an account to add more tasks"
-              className="border-0 bg-transparent focus-visible:ring-0 text-foreground"
-              disabled
-            />
-            <Button size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 dark:bg-yellow-500 dark:hover:bg-yellow-600" disabled>
-              Add
-            </Button>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Calendar className="w-4 h-4" />
-            <Repeat className="w-4 h-4" />
-            <Bell className="w-4 h-4" />
-          </div>
-          
-          <FilterTabs filter={filter} onFilterChange={setFilter} />
-          
-          <div className="space-y-3">
-            {filteredTasks.map((task) => (
-              <div 
-                key={task.id} 
-                className={`flex items-center gap-3 p-3 rounded-2xl border border-border ${
-                  task.completed ? 'bg-success/10' : 'bg-card'
-                }`}
-              >
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                  task.completed 
-                    ? 'bg-success border-success' 
-                    : 'border-muted-foreground/30'
-                }`}>
-                  {task.completed && (
-                    <span className="text-white text-sm font-bold">✓</span>
-                  )}
-                </div>
-                <span className="text-xl">{task.emoji}</span>
-                <span className={`text-foreground ${task.completed ? 'line-through' : ''}`}>
-                  {task.text}
-                </span>
-                <div className="flex gap-2 ml-auto">
-                  <Repeat className="w-4 h-4 text-muted-foreground" />
-                  <Bell className="w-4 h-4 text-muted-foreground" />
-                </div>
-              </div>
-            ))}
-          </div>
-          {filteredTasks.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center px-4">
-              {filter === 'completed' ? 'No completed tasks yet.' : 
-               filter === 'active' ? 'No active tasks.' : 
-               'Your tasks will appear here.'}
-            </p>
-          )}
-        </div>
-      )
+      content: renderSharedContent()
     }
   ];
 
   const currentScreen = screens[currentStep];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="flex-1 flex flex-col max-w-md mx-auto w-full px-6 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-foreground mb-2">
-            {currentScreen.title}
-          </h1>
-          <p className="text-muted-foreground">
-            {currentScreen.subtitle}
-          </p>
-        </div>
-
-        <div className="flex-1">
-          {currentScreen.content}
-        </div>
-
-        <div className="flex justify-center mt-8">
-          <div className="flex gap-2">
-            {screens.map((_, index) => (
-              <div
-                key={index}
-                className={`w-2 h-2 rounded-full ${
-                  index === currentStep ? 'bg-foreground' : 'bg-muted-foreground/30'
-                }`}
-              />
-            ))}
+    <DragDropContext>
+      <div className={`min-h-screen bg-background ${isMobile ? 'mobile-scroll pb-24' : ''}`}>
+        <div className={`flex-1 flex flex-col mx-auto w-full ${isMobile ? 'px-4 py-4' : 'max-w-md px-6 py-8'}`}>
+          <div className="text-center mb-8">
+            <h1 className={`font-bold text-foreground mb-2 text-center ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+              {currentScreen.title}
+            </h1>
+            <p className={`text-muted-foreground text-center ${isMobile ? 'text-sm' : ''}`}>
+              {currentScreen.subtitle}
+            </p>
           </div>
-        </div>
 
-        <Button
-          onClick={handleNextStep}
-          className="w-full mt-6 bg-yellow-400 hover:bg-yellow-500 dark:bg-yellow-500 dark:hover:bg-yellow-600 text-gray-900 font-medium py-3 rounded-full"
-        >
-          {currentStep === 2 ? 'Create Account' : 'Continue'}
-        </Button>
+          <div className="flex-1">
+            {currentScreen.content}
+          </div>
+
+          <div className="flex justify-center mt-8">
+            <div className="flex gap-2">
+              {screens.map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-2 h-2 rounded-full ${
+                    index === currentStep ? 'bg-foreground' : 'bg-muted-foreground/30'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <Button
+            onClick={handleNextStep}
+            className="w-full mt-6 bg-yellow-400 hover:bg-yellow-500 dark:bg-yellow-500 dark:hover:bg-yellow-600 text-gray-900 font-medium py-3 rounded-full"
+          >
+            {currentStep === 2 ? 'Create Account' : 'Continue'}
+          </Button>
+        </div>
       </div>
-    </div>
+    </DragDropContext>
   );
 };
