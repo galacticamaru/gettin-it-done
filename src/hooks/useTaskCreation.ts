@@ -12,8 +12,8 @@ export const useTaskCreation = (addTask: (taskData: {
 
   const [newTask, setNewTask] = useState('');
   const [dueDate, setDueDate] = useState('');
-  const [repeatOption, setRepeatOption] = useState('');
-  const [reminder, setReminder] = useState('');
+  const [repeatOption, setRepeatOption] = useState('none');
+  const [reminder, setReminder] = useState('none');
   const [selectedEmoji, setSelectedEmoji] = useState('');
 
   const handleAddTask = async () => {
@@ -21,8 +21,8 @@ export const useTaskCreation = (addTask: (taskData: {
       const taskData = {
         text: newTask.trim(),
         dueDate: dueDate ? new Date(dueDate) : undefined,
-        repeatOption: repeatOption || undefined,
-        reminder: reminder || undefined,
+        repeatOption: repeatOption === 'none' ? undefined : repeatOption,
+        reminder: reminder === 'none' ? undefined : reminder,
         emoji: selectedEmoji || undefined,
       };
 
@@ -40,8 +40,8 @@ export const useTaskCreation = (addTask: (taskData: {
 
         setNewTask('');
         setDueDate('');
-        setRepeatOption('');
-        setReminder('');
+        setRepeatOption('none');
+        setReminder('none');
         setSelectedEmoji('');
       } catch (error) {
         console.error('Error adding task:', error);
