@@ -58,7 +58,7 @@ export const useNotifications = () => {
     };
 
     initNotifications();
-  }, [updateSubscriptionId, initializationDone]);
+  }, [initializationDone]);
 
   const requestPermission = async (): Promise<boolean> => {
     console.log('Requesting OneSignal permission/subscription...');
