@@ -102,7 +102,7 @@
     overflow-x: hidden;
   }
 
-  button, a, input, select, textarea {
+  button:not([role="switch"]):not([role="checkbox"]):not([role="radio"]):not([role="slider"]), a, input:not([type="checkbox"]):not([type="radio"]), select, textarea {
     min-height: 44px;
   }
 
