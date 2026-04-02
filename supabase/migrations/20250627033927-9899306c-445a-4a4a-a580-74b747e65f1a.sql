@@ -19,8 +19,8 @@ SELECT cron.schedule(
   $$
   SELECT
     net.http_post(
-        url := 'https://gdopicetwkrzihvwikwu.supabase.co/functions/v1/send-daily-digest',
-        headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdkb3BpY2V0d2tyemlodndpa3d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzMDA1NjcsImV4cCI6MjA2Mzg3NjU2N30.9L5UKJV8XGXi24_zURPz1blEj5qzwg3-Di3Z7L0me-0"}'::jsonb,
+        url := current_setting('app.settings.supabase_url') || '/functions/v1/send-daily-digest',
+        headers := format('{"Content-Type": "application/json", "Authorization": "Bearer %s"}', current_setting('app.settings.service_role_key'))::jsonb,
         body := '{"source": "cron"}'::jsonb
     ) as request_id;
   $$
