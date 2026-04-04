@@ -6,7 +6,7 @@ import '@testing-library/jest-dom';
 describe('FilterTabs', () => {
   it('renders with correct ARIA roles', () => {
     const handleFilterChange = vi.fn();
-    render(<FilterTabs filter="all" onFilterChange={handleFilterChange} />);
+    render(<FilterTabs filter="active" onFilterChange={handleFilterChange} />);
 
     // Check if tablist exists
     const tablist = screen.getByRole('tablist', { name: /Task filters/i });
@@ -17,14 +17,14 @@ describe('FilterTabs', () => {
     expect(tabs).toHaveLength(3);
 
     // Check initial selection
-    expect(screen.getByRole('tab', { name: /All/i })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: /Active/i })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: /All/i })).toHaveAttribute('aria-selected', 'false');
     expect(screen.getByRole('tab', { name: /Completed/i })).toHaveAttribute('aria-selected', 'false');
-    expect(screen.getByRole('tab', { name: /Active/i })).toHaveAttribute('aria-selected', 'false');
   });
 
   it('calls onFilterChange when a tab is clicked', () => {
     const handleFilterChange = vi.fn();
-    render(<FilterTabs filter="all" onFilterChange={handleFilterChange} />);
+    render(<FilterTabs filter="active" onFilterChange={handleFilterChange} />);
 
     fireEvent.click(screen.getByRole('tab', { name: /Completed/i }));
     expect(handleFilterChange).toHaveBeenCalledWith('completed');
