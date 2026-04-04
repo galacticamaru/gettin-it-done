@@ -116,13 +116,15 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
     >
       <div className="flex items-center gap-3 flex-1">
         <button
+          role="checkbox"
+          aria-checked={task.completed}
           onClick={() => onToggle(task.id)}
           className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
             task.completed 
               ? 'bg-green-500 border-green-500' 
               : 'border-border hover:border-green-400'
           }`}
-          aria-label={task.completed ? "Mark task as incomplete" : "Mark task as complete"}
+          aria-label={task.completed ? `Mark task "${task.text}" as incomplete` : `Mark task "${task.text}" as complete`}
           title={task.completed ? "Mark task as incomplete" : "Mark task as complete"}
         >
           {task.completed && (
@@ -157,7 +159,7 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
       <div className="flex items-center gap-2">
         <div
           className="drag-handle text-muted-foreground hover:text-foreground transition-colors cursor-grab active:cursor-grabbing"
-          aria-label="Drag to reorder task"
+          aria-label={`Drag to reorder task "${task.text}"`}
           title="Drag to reorder task"
         >
           <Move className="h-4 w-4" aria-hidden="true" />
@@ -166,7 +168,7 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
         <button
           onClick={() => onDelete(task.id)}
           className="text-muted-foreground hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 rounded-sm"
-          aria-label="Delete task"
+          aria-label={`Delete task "${task.text}"`}
           title="Delete task"
         >
           <span aria-hidden="true">×</span>
