@@ -76,6 +76,11 @@ pnpm exec vitest run
 pnpm lint
 ```
 
+**Run Coverage:**
+```sh
+pnpm run test:coverage
+```
+
 ## Performance & Best Practices
 
 - **Array Methods:** Prioritize reducing array traversals. Consolidate multiple `.filter()` calls into a single loop when possible.
