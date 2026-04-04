@@ -47,7 +47,6 @@ export const useTasks = () => {
         sortOrder: task.sort_order ?? index,
       }));
 
-      console.log('Fetched tasks:', formattedTasks);
       setTasks(formattedTasks);
     } catch (error) {
       console.error('Error fetching tasks:', error);
