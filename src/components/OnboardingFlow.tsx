@@ -30,7 +30,7 @@ type Filter = 'all' | 'completed' | 'active';
 export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const isMobile = useIsMobile();
   const [currentStep, setCurrentStep] = useState(0);
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<Filter>('active');
   const [onboardingTasks, setOnboardingTasks] = useState<OnboardingTask[]>([
     { id: '1', text: 'Take my medication', completed: false, emoji: '💊', createdAt: new Date().toISOString() }
   ]);

@@ -40,7 +40,7 @@ export const TodoApp = () => {
     handleAddTask
   } = useTaskCreation(addTask);
 
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<Filter>('active');
   const [navTab, setNavTab] = useState<'home' | 'tasks' | 'completed' | 'profile'>('home');
   const [celebratingTaskId, setCelebratingTaskId] = useState<string | null>(null);
 
