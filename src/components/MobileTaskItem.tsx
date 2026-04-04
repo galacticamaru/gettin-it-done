@@ -171,13 +171,15 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
         <div className="flex items-center gap-4 p-6 min-h-[80px]">
           {/* Enhanced touch target for completion toggle */}
           <button
+            role="checkbox"
+            aria-checked={task.completed}
             onClick={() => onToggle(task.id)}
             className={`w-12 h-12 rounded-full border-3 flex items-center justify-center transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
               task.completed 
                 ? 'bg-green-500 border-green-500' 
                 : 'border-border hover:border-green-400 active:scale-95'
             }`}
-            aria-label={task.completed ? "Mark task as incomplete" : "Mark task as complete"}
+            aria-label={task.completed ? `Mark task "${task.text}" as incomplete` : `Mark task "${task.text}" as complete`}
             title={task.completed ? "Mark task as incomplete" : "Mark task as complete"}
           >
             {task.completed && (
@@ -217,7 +219,7 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
             <div
               ref={drag}
               className="drag-handle text-muted-foreground hover:text-foreground transition-colors p-2 touch-none"
-              aria-label="Drag to reorder task"
+              aria-label={`Drag to reorder task "${task.text}"`}
               title="Drag to reorder task"
               style={{ cursor: 'grab' }}
             >
@@ -228,7 +230,7 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
             <button
               onClick={() => onDelete(task.id)}
               className="text-muted-foreground hover:text-destructive transition-colors p-3 rounded-full hover:bg-destructive/10 active:scale-95 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2"
-              aria-label="Delete task"
+              aria-label={`Delete task "${task.text}"`}
               title="Delete task"
             >
               <X className="w-5 h-5" aria-hidden="true" />
