@@ -10,3 +10,7 @@
 ## 2026-04-04 - Task List Action Context
 **Learning:** Icon-only action buttons within lists (like Delete or Complete toggles for tasks) often have generic `aria-label`s like 'Delete task' or 'Mark as complete'. When a screen reader user navigates through a list via tab key, hearing repetitive identical labels without context is confusing. Also, custom completion toggles act as checkboxes but lack the semantic `role="checkbox"` and `aria-checked` states.
 **Action:** Always interpolate the item's name or title into the `aria-label` for list actions (e.g., `aria-label={\`Delete task "${task.text}"\`}`) to provide specific context, and apply `role="checkbox"` with `aria-checked` to custom completion toggles.
+
+## 2026-04-05 - Empty States
+**Learning:** Pure text empty states are easily overlooked and visually unengaging. Providing large, thematic icons (with low opacity to indicate an inactive state) alongside the message greatly improves the readability and aesthetics of the state. Users can more quickly comprehend the context (e.g., viewing a list of completed items vs a list of active items).
+**Action:** Always pair empty state text with a relevant, large, low-opacity icon (`h-12 w-12 text-muted-foreground/30`) to provide better visual context to the user.

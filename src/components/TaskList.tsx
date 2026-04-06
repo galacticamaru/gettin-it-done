@@ -1,3 +1,4 @@
+import { ClipboardList, CheckCircle2, ListTodo } from 'lucide-react';
 import { ConfettiAnimation } from './ConfettiAnimation';
 import { MobileTaskItem } from './MobileTaskItem';
 import { TaskItem } from './TaskItem';
@@ -34,19 +35,32 @@ export const TaskList = ({
   reorderTasks,
   fetchTasks
 }: TaskListProps) => {
-  const getEmptyStateMessage = () => {
-    if (filter === 'all') return "Your tasks will appear here. Try adding a task above so you can track gettin it done.";
-    if (filter === 'completed') return "No completed tasks yet. Get started on completing some tasks!";
-    return "No active tasks. Add a new task to get started!";
+  const getEmptyStateContent = () => {
+    if (filter === 'all') return {
+      icon: <ClipboardList className="mx-auto h-12 w-12 text-muted-foreground/30 mb-4" aria-hidden="true" />,
+      message: "Your tasks will appear here. Try adding a task above so you can track gettin it done."
+    };
+    if (filter === 'completed') return {
+      icon: <CheckCircle2 className="mx-auto h-12 w-12 text-muted-foreground/30 mb-4" aria-hidden="true" />,
+      message: "No completed tasks yet. Get started on completing some tasks!"
+    };
+    return {
+      icon: <ListTodo className="mx-auto h-12 w-12 text-muted-foreground/30 mb-4" aria-hidden="true" />,
+      message: "No active tasks. Add a new task to get started!"
+    };
   };
 
-  const EmptyState = () => (
-    <div className="text-center py-12">
-      <p className={`text-muted-foreground mb-2 ${isMobile ? 'text-sm px-4' : ''}`}>
-        {getEmptyStateMessage()}
-      </p>
-    </div>
-  );
+  const EmptyState = () => {
+    const { icon, message } = getEmptyStateContent();
+    return (
+      <div className="text-center py-12">
+        {icon}
+        <p className={`text-muted-foreground mb-2 ${isMobile ? 'text-sm px-4' : ''}`}>
+          {message}
+        </p>
+      </div>
+    );
+  };
 
   if (isMobile) {
     return (
