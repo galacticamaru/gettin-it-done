@@ -14,13 +14,16 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 // We must mock React hooks directly by mocking the 'react' module before importing it.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let tasksState: any[];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let setTasksMock: any;
 
 vi.mock('react', async (importOriginal) => {
   const original = await importOriginal<typeof import('react')>();
   return {
     ...original,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     useState: vi.fn((initialState: any) => {
       if (initialState === true || initialState === false) {
         return [initialState, vi.fn()]; // loading state
@@ -51,6 +54,75 @@ describe('useTasks', () => {
     });
   });
 
+  it('addTask should successfully add a task and update local state', async () => {
+    // 💡 What: Tests the happy path of adding a task, including order calculation and state updates.
+    // 🎯 Why: Adding tasks is the core action. If new tasks don't get negative sort orders
+    // they won't appear at the top, confusing users and breaking drag-and-drop continuity.
+
+    // Mock minimum sort_order fetch (returns 0, so new task should be -1)
+    const selectMock1 = vi.fn().mockReturnThis();
+    const eqMock1 = vi.fn().mockReturnThis();
+    const orderMock1 = vi.fn().mockReturnThis();
+    const limitMock1 = vi.fn().mockReturnThis();
+    const maybeSingleMock1 = vi.fn().mockResolvedValue({ data: { sort_order: 0 }, error: null });
+
+    // Mock successful insert
+    const insertMock = vi.fn().mockReturnThis();
+    const selectMock2 = vi.fn().mockReturnThis();
+    const singleMock2 = vi.fn().mockResolvedValue({
+      data: {
+        id: 'new-task-id',
+        text: 'New Task',
+        completed: false,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+        sort_order: -1
+      },
+      error: null
+    });
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_tasks') {
+        let callCount = 0;
+        return {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          select: (...args: any[]) => {
+            callCount++;
+            if (callCount === 1) {
+              return { eq: eqMock1.mockReturnValue({ order: orderMock1.mockReturnValue({ limit: limitMock1.mockReturnValue({ maybeSingle: maybeSingleMock1 }) }) }) };
+            }
+            return { single: singleMock2 };
+          },
+          insert: insertMock.mockReturnValue({ select: selectMock2.mockReturnValue({ single: singleMock2 }) }),
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    const { addTask } = useTasks();
+
+    const result = await addTask({ text: 'New Task' });
+
+    expect(result).toBe('new-task-id');
+    expect(insertMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'New Task',
+        sort_order: -1
+      })
+    );
+
+    // Should add to the beginning of the list
+    expect(setTasksMock).toHaveBeenCalled();
+    const newTasks = tasksState; // setTasksMock mutates tasksState in our mock
+    expect(newTasks.length).toBe(4);
+    expect(newTasks[0].id).toBe('new-task-id');
+    expect(newTasks[0].sortOrder).toBe(-1);
+    expect(newTasks[1].id).toBe('task-1');
+  });
+
   it('addTask should return null when Supabase insert fails', async () => {
     const errorMsg = 'Failed to insert task';
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -72,6 +144,7 @@ describe('useTasks', () => {
         // Simple state machine to differentiate calls
         let callCount = 0;
         return {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           select: (...args: any[]) => {
             callCount++;
             if (callCount === 1) { // First select for min sort_order
@@ -86,6 +159,7 @@ describe('useTasks', () => {
       return {};
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from as any).mockImplementation(fromMock);
 
     const { addTask } = useTasks();
@@ -104,6 +178,7 @@ describe('useTasks', () => {
   it('reorderTasks should send text and other required fields in upsert payload', async () => {
     const upsertMock = vi.fn().mockResolvedValue({ data: null, error: null });
     const fromMock = vi.fn().mockReturnValue({ upsert: upsertMock, select: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis() });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from as any).mockImplementation(fromMock);
 
     const { reorderTasks } = useTasks();
