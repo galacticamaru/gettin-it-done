@@ -25,7 +25,6 @@ export const useTasks = () => {
     
     setLoading(true);
     try {
-      console.log('Fetching tasks...');
       const { data, error } = await supabase
         .from('user_tasks')
         .select('*')
