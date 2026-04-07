@@ -28,6 +28,12 @@ describe('OneSignalService', () => {
     vi.clearAllMocks();
   });
 
+  it('requestPermission should return false when OneSignal throws an error', async () => {
+    window.OneSignal!.Notifications.requestPermission = vi.fn().mockRejectedValue(new Error('Permission request failed'));
+    const result = await oneSignalService.requestPermission();
+    expect(result).toEqual({ granted: false, denied: true });
+  });
+
   it('isPermissionGranted should return false when OneSignal is not available', async () => {
     window.OneSignal = undefined as any;
     const result = await oneSignalService.isPermissionGranted();

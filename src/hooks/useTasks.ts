@@ -25,7 +25,6 @@ export const useTasks = () => {
     
     setLoading(true);
     try {
-      console.log('Fetching tasks...');
       const { data, error } = await supabase
         .from('user_tasks')
         .select('*')
@@ -47,7 +46,6 @@ export const useTasks = () => {
         sortOrder: task.sort_order ?? index,
       }));
 
-      console.log('Fetched tasks:', formattedTasks);
       setTasks(formattedTasks);
     } catch (error) {
       console.error('Error fetching tasks:', error);

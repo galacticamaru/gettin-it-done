@@ -36,13 +36,13 @@ export const useTaskCreation = (addTask: (taskData: {
           if (taskData.reminder && taskData.reminder !== '') {
             await scheduleTaskReminder(taskId, taskData.text, taskData.dueDate, taskData.reminder);
           }
-        }
 
-        setNewTask('');
-        setDueDate('');
-        setRepeatOption('none');
-        setReminder('none');
-        setSelectedEmoji('');
+          setNewTask('');
+          setDueDate('');
+          setRepeatOption('none');
+          setReminder('none');
+          setSelectedEmoji('');
+        }
       } catch (error) {
         console.error('Error adding task:', error);
       }
