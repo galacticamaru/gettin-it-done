@@ -1,6 +1,7 @@
 import { ConfettiAnimation } from './ConfettiAnimation';
 import { MobileTaskItem } from './MobileTaskItem';
 import { TaskItem } from './TaskItem';
+import { ListTodo, CircleCheck, List } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -40,8 +41,15 @@ export const TaskList = ({
     return "No active tasks. Add a new task to get started!";
   };
 
+  const getEmptyStateIcon = () => {
+    if (filter === 'all') return <ListTodo className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" aria-hidden="true" />;
+    if (filter === 'completed') return <CircleCheck className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" aria-hidden="true" />;
+    return <List className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" aria-hidden="true" />;
+  };
+
   const EmptyState = () => (
-    <div className="text-center py-12">
+    <div className="text-center py-12 flex flex-col items-center justify-center">
+      {getEmptyStateIcon()}
       <p className={`text-muted-foreground mb-2 ${isMobile ? 'text-sm px-4' : ''}`}>
         {getEmptyStateMessage()}
       </p>
