@@ -199,4 +199,52 @@ describe('useTasks', () => {
       { id: 'task-1', user_id: 'test-user-id', sort_order: 2, text: 'Task 1' },
     ]);
   });
+
+  it('reorderTasks should revert optimistic UI update by calling fetchTasks when upsert fails', async () => {
+    // 💡 What: Tests that local UI changes are rolled back if the backend fails to save the new order.
+    // 🎯 Why: Reordering is an optimistic update. If the database update fails silently without reverting,
+    // the user's UI is out of sync with reality, leading to lost changes on next reload.
+
+    const errorMsg = 'Upsert failed';
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock upsert failure
+    const upsertMock = vi.fn().mockResolvedValue({ data: null, error: new Error(errorMsg) });
+
+    // Mock the fetchTasks query structure that runs in the catch block
+    const orderMock2 = vi.fn().mockResolvedValue({ data: [], error: null });
+    const orderMock1 = vi.fn().mockReturnValue({ order: orderMock2 });
+    const selectMock = vi.fn().mockReturnValue({ order: orderMock1 });
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_tasks') {
+        return {
+          upsert: upsertMock,
+          select: selectMock
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    const { reorderTasks } = useTasks();
+
+    // Clear previous mock calls from initial setup
+    setTasksMock.mockClear();
+
+    // Attempt to reorder
+    await reorderTasks('task-1', 'task-3');
+
+    // Verify it attempted to update the database
+    expect(upsertMock).toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalledWith('❌ Error updating task order:', new Error(errorMsg));
+
+    // Verify it reverted by calling fetchTasks (which calls select)
+    expect(setTasksMock).toHaveBeenCalled(); // Should be called during the optimistic update
+    expect(selectMock).toHaveBeenCalledWith('*'); // Indicates fetchTasks was triggered
+
+    consoleErrorSpy.mockRestore();
+  });
 });
