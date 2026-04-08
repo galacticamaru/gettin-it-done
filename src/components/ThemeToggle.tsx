@@ -12,8 +12,8 @@ export const ThemeToggle = () => {
       variant="ghost"
       size="sm"
       className="text-muted-foreground hover:text-foreground"
-      aria-label="Toggle theme"
-      title="Toggle theme"
+      aria-label={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
+      title={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
     >
       {theme === 'light' ? (
         <Moon className="h-4 w-4" aria-hidden="true" />
