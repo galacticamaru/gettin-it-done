@@ -8,3 +8,7 @@
 ## 2023-10-27 - [useTaskCreation testing]
 **Learning:** The `@testing-library/react` package is actually available and handles `renderHook` testing cleanly. We can use `renderHook` and `act` instead of mocking react directly. Also, typecasting mocks using `(module as any)` triggers `@typescript-eslint/no-explicit-any` errors in this repo's ESLint config, which must be suppressed with inline disable comments.
 **Action:** When testing hooks, use `renderHook` from `@testing-library/react`. Ensure any explicit any casting for mock overrides is accompanied by an eslint-disable comment.
+
+## 2024-05-18 - [Prevent Duplicate Notifications]
+**Learning:** Testing timeout clearances is vital for notification reliability. If an existing active reminder isn't cleared before scheduling a new one for the same item, updating the item causes multiple duplicate notifications to fire.
+**Action:** When writing tests for features that schedule future events (like reminders or cron jobs), explicitly test that any previously scheduled events for the same entity are correctly cancelled or overridden to prevent duplicate executions. Use `vi.spyOn(window, 'clearTimeout')` alongside fake timers.
