@@ -199,4 +199,56 @@ describe('useTasks', () => {
       { id: 'task-1', user_id: 'test-user-id', sort_order: 2, text: 'Task 1' },
     ]);
   });
+
+  it('reorderTasks should revert optimistic update by calling fetchTasks when upsert fails', async () => {
+    // 💡 What: Tests that if the DB update fails during drag-and-drop, the optimistic UI state is reverted via fetchTasks.
+    // 🎯 Why: Drag-and-drop reordering is highly interactive. If the network drops, the user will see a new order
+    // locally, but a refresh would scramble it back. We must revert and log the error to avoid silent data desync.
+
+    const errorMsg = 'Failed to upsert task order';
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock for upsert failure
+    const upsertMock = vi.fn().mockResolvedValue({ data: null, error: new Error(errorMsg) });
+
+    // Mocks for fetchTasks which is called as a fallback
+    const selectMock = vi.fn().mockReturnThis();
+    const orderMock = vi.fn().mockReturnThis();
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_tasks') {
+        return {
+          upsert: upsertMock,
+          select: selectMock,
+          order: orderMock
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    const { reorderTasks } = useTasks();
+
+    // Reset setTasksMock so we can accurately count calls
+    setTasksMock.mockClear();
+
+    // Trigger reorder which should fail at the DB level
+    await reorderTasks('task-1', 'task-3');
+
+    // Expected sequence:
+    // 1. Optimistic update (setTasksMock called once)
+    // 2. Database update (upsert fails)
+    // 3. fetchTasks called to revert (select -> order -> order called)
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('❌ Error updating task order:', new Error(errorMsg));
+
+    // Check that fetchTasks logic was triggered
+    expect(selectMock).toHaveBeenCalledWith('*');
+    // We expect order to be called at least twice by fetchTasks
+    expect(orderMock).toHaveBeenCalledWith('sort_order', { ascending: true });
+
+    consoleErrorSpy.mockRestore();
+  });
 });
