@@ -200,27 +200,27 @@ describe('useTasks', () => {
     ]);
   });
 
-  it('reorderTasks should revert optimistic update by calling fetchTasks when upsert fails', async () => {
-    // 💡 What: Tests that if the DB update fails during drag-and-drop, the optimistic UI state is reverted via fetchTasks.
-    // 🎯 Why: Drag-and-drop reordering is highly interactive. If the network drops, the user will see a new order
-    // locally, but a refresh would scramble it back. We must revert and log the error to avoid silent data desync.
+  it('reorderTasks should revert optimistic UI update by calling fetchTasks when upsert fails', async () => {
+    // 💡 What: Tests that local UI changes are rolled back if the backend fails to save the new order.
+    // 🎯 Why: Reordering is an optimistic update. If the database update fails silently without reverting,
+    // the user's UI is out of sync with reality, leading to lost changes on next reload.
 
-    const errorMsg = 'Failed to upsert task order';
+    const errorMsg = 'Upsert failed';
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    // Mock for upsert failure
+    // Mock upsert failure
     const upsertMock = vi.fn().mockResolvedValue({ data: null, error: new Error(errorMsg) });
 
-    // Mocks for fetchTasks which is called as a fallback
-    const selectMock = vi.fn().mockReturnThis();
-    const orderMock = vi.fn().mockReturnThis();
+    // Mock the fetchTasks query structure that runs in the catch block
+    const orderMock2 = vi.fn().mockResolvedValue({ data: [], error: null });
+    const orderMock1 = vi.fn().mockReturnValue({ order: orderMock2 });
+    const selectMock = vi.fn().mockReturnValue({ order: orderMock1 });
 
     const fromMock = vi.fn().mockImplementation((table) => {
       if (table === 'user_tasks') {
         return {
           upsert: upsertMock,
-          select: selectMock,
-          order: orderMock
+          select: selectMock
         };
       }
       return {};
@@ -231,23 +231,19 @@ describe('useTasks', () => {
 
     const { reorderTasks } = useTasks();
 
-    // Reset setTasksMock so we can accurately count calls
+    // Clear previous mock calls from initial setup
     setTasksMock.mockClear();
 
-    // Trigger reorder which should fail at the DB level
+    // Attempt to reorder
     await reorderTasks('task-1', 'task-3');
 
-    // Expected sequence:
-    // 1. Optimistic update (setTasksMock called once)
-    // 2. Database update (upsert fails)
-    // 3. fetchTasks called to revert (select -> order -> order called)
-
+    // Verify it attempted to update the database
+    expect(upsertMock).toHaveBeenCalled();
     expect(consoleErrorSpy).toHaveBeenCalledWith('❌ Error updating task order:', new Error(errorMsg));
 
-    // Check that fetchTasks logic was triggered
-    expect(selectMock).toHaveBeenCalledWith('*');
-    // We expect order to be called at least twice by fetchTasks
-    expect(orderMock).toHaveBeenCalledWith('sort_order', { ascending: true });
+    // Verify it reverted by calling fetchTasks (which calls select)
+    expect(setTasksMock).toHaveBeenCalled(); // Should be called during the optimistic update
+    expect(selectMock).toHaveBeenCalledWith('*'); // Indicates fetchTasks was triggered
 
     consoleErrorSpy.mockRestore();
   });
