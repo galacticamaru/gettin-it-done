@@ -32,6 +32,7 @@ export const TodoApp = () => {
   } = useTasks();
   const { cancelTaskReminder } = useNotifications();
   const {
+    isSubmitting,
     newTask, setNewTask,
     dueDate, setDueDate,
     repeatOption, setRepeatOption,
@@ -129,6 +130,7 @@ export const TodoApp = () => {
 
           {!isMobile && (
             <DesktopTaskInput
+              isSubmitting={isSubmitting}
               newTask={newTask} setNewTask={setNewTask}
               dueDate={dueDate} setDueDate={setDueDate}
               repeatOption={repeatOption} setRepeatOption={setRepeatOption}
@@ -181,6 +183,7 @@ export const TodoApp = () => {
         
         {isMobile && navTab !== 'profile' && (
           <MobileTaskCreator
+            isSubmitting={isSubmitting}
             newTask={newTask} setNewTask={setNewTask}
             dueDate={dueDate} setDueDate={setDueDate}
             repeatOption={repeatOption} setRepeatOption={setRepeatOption}

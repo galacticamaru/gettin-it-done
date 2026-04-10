@@ -7,6 +7,7 @@ import { EmojiPicker } from '@/components/EmojiPicker';
 import { toast } from 'sonner';
 
 interface MobileTaskCreatorProps {
+  isSubmitting?: boolean;
   newTask: string;
   setNewTask: (task: string) => void;
   dueDate: string;
@@ -17,10 +18,11 @@ interface MobileTaskCreatorProps {
   setReminder: (reminder: string) => void;
   selectedEmoji: string;
   setSelectedEmoji: (emoji: string) => void;
-  onAddTask: () => void;
+  onAddTask: () => void | Promise<void>;
 }
 
 export const MobileTaskCreator = ({
+  isSubmitting,
   newTask,
   setNewTask,
   dueDate,
@@ -46,10 +48,10 @@ export const MobileTaskCreator = ({
     }
   }, [isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newTask.trim()) {
-      onAddTask();
+    if (newTask.trim() && !isSubmitting) {
+      await onAddTask();
       toast.success('Task created successfully');
       setIsOpen(false);
       // Clear specific local state if needed
@@ -128,10 +130,10 @@ export const MobileTaskCreator = ({
             <Button
               type="submit"
               size="lg"
-              disabled={!newTask.trim()}
+              disabled={!newTask.trim() || isSubmitting}
               className="h-12 px-6 rounded-xl touch-manipulation font-medium shrink-0"
             >
-              Save
+              {isSubmitting ? 'Saving...' : 'Save'}
             </Button>
           </div>
         </form>

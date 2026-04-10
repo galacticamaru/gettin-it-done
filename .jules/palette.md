@@ -15,3 +15,7 @@
 ## 2024-04-08 - Dynamic ARIA labels for Toggle Buttons
 **Learning:** For stateful toggle buttons like theme switchers, static labels (e.g., "Toggle theme") provide insufficient context for screen reader users and tooltips. Users need to know what action the button will perform when clicked, not just its general function.
 **Action:** Always use dynamic `aria-label` and `title` attributes that reflect the *target* state (e.g., "Switch to dark theme") rather than the *current* state or a generic description.
+
+## 2024-04-10 - Task Submission Loading State
+**Learning:** In both the mobile (`MobileTaskCreator`) and desktop (`DesktopTaskInput`) task creation components, submitting a new task fires an asynchronous network request (`addTask`). Without an explicit loading state (`isSubmitting`) bound to the "Add" or "Save" buttons, users receive no immediate feedback that their action is processing, which can lead to double-submissions and a confusing user experience.
+**Action:** When implementing asynchronous form submissions or actions, always maintain a local or hook-level loading state (e.g., `isSubmitting`). Bind this state to the relevant submit buttons to disable them and update their text (e.g., "Adding...") or show a spinner to communicate progress to the user.

@@ -15,9 +15,11 @@ export const useTaskCreation = (addTask: (taskData: {
   const [repeatOption, setRepeatOption] = useState('none');
   const [reminder, setReminder] = useState('none');
   const [selectedEmoji, setSelectedEmoji] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAddTask = async () => {
-    if (newTask.trim()) {
+    if (newTask.trim() && !isSubmitting) {
+      setIsSubmitting(true);
       const taskData = {
         text: newTask.trim(),
         dueDate: dueDate ? new Date(dueDate) : undefined,
@@ -45,11 +47,14 @@ export const useTaskCreation = (addTask: (taskData: {
         }
       } catch (error) {
         console.error('Error adding task:', error);
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
 
   return {
+    isSubmitting,
     newTask, setNewTask,
     dueDate, setDueDate,
     repeatOption, setRepeatOption,
