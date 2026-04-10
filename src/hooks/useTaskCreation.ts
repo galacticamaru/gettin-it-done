@@ -31,12 +31,16 @@ export const useTaskCreation = (addTask: (taskData: {
       try {
         const taskId = await addTask(taskData);
         if (taskId) {
-          if (taskData.dueDate) {
-            await scheduleDueDateNotification(taskId, taskData.text, taskData.dueDate);
-          }
+          try {
+            if (taskData.dueDate) {
+              await scheduleDueDateNotification(taskId, taskData.text, taskData.dueDate);
+            }
 
-          if (taskData.reminder && taskData.reminder !== '') {
-            await scheduleTaskReminder(taskId, taskData.text, taskData.dueDate, taskData.reminder);
+            if (taskData.reminder && taskData.reminder !== '') {
+              await scheduleTaskReminder(taskId, taskData.text, taskData.dueDate, taskData.reminder);
+            }
+          } catch (notificationError) {
+            console.error('Error scheduling notifications:', notificationError);
           }
 
           setNewTask('');
