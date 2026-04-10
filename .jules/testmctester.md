@@ -10,6 +10,10 @@
 **Learning:** The `@testing-library/react` package is actually available and handles `renderHook` testing cleanly. We can use `renderHook` and `act` instead of mocking react directly. Also, typecasting mocks using `(module as any)` triggers `@typescript-eslint/no-explicit-any` errors in this repo's ESLint config, which must be suppressed with inline disable comments.
 **Action:** When testing hooks, use `renderHook` from `@testing-library/react`. Ensure any explicit any casting for mock overrides is accompanied by an eslint-disable comment.
 
+## 2024-05-18 - [Prevent Duplicate Notifications]
+**Learning:** Testing timeout clearances is vital for notification reliability. If an existing active reminder isn't cleared before scheduling a new one for the same item, updating the item causes multiple duplicate notifications to fire.
+**Action:** When writing tests for features that schedule future events (like reminders or cron jobs), explicitly test that any previously scheduled events for the same entity are correctly cancelled or overridden to prevent duplicate executions. Use `vi.spyOn(window, 'clearTimeout')` alongside fake timers.
+
 ## 2024-06-25 - Silent UI Drift on Optimistic Updates
 **Learning:** The `reorderTasks` function uses an optimistic UI update strategy, meaning it updates local state before the database confirms the save. If the database `upsert` fails and the application does not actively revert the local state, the UI falls out of sync with the true backend data. This leads to silent data loss on the next reload, as the user is unaware their changes weren't saved.
 **Action:** When testing functions that use optimistic updates, prioritize writing a test for the failure path to ensure the rollback mechanism (e.g., calling a fetch function to resynchronize with the backend) correctly triggers upon error.
