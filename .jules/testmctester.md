@@ -17,3 +17,7 @@
 ## 2024-06-25 - Silent UI Drift on Optimistic Updates
 **Learning:** The `reorderTasks` function uses an optimistic UI update strategy, meaning it updates local state before the database confirms the save. If the database `upsert` fails and the application does not actively revert the local state, the UI falls out of sync with the true backend data. This leads to silent data loss on the next reload, as the user is unaware their changes weren't saved.
 **Action:** When testing functions that use optimistic updates, prioritize writing a test for the failure path to ensure the rollback mechanism (e.g., calling a fetch function to resynchronize with the backend) correctly triggers upon error.
+
+## 2024-07-20 - Unhandled null error during preferences insert fallback
+**Learning:** In the `useUserPreferences` hook, when no existing preferences are found, it correctly falls back to inserting default preferences. The hook then expects `newPrefs` to contain data, but fails to handle cases where the insert API returns `null` or `undefined` data alongside an error. Testing this fallback is critical to prevent fatal crashes during new user onboarding.
+**Action:** Mock the fallback insert operation and its response properly in the test for `useUserPreferences` to ensure it successfully updates the state variables to reflect the default user state without crashing.
