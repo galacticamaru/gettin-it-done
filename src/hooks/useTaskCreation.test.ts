@@ -156,4 +156,29 @@ describe('useTaskCreation', () => {
     expect(addTaskMock).not.toHaveBeenCalled();
     expect(result.current.newTask).toBe('   '); // State shouldn't reset if failed validation
   });
+
+  it('should catch error and log to console if addTask throws an exception', async () => {
+    // 💡 What: Tests that exceptions thrown by addTask are caught and logged.
+    // 🎯 Why: Ensures graceful error handling and that the app doesn't crash on unexpected API failures.
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const mockError = new Error('API failure');
+    const addTaskThrows = vi.fn().mockRejectedValue(mockError);
+    const { result } = renderHook(() => useTaskCreation(addTaskThrows));
+
+    act(() => {
+      result.current.setNewTask('Test Task');
+    });
+
+    await act(async () => {
+      await result.current.handleAddTask();
+    });
+
+    expect(addTaskThrows).toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error adding task:', mockError);
+
+    // State should remain unchanged
+    expect(result.current.newTask).toBe('Test Task');
+
+    consoleErrorSpy.mockRestore();
+  });
 });
