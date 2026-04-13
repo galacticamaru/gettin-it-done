@@ -193,4 +193,34 @@ describe('OneSignalService', () => {
     const result = await unsubscribePromise;
     expect(result).toBe(true);
   });
+
+  it('sendDueDateNotification should forward computed title and message to sendTaskReminder', async () => {
+    // 💡 What: Tests that the specialized, time-based title and message are actually passed down to the underlying send method.
+    // 🎯 Why: A subtle bug existed where sendDueDateNotification computed nice titles like "Task Due in 1 Hour ⏰",
+    // but then called sendTaskReminder which ignored them and used its own default title/message.
+
+    // Spy on sendTaskReminder since sendDueDateNotification delegates to it
+    const sendTaskReminderSpy = vi.spyOn(oneSignalService, 'sendTaskReminder').mockResolvedValue(true);
+
+    const taskText = "Submit report";
+
+    // Set a fixed time to test the specific 1-hour window
+    const now = new Date('2024-05-18T12:00:00Z');
+    vi.setSystemTime(now);
+
+    // Due in 30 minutes (falls into the <= 1 hour bucket)
+    const dueDate = new Date('2024-05-18T12:30:00Z');
+
+    await oneSignalService.sendDueDateNotification(taskText, dueDate);
+
+    expect(sendTaskReminderSpy).toHaveBeenCalledWith(
+      taskText,
+      dueDate,
+      'Task Due in 1 Hour ⏰',
+      'Submit report is due in less than an hour'
+    );
+
+    sendTaskReminderSpy.mockRestore();
+    vi.useRealTimers();
+  });
 });
