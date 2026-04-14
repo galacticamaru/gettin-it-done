@@ -15,3 +15,7 @@
 ## 2024-04-08 - Dynamic ARIA labels for Toggle Buttons
 **Learning:** For stateful toggle buttons like theme switchers, static labels (e.g., "Toggle theme") provide insufficient context for screen reader users and tooltips. Users need to know what action the button will perform when clicked, not just its general function.
 **Action:** Always use dynamic `aria-label` and `title` attributes that reflect the *target* state (e.g., "Switch to dark theme") rather than the *current* state or a generic description.
+
+## 2024-05-24 - Enhance Empty States
+**Learning:** Empty states with just an icon and plain text can feel unpolished and lack structure, especially on larger screens. Converting them into distinct, bounded "cards" (e.g., using a subtle background color, a dashed border, and a dedicated circular container for the icon) significantly elevates the perceived quality of the UI and provides clearer visual hierarchy (title vs. description).
+**Action:** When designing or refactoring empty states, default to a card-based layout with a clear title, a supportive description, and an encapsulated icon, rather than floating elements.
