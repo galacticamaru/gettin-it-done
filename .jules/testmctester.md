@@ -21,3 +21,6 @@
 ## 2024-07-20 - Unhandled null error during preferences insert fallback
 **Learning:** In the `useUserPreferences` hook, when no existing preferences are found, it correctly falls back to inserting default preferences. The hook then expects `newPrefs` to contain data, but fails to handle cases where the insert API returns `null` or `undefined` data alongside an error. Testing this fallback is critical to prevent fatal crashes during new user onboarding.
 **Action:** Mock the fallback insert operation and its response properly in the test for `useUserPreferences` to ensure it successfully updates the state variables to reflect the default user state without crashing.
+## 2024-05-18 - toggleTask pessimistic update failure
+**Learning:** Functions like `toggleTask` rely on pessimistic updates, meaning local state should not update if the backend operation fails. Testing this failure path is important to ensure the UI remains in sync with actual data. If optimistic updates are incorrectly applied, it could lead to data inconsistencies.
+**Action:** Always test the error handling of data mutation functions to verify that local state changes accurately reflect successful backend operations.

@@ -247,4 +247,45 @@ describe('useTasks', () => {
 
     consoleErrorSpy.mockRestore();
   });
+
+  it('toggleTask should not update local state if Supabase update fails', async () => {
+    // 💡 What: Tests that toggleTask uses a pessimistic update strategy and does not update local UI if DB update fails.
+    // 🎯 Why: If the local state is updated optimistically and DB update fails, the UI becomes out of sync with the backend.
+    const errorMsg = 'Failed to toggle task';
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock update failure
+    const eqMock = vi.fn().mockResolvedValue({ data: null, error: new Error(errorMsg) });
+    const updateMock = vi.fn().mockReturnValue({ eq: eqMock });
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_tasks') {
+        return {
+          update: updateMock,
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    const { toggleTask } = useTasks();
+
+    // Clear previous mock calls
+    setTasksMock.mockClear();
+
+    // Attempt to toggle task-1
+    await toggleTask('task-1');
+
+    // Verify update was called
+    expect(updateMock).toHaveBeenCalledWith({ completed: true });
+    expect(eqMock).toHaveBeenCalledWith('id', 'task-1');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error toggling task:', new Error(errorMsg));
+
+    // Verify state was NOT updated
+    expect(setTasksMock).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
 });
