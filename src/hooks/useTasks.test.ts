@@ -247,4 +247,47 @@ describe('useTasks', () => {
 
     consoleErrorSpy.mockRestore();
   });
+
+  it('toggleTask should not update local state if database update fails', async () => {
+    // 💡 What: Tests the pessimistic UI update strategy for task toggling.
+    // 🎯 Why: If the database update fails, we don't want the UI to show the task as toggled,
+    // as it would create a desync between the client and the backend.
+
+    const errorMsg = 'Failed to toggle task';
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock update failure
+    const updateMock = vi.fn().mockReturnThis();
+    const eqMock = vi.fn().mockResolvedValue({ error: new Error(errorMsg) });
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_tasks') {
+        return {
+          update: updateMock.mockReturnValue({ eq: eqMock }),
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    const { toggleTask } = useTasks();
+
+    // Clear previous mock calls from initial setup
+    setTasksMock.mockClear();
+
+    // Attempt to toggle task-1 (which is initially completed: false)
+    await toggleTask('task-1');
+
+    // Verify it attempted to update the database
+    expect(updateMock).toHaveBeenCalledWith({ completed: true });
+    expect(eqMock).toHaveBeenCalledWith('id', 'task-1');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error toggling task:', new Error(errorMsg));
+
+    // Verify it did NOT update local state
+    expect(setTasksMock).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
 });

@@ -21,3 +21,7 @@
 ## 2024-07-20 - Unhandled null error during preferences insert fallback
 **Learning:** In the `useUserPreferences` hook, when no existing preferences are found, it correctly falls back to inserting default preferences. The hook then expects `newPrefs` to contain data, but fails to handle cases where the insert API returns `null` or `undefined` data alongside an error. Testing this fallback is critical to prevent fatal crashes during new user onboarding.
 **Action:** Mock the fallback insert operation and its response properly in the test for `useUserPreferences` to ensure it successfully updates the state variables to reflect the default user state without crashing.
+
+## 2024-05-24 - [toggleTask Failure Path Testing]
+**Learning:** Testing pessimistic UI updates requires asserting that local state setters (`setTasksMock`) are *not* called when the underlying database update (e.g., Supabase `update`) fails. This ensures the client UI doesn't desync from the backend database on errors.
+**Action:** When writing tests for data mutation hooks, always include a failure scenario where the backend returns an error, and explicitly assert that local UI state remains unchanged (`expect(setters).not.toHaveBeenCalled()`).
