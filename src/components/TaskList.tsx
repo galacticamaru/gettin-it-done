@@ -35,6 +35,12 @@ export const TaskList = ({
   reorderTasks,
   fetchTasks
 }: TaskListProps) => {
+  const getEmptyStateTitle = () => {
+    if (filter === 'all') return "No Tasks Yet";
+    if (filter === 'completed') return "Nothing Completed";
+    return "All Caught Up";
+  };
+
   const getEmptyStateMessage = () => {
     if (filter === 'all') return "Your tasks will appear here. Try adding a task above so you can track gettin it done.";
     if (filter === 'completed') return "No completed tasks yet. Get started on completing some tasks!";
@@ -42,15 +48,20 @@ export const TaskList = ({
   };
 
   const getEmptyStateIcon = () => {
-    if (filter === 'all') return <ListTodo className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" aria-hidden="true" />;
-    if (filter === 'completed') return <CircleCheck className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" aria-hidden="true" />;
-    return <List className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" aria-hidden="true" />;
+    if (filter === 'all') return <ListTodo className="w-8 h-8 text-muted-foreground" aria-hidden="true" />;
+    if (filter === 'completed') return <CircleCheck className="w-8 h-8 text-muted-foreground" aria-hidden="true" />;
+    return <List className="w-8 h-8 text-muted-foreground" aria-hidden="true" />;
   };
 
   const EmptyState = () => (
-    <div className="text-center py-12 flex flex-col items-center justify-center">
-      {getEmptyStateIcon()}
-      <p className={`text-muted-foreground mb-2 ${isMobile ? 'text-sm px-4' : ''}`}>
+    <div className="flex flex-col items-center justify-center p-8 text-center border-2 border-dashed rounded-2xl bg-secondary/10 border-border/50">
+      <div className="flex items-center justify-center w-16 h-16 mb-4 rounded-full bg-secondary">
+        {getEmptyStateIcon()}
+      </div>
+      <h3 className="mb-2 text-lg font-semibold text-foreground">
+        {getEmptyStateTitle()}
+      </h3>
+      <p className={`text-muted-foreground max-w-[280px] ${isMobile ? 'text-sm' : ''}`}>
         {getEmptyStateMessage()}
       </p>
     </div>
