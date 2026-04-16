@@ -21,6 +21,9 @@
 ## 2024-07-20 - Unhandled null error during preferences insert fallback
 **Learning:** In the `useUserPreferences` hook, when no existing preferences are found, it correctly falls back to inserting default preferences. The hook then expects `newPrefs` to contain data, but fails to handle cases where the insert API returns `null` or `undefined` data alongside an error. Testing this fallback is critical to prevent fatal crashes during new user onboarding.
 **Action:** Mock the fallback insert operation and its response properly in the test for `useUserPreferences` to ensure it successfully updates the state variables to reflect the default user state without crashing.
+## 2025-04-12 - Pessimistic updates in `useTasks`
+**Learning:** The `toggleTask` logic in `useTasks.ts` operates using a pessimistic update strategy—unlike `reorderTasks`, which updates optimistically and reverts on error. A failure during `toggleTask` simply bails out without mutating local state, which prevents desynchronization between client UI and backend reality but handles failures silently via `console.error`.
+**Action:** When testing UI state hooks, first identify if the function uses optimistic or pessimistic updates, as the test assertions differ radically: optimistic updates require asserting state changes immediately and reverting upon mocked failure, while pessimistic updates require asserting no state change upon mocked failure.
 
 ## 2024-07-22 - Ghostly Notifications from Uncancelled Timers
 **Learning:** When multiple related notification timers (e.g., specific reminder, general due date, and overdue alerts) are scheduled for a single entity, deleting or disabling that entity requires cancelling *all* associated timers. If an orchestrated cancel function fails to clear all related timeout IDs from the global namespace, users will receive "ghostly notifications" for events that no longer exist.
