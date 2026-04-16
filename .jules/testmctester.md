@@ -21,6 +21,11 @@
 ## 2024-07-20 - Unhandled null error during preferences insert fallback
 **Learning:** In the `useUserPreferences` hook, when no existing preferences are found, it correctly falls back to inserting default preferences. The hook then expects `newPrefs` to contain data, but fails to handle cases where the insert API returns `null` or `undefined` data alongside an error. Testing this fallback is critical to prevent fatal crashes during new user onboarding.
 **Action:** Mock the fallback insert operation and its response properly in the test for `useUserPreferences` to ensure it successfully updates the state variables to reflect the default user state without crashing.
+
+## 2024-08-20 - Ignored Computed Variables in Wrapper Functions
+**Learning:** In `oneSignalService.ts`, the wrapper function `sendDueDateNotification` generated specialized UI variables (like dynamic notification titles and messages based on time remaining) but failed to pass them down to the base `sendTaskReminder` function, resulting in the computed UI state being silently discarded. Tests for wrapper functions must verify that customized payloads are actually forwarded to the underlying service layers.
+**Action:** Always mock underlying functions using `vi.spyOn` and assert they are called with the correct specialized arguments when testing wrapper functions that compute display variables or data transformations.
+
 ## 2025-04-12 - Pessimistic updates in `useTasks`
 **Learning:** The `toggleTask` logic in `useTasks.ts` operates using a pessimistic update strategy—unlike `reorderTasks`, which updates optimistically and reverts on error. A failure during `toggleTask` simply bails out without mutating local state, which prevents desynchronization between client UI and backend reality but handles failures silently via `console.error`.
 **Action:** When testing UI state hooks, first identify if the function uses optimistic or pessimistic updates, as the test assertions differ radically: optimistic updates require asserting state changes immediately and reverting upon mocked failure, while pessimistic updates require asserting no state change upon mocked failure.

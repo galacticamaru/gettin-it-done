@@ -170,17 +170,17 @@ export class OneSignalService {
     }
   }
 
-  async sendTaskReminder(taskText: string, dueDate?: Date): Promise<boolean> {
+  async sendTaskReminder(taskText: string, dueDate?: Date, customTitle?: string, customMessage?: string): Promise<boolean> {
     if (!window.OneSignal) {
       console.warn('OneSignal not available');
       return false;
     }
 
     try {
-      const title = 'Task Reminder 📝';
-      let message = `Don't forget: ${taskText}`;
+      const title = customTitle || 'Task Reminder 📝';
+      let message = customMessage || `Don't forget: ${taskText}`;
       
-      if (dueDate) {
+      if (!customMessage && dueDate) {
         const now = new Date();
         const isOverdue = dueDate < now;
         if (isOverdue) {
@@ -257,7 +257,7 @@ export class OneSignalService {
     }
 
     console.log('Sending OneSignal due date notification:', { title, message });
-    return this.sendTaskReminder(taskText, dueDate);
+    return this.sendTaskReminder(taskText, dueDate, title, message);
   }
 
   async getUserId(): Promise<string | null> {
