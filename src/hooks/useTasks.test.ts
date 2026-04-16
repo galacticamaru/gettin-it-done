@@ -247,4 +247,49 @@ describe('useTasks', () => {
 
     consoleErrorSpy.mockRestore();
   });
+
+  it('toggleTask should not update local state when Supabase update fails', async () => {
+    // 💡 What: Tests the error path of toggling a task when the backend update fails.
+    // 🎯 Why: Toggling is a critical action. If the UI updates optimistically but the DB fails
+    // without reverting, the user thinks the task is complete when it isn't.
+
+    const errorMsg = 'Update failed';
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock update failure
+    const updateMock = vi.fn().mockReturnThis();
+    const eqMock = vi.fn().mockResolvedValue({ error: new Error(errorMsg) });
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_tasks') {
+        return {
+          update: updateMock.mockReturnValue({ eq: eqMock }),
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    const { toggleTask } = useTasks();
+
+    // Clear previous mock calls from initial setup
+    setTasksMock.mockClear();
+
+    // Attempt to toggle task-1
+    await toggleTask('task-1');
+
+    // Verify it attempted to update the database
+    expect(updateMock).toHaveBeenCalledWith({ completed: true });
+    expect(eqMock).toHaveBeenCalledWith('id', 'task-1');
+
+    // Verify error was logged
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error toggling task:', new Error(errorMsg));
+
+    // Verify state was NOT updated (pessimistic update behavior)
+    expect(setTasksMock).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
 });
