@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -126,20 +127,24 @@ const Auth = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
             <Input
+              id="email"
               type="email"
-              placeholder="Email"
+              placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full"
             />
           </div>
-          <div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
             <Input
+              id="password"
               type="password"
-              placeholder="Password"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -149,7 +154,7 @@ const Auth = () => {
           </div>
 
           {error && (
-            <div className="text-destructive text-sm text-center">{error}</div>
+            <div role="alert" className="text-destructive text-sm text-center font-medium">{error}</div>
           )}
 
           <Button

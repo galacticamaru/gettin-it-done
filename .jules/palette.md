@@ -15,3 +15,7 @@
 ## 2024-04-08 - Dynamic ARIA labels for Toggle Buttons
 **Learning:** For stateful toggle buttons like theme switchers, static labels (e.g., "Toggle theme") provide insufficient context for screen reader users and tooltips. Users need to know what action the button will perform when clicked, not just its general function.
 **Action:** Always use dynamic `aria-label` and `title` attributes that reflect the *target* state (e.g., "Switch to dark theme") rather than the *current* state or a generic description.
+
+## 2024-04-16 - Form Field Accessibility
+**Learning:** Forms utilizing shadcn/ui `<Input>` components frequently rely only on placeholders for visual context, lacking explicit `<Label>` associations. This makes the inputs inaccessible to screen reader users who rely on programmatic label associations (`id` + `htmlFor`) for context. Additionally, dynamic error messages often lack `role="alert"`, meaning they are not announced when they appear.
+**Action:** When implementing or fixing forms, always import `<Label>` from `@/components/ui/label` and associate it explicitly with the corresponding `<Input>` using `htmlFor` and `id`. Furthermore, wrap error messages in a container with `role="alert"` so they are immediately announced to assistive technologies upon render.
