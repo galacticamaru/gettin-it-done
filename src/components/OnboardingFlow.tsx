@@ -124,12 +124,25 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   };
 
   const getHighlightedText = (text: string, wordsToHighlight: string[]) => {
-    let highlightedText = text;
-    wordsToHighlight.forEach(word => {
-      const regex = new RegExp(`(${word})`, 'gi');
-      highlightedText = highlightedText.replace(regex, '<mark class="bg-yellow-200 px-1 rounded">$1</mark>');
-    });
-    return highlightedText;
+    if (!wordsToHighlight.length) return <>{text}</>;
+
+    const regex = new RegExp(`(${wordsToHighlight.join('|')})`, 'gi');
+    const parts = text.split(regex);
+
+    return (
+      <>
+        {parts.map((part, i) => {
+          if (wordsToHighlight.some(w => w.toLowerCase() === part.toLowerCase())) {
+            return (
+              <mark key={i} className="bg-yellow-200 px-1 rounded">
+                {part}
+              </mark>
+            );
+          }
+          return <span key={i}>{part}</span>;
+        })}
+      </>
+    );
   };
 
   const renderSharedContent = () => (
@@ -185,14 +198,14 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
           />
         </div>
         <p className="text-sm text-muted-foreground text-center px-4">
-          <span dangerouslySetInnerHTML={{
-            __html: getHighlightedText(
+          <span>
+            {getHighlightedText(
               "Add a due date, configure whether the task repeats and set reminders so you can keep gettin it done!",
               hoveredIcon === 'calendar' ? ['due date'] :
               hoveredIcon === 'repeat' ? ['task repeats'] :
               hoveredIcon === 'bell' ? ['reminders'] : []
-            )
-          }} />
+            )}
+          </span>
         </p>
       </div>
 
