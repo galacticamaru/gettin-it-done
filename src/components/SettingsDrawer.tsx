@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Cog, Bell, BellOff } from 'lucide-react';
+import { Cog, Bell, BellOff, Loader2 } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { DailyDigestToggle } from './DailyDigestToggle';
 
 export const SettingsDrawer = () => {
   const [open, setOpen] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
   const { 
     isSubscribed, 
     oneSignalReady, 
@@ -18,10 +19,15 @@ export const SettingsDrawer = () => {
   } = useNotifications();
 
   const handleNotificationToggle = async (enabled: boolean) => {
-    if (enabled) {
-      await requestPermission();
-    } else {
-      await unsubscribeFromNotifications();
+    setIsToggling(true);
+    try {
+      if (enabled) {
+        await requestPermission();
+      } else {
+        await unsubscribeFromNotifications();
+      }
+    } finally {
+      setIsToggling(false);
     }
   };
 
@@ -49,7 +55,9 @@ export const SettingsDrawer = () => {
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    {isSubscribed ? (
+                    {isToggling ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden="true" />
+                    ) : isSubscribed ? (
                       <Bell className="h-5 w-5 text-green-600" />
                     ) : (
                       <BellOff className="h-5 w-5 text-gray-400" />
@@ -67,7 +75,7 @@ export const SettingsDrawer = () => {
                     id="push-notifications"
                     checked={isSubscribed}
                     onCheckedChange={handleNotificationToggle}
-                    disabled={!oneSignalReady}
+                    disabled={!oneSignalReady || isToggling}
                   />
                 </div>
 
