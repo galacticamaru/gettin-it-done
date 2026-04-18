@@ -19,3 +19,6 @@
 ## 2024-04-16 - Form Field Accessibility
 **Learning:** Forms utilizing shadcn/ui `<Input>` components frequently rely only on placeholders for visual context, lacking explicit `<Label>` associations. This makes the inputs inaccessible to screen reader users who rely on programmatic label associations (`id` + `htmlFor`) for context. Additionally, dynamic error messages often lack `role="alert"`, meaning they are not announced when they appear.
 **Action:** When implementing or fixing forms, always import `<Label>` from `@/components/ui/label` and associate it explicitly with the corresponding `<Input>` using `htmlFor` and `id`. Furthermore, wrap error messages in a container with `role="alert"` so they are immediately announced to assistive technologies upon render.
+## 2024-04-17 - Added loading spinner to async submit button
+**Learning:** Adding a visual loading spinner (`Loader2` with `animate-spin`) combined with `aria-busy={true}` on async submit buttons (like the Auth form) is an incredibly effective micro-UX improvement. It prevents duplicate submissions and provides screen readers with immediate context that the operation is processing.
+**Action:** Always include a visual loading state with `aria-busy` for critical user flows like sign-in, sign-up, or payment forms to improve both accessibility and user confidence.
