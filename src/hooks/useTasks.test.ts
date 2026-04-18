@@ -54,6 +54,105 @@ describe('useTasks', () => {
     });
   });
 
+  it('refetch should format database tasks correctly and handle missing sort_order', async () => {
+    // 💡 What: Tests that the core data transformation in fetchTasks maps snake_case db columns to
+    // camelCase local state safely, particularly fallback logic for missing sort_order.
+    // 🎯 Why: Data transformation is risky. If we mis-map properties or fail to handle nulls
+    // from the database, the app renders broken data or crashes.
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock select with order to return our simulated database rows
+    const mockDbTasks = [
+      {
+        id: 'db-task-1',
+        text: 'DB Task 1',
+        completed: false,
+        created_at: '2023-05-01T00:00:00Z',
+        updated_at: '2023-05-01T00:00:00Z',
+        due_date: '2023-05-02T00:00:00Z',
+        repeat_option: 'daily',
+        reminder: '10m',
+        emoji: '🚀',
+        sort_order: 10
+      },
+      {
+        id: 'db-task-2',
+        text: 'DB Task 2',
+        completed: true,
+        created_at: '2023-05-01T01:00:00Z',
+        updated_at: '2023-05-01T01:00:00Z',
+        due_date: null,
+        repeat_option: null,
+        reminder: null,
+        emoji: null,
+        sort_order: null // Missing sort_order, should fallback to index (1)
+      }
+    ];
+
+    const orderMock2 = vi.fn().mockResolvedValue({ data: mockDbTasks, error: null });
+    const orderMock1 = vi.fn().mockReturnValue({ order: orderMock2 });
+    const selectMock = vi.fn().mockReturnValue({ order: orderMock1 });
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_tasks') {
+        return {
+          select: selectMock,
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    const { refetch } = useTasks();
+
+    // Call refetch
+    await refetch();
+
+    // Verify it attempted to fetch from the database
+    expect(selectMock).toHaveBeenCalledWith('*');
+    expect(orderMock1).toHaveBeenCalledWith('sort_order', { ascending: true });
+    expect(orderMock2).toHaveBeenCalledWith('created_at', { ascending: false });
+
+    // Verify local state was updated with correct formatting
+    expect(setTasksMock).toHaveBeenCalled();
+    const updatedTasks = tasksState;
+
+    expect(updatedTasks).toHaveLength(2);
+
+    // Fully populated task check
+    expect(updatedTasks[0]).toEqual({
+      id: 'db-task-1',
+      text: 'DB Task 1',
+      completed: false,
+      createdAt: '2023-05-01T00:00:00Z',
+      updatedAt: '2023-05-01T00:00:00Z',
+      dueDate: '2023-05-02T00:00:00Z',
+      repeatOption: 'daily',
+      reminder: '10m',
+      emoji: '🚀',
+      sortOrder: 10
+    });
+
+    // Nullable/Missing fields check
+    expect(updatedTasks[1]).toEqual({
+      id: 'db-task-2',
+      text: 'DB Task 2',
+      completed: true,
+      createdAt: '2023-05-01T01:00:00Z',
+      updatedAt: '2023-05-01T01:00:00Z',
+      dueDate: null,
+      repeatOption: null,
+      reminder: null,
+      emoji: null,
+      sortOrder: 1 // Fallback to index
+    });
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it('addTask should successfully add a task and update local state', async () => {
     // 💡 What: Tests the happy path of adding a task, including order calculation and state updates.
     // 🎯 Why: Adding tasks is the core action. If new tasks don't get negative sort orders
