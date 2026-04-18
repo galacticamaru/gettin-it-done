@@ -209,7 +209,7 @@ export class OneSignalService {
       console.log('Sending notification via Edge Function for user:', userSubscriptionId);
 
       // Send notification via our Edge Function
-      const response = await fetch('https://gdopicetwkrzihvwikwu.supabase.co/functions/v1/send-notification', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-notification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
