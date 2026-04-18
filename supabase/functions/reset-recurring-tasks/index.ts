@@ -31,11 +31,9 @@ Deno.serve(async (req) => {
     )
 
     const now = new Date()
-    const currentDay = now.getUTCDay() // 0 = Sunday, 1 = Monday, etc.
-    const currentDate = now.getUTCDate()
+    const currentMs = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
     
     console.log(`Reset recurring tasks triggered at ${now.toISOString()}`)
-    console.log(`Current day: ${currentDay}, Current date: ${currentDate}`)
 
     // Get all completed tasks with repeat options
     const { data: completedTasks, error: fetchError } = await supabase
@@ -60,67 +58,126 @@ Deno.serve(async (req) => {
       )
     }
 
-    const tasksToReset: string[] = []
+    const tasksToDuplicate: Record<string, any>[] = []
+    const oldTaskIdsToUpdate: string[] = []
+    const userIds = new Set<string>()
 
-    // Check each task to see if it should be reset
+    // Check each task to see if it should be reset (duplicated)
     for (const task of completedTasks) {
-      let shouldReset = false
+      const createdAtDate = new Date(task.created_at)
+      const targetDate = new Date(Date.UTC(createdAtDate.getUTCFullYear(), createdAtDate.getUTCMonth(), createdAtDate.getUTCDate()))
+      let shouldDuplicate = false
 
       switch (task.repeat_option) {
         case 'Daily':
-          // Reset daily tasks every day at 14 UTC
-          shouldReset = true
+          targetDate.setUTCDate(targetDate.getUTCDate() + 1)
+          shouldDuplicate = currentMs >= targetDate.getTime()
           break
         
         case 'Weekly':
-          // Reset weekly tasks every Monday (day 1) at 14 UTC
-          shouldReset = currentDay === 1
+          targetDate.setUTCDate(targetDate.getUTCDate() + 7)
+          shouldDuplicate = currentMs >= targetDate.getTime()
           break
         
         case 'Monthly':
-          // Reset monthly tasks on the 1st of each month at 14 UTC
-          shouldReset = currentDate === 1
+          targetDate.setUTCMonth(targetDate.getUTCMonth() + 1)
+          shouldDuplicate = currentMs >= targetDate.getTime()
           break
       }
 
-      if (shouldReset) {
-        tasksToReset.push(task.id)
-        console.log(`Resetting ${task.repeat_option} task: ${task.text} (ID: ${task.id})`)
+      if (shouldDuplicate) {
+        tasksToDuplicate.push(task)
+        oldTaskIdsToUpdate.push(task.id)
+        userIds.add(task.user_id)
+        console.log(`Duplicating ${task.repeat_option} task: ${task.text} (ID: ${task.id})`)
       }
     }
 
-    if (tasksToReset.length === 0) {
-      console.log('No tasks need to be reset at this time')
+    if (tasksToDuplicate.length === 0) {
+      console.log('No tasks need to be duplicated at this time')
       return new Response(
-        JSON.stringify({ message: 'No tasks need to be reset at this time', resetCount: 0 }),
+        JSON.stringify({ message: 'No tasks need to be duplicated at this time', resetCount: 0 }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Reset the tasks back to active (completed = false)
+    // Get min sort_order for each user
+    const userMinSortOrders: Record<string, number> = {}
+
+    for (const userId of userIds) {
+        const { data: minTaskData, error: minTaskError } = await supabase
+            .from('user_tasks')
+            .select('sort_order')
+            .eq('user_id', userId)
+            .order('sort_order', { ascending: true })
+            .limit(1)
+            .maybeSingle()
+
+        if (!minTaskError && minTaskData && typeof minTaskData.sort_order === 'number') {
+            userMinSortOrders[userId] = minTaskData.sort_order - 1;
+        } else {
+            userMinSortOrders[userId] = 0;
+        }
+    }
+
+    // Prepare new tasks for insertion
+    const newTasksToInsert = []
+
+    for (const task of tasksToDuplicate) {
+        const currentMinSortOrder = userMinSortOrders[task.user_id];
+
+        newTasksToInsert.push({
+            user_id: task.user_id,
+            text: task.text,
+            due_date: task.due_date, // Keep due date
+            emoji: task.emoji,
+            reminder: task.reminder,
+            repeat_option: task.repeat_option,
+            completed: false,
+            sort_order: currentMinSortOrder
+        })
+
+        // Decrement for the next task of this user
+        userMinSortOrders[task.user_id] = currentMinSortOrder - 1;
+    }
+
+    // 1. Update old completed tasks to clear repeat_option
     const { error: updateError } = await supabase
       .from('user_tasks')
       .update({ 
-        completed: false,
+        repeat_option: null,
         updated_at: new Date().toISOString()
       })
-      .in('id', tasksToReset)
+      .in('id', oldTaskIdsToUpdate)
 
     if (updateError) {
-      console.error('Error resetting tasks:', updateError)
+      console.error('Error updating old tasks:', updateError)
       return new Response(
-        JSON.stringify({ error: 'Failed to reset tasks' }),
+        JSON.stringify({ error: 'Failed to update old tasks' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log(`Successfully reset ${tasksToReset.length} recurring tasks`)
+    // 2. Insert new duplicated tasks
+    const { error: insertError } = await supabase
+        .from('user_tasks')
+        .insert(newTasksToInsert)
+
+    if (insertError) {
+        console.error('Error inserting new tasks:', insertError)
+        return new Response(
+            JSON.stringify({ error: 'Failed to insert new tasks' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+    }
+
+    console.log(`Successfully duplicated ${newTasksToInsert.length} recurring tasks`)
 
     return new Response(
       JSON.stringify({ 
-        message: `Successfully reset ${tasksToReset.length} recurring tasks`,
-        resetCount: tasksToReset.length,
-        resetTaskIds: tasksToReset
+        message: `Successfully duplicated ${newTasksToInsert.length} recurring tasks`,
+        resetCount: newTasksToInsert.length,
+        resetTaskIds: oldTaskIdsToUpdate
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
