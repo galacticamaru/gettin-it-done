@@ -19,3 +19,7 @@
 ## 2024-04-16 - Form Field Accessibility
 **Learning:** Forms utilizing shadcn/ui `<Input>` components frequently rely only on placeholders for visual context, lacking explicit `<Label>` associations. This makes the inputs inaccessible to screen reader users who rely on programmatic label associations (`id` + `htmlFor`) for context. Additionally, dynamic error messages often lack `role="alert"`, meaning they are not announced when they appear.
 **Action:** When implementing or fixing forms, always import `<Label>` from `@/components/ui/label` and associate it explicitly with the corresponding `<Input>` using `htmlFor` and `id`. Furthermore, wrap error messages in a container with `role="alert"` so they are immediately announced to assistive technologies upon render.
+
+## 2024-05-18 - Auth Action Feedback
+**Learning:** Submit buttons in authentication flows often lack explicit loading states, leaving users unsure if their click registered, especially on slow networks. While text changes (e.g., "Sign in" -> "Loading...") are somewhat helpful, they lack the recognized visual cues of progress.
+**Action:** Always add a visual spinner (like `Loader2` from `lucide-react` with `animate-spin`) alongside loading text inside authentication or primary submit buttons to provide immediate and universally understood feedback.
