@@ -292,4 +292,49 @@ describe('useTasks', () => {
 
     consoleErrorSpy.mockRestore();
   });
+
+  it('deleteTask should not update local state when Supabase delete fails', async () => {
+    // 💡 What: Tests the error path of deleting a task when the backend delete operation fails.
+    // 🎯 Why: Deleting is a destructive action. If the UI removes the item optimistically but the DB fails,
+    // the user thinks the task is deleted when it isn't, causing it to reappear on the next reload.
+
+    const errorMsg = 'Delete failed';
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock delete failure
+    const deleteMock = vi.fn().mockReturnThis();
+    const eqMock = vi.fn().mockResolvedValue({ error: new Error(errorMsg) });
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_tasks') {
+        return {
+          delete: deleteMock.mockReturnValue({ eq: eqMock }),
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    const { deleteTask } = useTasks();
+
+    // Clear previous mock calls from initial setup
+    setTasksMock.mockClear();
+
+    // Attempt to delete task-1
+    await deleteTask('task-1');
+
+    // Verify it attempted to delete from the database
+    expect(deleteMock).toHaveBeenCalled();
+    expect(eqMock).toHaveBeenCalledWith('id', 'task-1');
+
+    // Verify error was logged
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error deleting task:', new Error(errorMsg));
+
+    // Verify state was NOT updated (pessimistic update behavior)
+    expect(setTasksMock).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
 });

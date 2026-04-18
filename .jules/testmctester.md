@@ -33,3 +33,7 @@
 ## 2024-07-22 - Ghostly Notifications from Uncancelled Timers
 **Learning:** When multiple related notification timers (e.g., specific reminder, general due date, and overdue alerts) are scheduled for a single entity, deleting or disabling that entity requires cancelling *all* associated timers. If an orchestrated cancel function fails to clear all related timeout IDs from the global namespace, users will receive "ghostly notifications" for events that no longer exist.
 **Action:** When testing cancellation or cleanup logic for scheduled events, test that all specifically prefixed or related timeout IDs are correctly passed to `clearTimeout` to prevent orphaned executions.
+
+## 2024-05-18 - Pessimistic UI State Desynchronization During Delete
+**Learning:** In `useTasks.ts`, the `deleteTask` logic operates using a pessimistic update strategy—unlike `reorderTasks`, which updates optimistically and reverts on error. A failure during `deleteTask` simply bails out without mutating the local state. Testing this behavior is critical because deleting is a destructive action; if the UI removes the item optimistically but the DB fails, the user incorrectly thinks the task is deleted, only for it to reappear on the next reload, causing confusion.
+**Action:** When testing UI state hooks for destructive actions, first identify if the function uses optimistic or pessimistic updates. For pessimistic updates, assert that the state change does *not* occur upon a mocked failure.
