@@ -167,7 +167,7 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         // Send digest notification using the real OneSignal subscription ID
-        const notificationResponse = await fetch('https://gdopicetwkrzihvwikwu.supabase.co/functions/v1/send-notification', {
+        const notificationResponse = await fetch(`${supabaseUrl}/functions/v1/send-notification`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
