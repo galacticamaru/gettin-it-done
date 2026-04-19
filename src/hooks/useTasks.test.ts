@@ -84,8 +84,8 @@ describe('useTasks', () => {
         updated_at: '2023-05-01T01:00:00Z',
         due_date: null,
         repeat_option: null,
-        reminder: null,
-        emoji: null,
+        reminder: undefined,
+        emoji: undefined,
         sort_order: null // Missing sort_order, should fallback to index (1)
       }
     ];
@@ -143,10 +143,10 @@ describe('useTasks', () => {
       completed: true,
       createdAt: '2023-05-01T01:00:00Z',
       updatedAt: '2023-05-01T01:00:00Z',
-      dueDate: null,
-      repeatOption: null,
-      reminder: null,
-      emoji: null,
+      dueDate: undefined,
+      repeatOption: undefined,
+      reminder: undefined,
+      emoji: undefined,
       sortOrder: 1 // Fallback to index
     });
 
@@ -390,6 +390,50 @@ describe('useTasks', () => {
     expect(setTasksMock).not.toHaveBeenCalled();
 
     consoleErrorSpy.mockRestore();
+  });
+
+  it('deleteTask should update local state when Supabase delete succeeds', async () => {
+    // 💡 What: Tests the happy path of deleting a task.
+    // 🎯 Why: Deleting is a core action. If the DB operation succeeds but the local state isn't
+    // updated correctly, the UI will continue showing the deleted task until reload.
+
+    // Mock delete success
+    const deleteMock = vi.fn().mockReturnThis();
+    const eqMock = vi.fn().mockResolvedValue({ error: null });
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_tasks') {
+        return {
+          delete: deleteMock.mockReturnValue({ eq: eqMock }),
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    const { deleteTask } = useTasks();
+
+    // Clear previous mock calls from initial setup
+    setTasksMock.mockClear();
+
+    // Attempt to delete task-1
+    await deleteTask('task-1');
+
+    // Verify it attempted to delete from the database
+    expect(deleteMock).toHaveBeenCalled();
+    expect(eqMock).toHaveBeenCalledWith('id', 'task-1');
+
+    // Verify state was updated with the remaining tasks
+    expect(setTasksMock).toHaveBeenCalled();
+    const expectedTasks = [
+      { id: 'task-2', text: 'Task 2', completed: false, sortOrder: 1 },
+      { id: 'task-3', text: 'Task 3', completed: false, sortOrder: 2 },
+    ];
+
+    // Check that tasksState was updated correctly by the callback
+    expect(tasksState).toEqual(expectedTasks);
   });
 
   it('deleteTask should not update local state when Supabase delete fails', async () => {
