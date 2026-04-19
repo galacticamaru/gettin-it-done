@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { Tables, TablesInsert } from '@/integrations/supabase/types';
 
 export interface Task {
   id: string;
@@ -33,16 +34,16 @@ export const useTasks = () => {
 
       if (error) throw error;
 
-      const formattedTasks: Task[] = data.map((task: any, index) => ({
+      const formattedTasks: Task[] = data.map((task: Tables<'user_tasks'>, index) => ({
         id: task.id,
         text: task.text,
-        completed: task.completed,
-        createdAt: task.created_at,
-        updatedAt: task.updated_at,
-        dueDate: task.due_date,
-        repeatOption: task.repeat_option,
-        reminder: task.reminder,
-        emoji: task.emoji,
+        completed: task.completed ?? false,
+        createdAt: task.created_at ?? new Date().toISOString(),
+        updatedAt: task.updated_at ?? new Date().toISOString(),
+        dueDate: task.due_date || undefined,
+        repeatOption: task.repeat_option || undefined,
+        reminder: task.reminder || undefined,
+        emoji: task.emoji || undefined,
         sortOrder: task.sort_order ?? index,
       }));
 
@@ -88,17 +89,19 @@ export const useTasks = () => {
       }
 
       // Now insert the new task with the new sort_order
+      const newTaskData: TablesInsert<'user_tasks'> = {
+        user_id: user.id,
+        text: taskData.text,
+        due_date: taskData.dueDate?.toISOString(),
+        repeat_option: taskData.repeatOption !== 'none' ? taskData.repeatOption : null,
+        reminder: taskData.reminder !== 'none' ? taskData.reminder : null,
+        emoji: taskData.emoji || null,
+        sort_order: newSortOrder,
+      };
+
       const { data, error } = await supabase
         .from('user_tasks')
-        .insert({
-          user_id: user.id,
-          text: taskData.text,
-          due_date: taskData.dueDate?.toISOString(),
-          repeat_option: taskData.repeatOption !== 'none' ? taskData.repeatOption : null,
-          reminder: taskData.reminder !== 'none' ? taskData.reminder : null,
-          emoji: taskData.emoji || null,
-          sort_order: newSortOrder,
-        } as any)
+        .insert(newTaskData)
         .select()
         .single();
 
@@ -109,14 +112,14 @@ export const useTasks = () => {
       const newTask: Task = {
         id: data.id,
         text: data.text,
-        completed: data.completed,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        dueDate: data.due_date,
-        repeatOption: data.repeat_option,
-        reminder: data.reminder,
-        emoji: data.emoji,
-        sortOrder: data.sort_order,
+        completed: data.completed ?? false,
+        createdAt: data.created_at ?? new Date().toISOString(),
+        updatedAt: data.updated_at ?? new Date().toISOString(),
+        dueDate: data.due_date || undefined,
+        repeatOption: data.repeat_option || undefined,
+        reminder: data.reminder || undefined,
+        emoji: data.emoji || undefined,
+        sortOrder: data.sort_order ?? newSortOrder,
       };
 
       // Update local state - add new task at beginning, keeping existing tasks untouched
@@ -205,7 +208,7 @@ export const useTasks = () => {
     try {
       if (!user) return;
       console.log('💾 Saving order to database...');
-      const updates = updatedTasks.map((task, index) => ({
+      const updates: TablesInsert<'user_tasks'>[] = updatedTasks.map((task, index) => ({
         id: task.id,
         user_id: user.id,
         sort_order: index,
@@ -215,7 +218,7 @@ export const useTasks = () => {
       console.log('📝 Batch updating task orders');
       const { error } = await supabase
         .from('user_tasks')
-        .upsert(updates as any);
+        .upsert(updates);
 
       if (error) throw error;
       console.log('✅ Successfully saved order to database');
