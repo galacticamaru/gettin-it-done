@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar, Bell, Repeat } from 'lucide-react';
@@ -123,7 +123,12 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     return '📝';
   };
 
-  const getHighlightedText = (text: string, wordsToHighlight: string[]) => {
+  const highlightedInstruction = useMemo(() => {
+    const text = "Add a due date, configure whether the task repeats and set reminders so you can keep gettin it done!";
+    const wordsToHighlight = hoveredIcon === 'calendar' ? ['due date'] :
+                             hoveredIcon === 'repeat' ? ['task repeats'] :
+                             hoveredIcon === 'bell' ? ['reminders'] : [];
+
     if (!wordsToHighlight.length) return <>{text}</>;
 
     const regex = new RegExp(`(${wordsToHighlight.join('|')})`, 'gi');
@@ -143,7 +148,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
         })}
       </>
     );
-  };
+  }, [hoveredIcon]);
 
   const renderSharedContent = () => (
     <div className="space-y-6">
@@ -198,14 +203,7 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
           />
         </div>
         <p className="text-sm text-muted-foreground text-center px-4">
-          <span>
-            {getHighlightedText(
-              "Add a due date, configure whether the task repeats and set reminders so you can keep gettin it done!",
-              hoveredIcon === 'calendar' ? ['due date'] :
-              hoveredIcon === 'repeat' ? ['task repeats'] :
-              hoveredIcon === 'bell' ? ['reminders'] : []
-            )}
-          </span>
+          <span>{highlightedInstruction}</span>
         </p>
       </div>
 
