@@ -143,10 +143,10 @@ describe('useTasks', () => {
       completed: true,
       createdAt: '2023-05-01T01:00:00Z',
       updatedAt: '2023-05-01T01:00:00Z',
-      dueDate: null,
-      repeatOption: null,
-      reminder: null,
-      emoji: null,
+      dueDate: undefined,
+      repeatOption: undefined,
+      reminder: undefined,
+      emoji: undefined,
       sortOrder: 1 // Fallback to index
     });
 

@@ -3,6 +3,7 @@ import { Plus, Calendar, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { EmojiPicker } from '@/components/EmojiPicker';
 import { toast } from 'sonner';
 
@@ -125,14 +126,27 @@ export const MobileTaskCreator = ({
               />
             </div>
 
-            <Button
-              type="submit"
-              size="lg"
-              disabled={!newTask.trim()}
-              className="h-12 px-6 rounded-xl touch-manipulation font-medium shrink-0"
-            >
-              Save
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="inline-block">
+                    <Button
+                      type="submit"
+                      size="lg"
+                      disabled={!newTask.trim()}
+                      className="h-12 px-6 rounded-xl touch-manipulation font-medium shrink-0"
+                    >
+                      Save
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                {!newTask.trim() && (
+                  <TooltipContent>
+                    <p>Task description is required</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </form>
       </DialogContent>
