@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Plus, Calendar, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { EmojiPicker } from '@/components/EmojiPicker';
 import { toast } from 'sonner';
@@ -89,7 +90,9 @@ export const MobileTaskCreator = ({
                 {selectedEmoji || <Smile className="h-5 w-5" aria-hidden="true" />}
               </Button>
               
+              <Label htmlFor="mobile-task-input" className="sr-only">Task description</Label>
               <Input
+                id="mobile-task-input"
                 ref={inputRef}
                 value={newTask}
                 onChange={(e) => setNewTask(e.target.value)}
@@ -116,7 +119,9 @@ export const MobileTaskCreator = ({
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              <Label htmlFor="mobile-due-date" className="sr-only">Due Date</Label>
               <Input
+                id="mobile-due-date"
                 type="datetime-local"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
