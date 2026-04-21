@@ -26,3 +26,7 @@
 ## 2026-04-17 - Added loading spinner to async submit button
 **Learning:** Adding a visual loading spinner (`Loader2` with `animate-spin`) combined with `aria-busy={true}` on async submit buttons (like the Auth form) is an incredibly effective micro-UX improvement. It prevents duplicate submissions and provides screen readers with immediate context that the operation is processing.
 **Action:** Always include a visual loading state with `aria-busy` for critical user flows like sign-in, sign-up, or payment forms to improve both accessibility and user confidence.
+
+## 2026-04-20 - Disabled Button Tooltips and Testing
+**Learning:** Adding Tooltips to disabled buttons requires wrapping the disabled button in a standard non-disabled container (like `<div className="inline-block">`) within the `<TooltipTrigger asChild>`. Native disabled buttons do not emit pointer events, meaning hover actions to trigger tooltips will fail to register (both for users and in Playwright E2E tests).
+**Action:** Always wrap disabled buttons with a `<div>` or similar container element when attaching Tooltips to ensure hover and focus events are correctly captured and the tooltip is displayed.

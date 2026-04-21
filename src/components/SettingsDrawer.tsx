@@ -76,6 +76,7 @@ export const SettingsDrawer = () => {
                     checked={isSubscribed}
                     onCheckedChange={handleNotificationToggle}
                     disabled={!oneSignalReady || isToggling}
+                    aria-busy={isToggling}
                   />
                 </div>
 
