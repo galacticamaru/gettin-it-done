@@ -347,6 +347,50 @@ describe('useTasks', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  it('toggleTask should update local state when Supabase update succeeds', async () => {
+    // 💡 What: Tests the happy path of toggling a task.
+    // 🎯 Why: Toggling is a critical action. We must ensure the UI updates pessimistically when the DB updates successfully.
+
+    // Mock update success
+    const updateMock = vi.fn().mockReturnThis();
+    const eqMock = vi.fn().mockResolvedValue({ error: null });
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_tasks') {
+        return {
+          update: updateMock.mockReturnValue({ eq: eqMock }),
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    const { toggleTask } = useTasks();
+
+    // Clear previous mock calls from initial setup
+    setTasksMock.mockClear();
+
+    // Attempt to toggle task-1
+    await toggleTask('task-1');
+
+    // Verify it attempted to update the database
+    expect(updateMock).toHaveBeenCalledWith({ completed: true });
+    expect(eqMock).toHaveBeenCalledWith('id', 'task-1');
+
+    // Verify state was updated (pessimistic update behavior)
+    expect(setTasksMock).toHaveBeenCalled();
+    const expectedTasks = [
+      { id: 'task-1', text: 'Task 1', completed: true, sortOrder: 0 },
+      { id: 'task-2', text: 'Task 2', completed: false, sortOrder: 1 },
+      { id: 'task-3', text: 'Task 3', completed: false, sortOrder: 2 },
+    ];
+
+    // Check that tasksState was updated correctly by the callback
+    expect(tasksState).toEqual(expectedTasks);
+  });
+
   it('toggleTask should not update local state when Supabase update fails', async () => {
     // 💡 What: Tests the error path of toggling a task when the backend update fails.
     // 🎯 Why: Toggling is a critical action. If the UI updates optimistically but the DB fails
