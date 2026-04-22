@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { EmojiPicker } from './EmojiPicker';
 import { TaskOptionsModal } from './TaskOptionsModal';
@@ -35,7 +36,9 @@ export const DesktopTaskInput = ({
     <>
       <div className="flex items-center gap-3 p-4 bg-card rounded-2xl shadow-sm mb-4 border transition-shadow focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
         <EmojiPicker selectedEmoji={selectedEmoji} onEmojiSelect={setSelectedEmoji} />
+        <Label htmlFor="desktop-task-input" className="sr-only">New task description</Label>
         <Input
+          id="desktop-task-input"
           placeholder="Add a new task"
           value={newTask}
           onChange={e => setNewTask(e.target.value)}
