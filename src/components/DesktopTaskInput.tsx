@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { EmojiPicker } from './EmojiPicker';
 import { TaskOptionsModal } from './TaskOptionsModal';
 
@@ -45,14 +46,27 @@ export const DesktopTaskInput = ({
           className="border-0 bg-transparent focus-visible:ring-0"
           aria-label="New task description"
         />
-        <Button
-          onClick={handleAddTask}
-          size="sm"
-          disabled={!newTask.trim()}
-          className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-medium px-4 py-2 rounded-full dark:bg-yellow-500 dark:hover:bg-yellow-600"
-        >
-          Add
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="inline-block">
+                <Button
+                  onClick={handleAddTask}
+                  size="sm"
+                  disabled={!newTask.trim()}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-medium px-4 py-2 rounded-full dark:bg-yellow-500 dark:hover:bg-yellow-600"
+                >
+                  Add
+                </Button>
+              </div>
+            </TooltipTrigger>
+            {!newTask.trim() && (
+              <TooltipContent>
+                <p>Task description is required</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       <TaskOptionsModal
