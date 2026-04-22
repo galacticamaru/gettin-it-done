@@ -37,3 +37,7 @@
 ## 2024-05-18 - Pessimistic UI State Desynchronization During Delete
 **Learning:** In `useTasks.ts`, the `deleteTask` logic operates using a pessimistic update strategy—unlike `reorderTasks`, which updates optimistically and reverts on error. A failure during `deleteTask` simply bails out without mutating the local state. Testing this behavior is critical because deleting is a destructive action; if the UI removes the item optimistically but the DB fails, the user incorrectly thinks the task is deleted, only for it to reappear on the next reload, causing confusion.
 **Action:** When testing UI state hooks for destructive actions, first identify if the function uses optimistic or pessimistic updates. For pessimistic updates, assert that the state change does *not* occur upon a mocked failure.
+
+## 2024-05-18 - Missing Component Tests for DesktopTaskInput
+**Learning:** Core interactive components like `DesktopTaskInput` which handle the primary user flow (adding a task) lacked unit testing, leaving crucial user interactions (like disabling submission for empty text, responding to the Enter key, and linking UI with the underlying state updater) unverified.
+**Action:** Ensure foundational interactive UI components have test coverage for basic event handling, accessibility states (e.g., button disabled state), and integration with their injected callback props. Add `DesktopTaskInput.test.tsx` to explicitly test empty/whitespace handling and keyboard event triggers.
