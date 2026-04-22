@@ -348,8 +348,9 @@ describe('useTasks', () => {
   });
 
   it('toggleTask should update local state when Supabase update succeeds', async () => {
-    // 💡 What: Tests the happy path of toggling a task.
-    // 🎯 Why: Toggling is a critical action. We must ensure the UI updates pessimistically when the DB updates successfully.
+    // 💡 What: Tests the happy path of toggling a task's completion status.
+    // 🎯 Why: Toggling is a core feature. If the backend update succeeds but local state
+    // isn't updated correctly, the user won't see visual feedback until the next reload.
 
     // Mock update success
     const updateMock = vi.fn().mockReturnThis();
@@ -372,14 +373,14 @@ describe('useTasks', () => {
     // Clear previous mock calls from initial setup
     setTasksMock.mockClear();
 
-    // Attempt to toggle task-1
+    // Attempt to toggle task-1 (initially completed: false)
     await toggleTask('task-1');
 
     // Verify it attempted to update the database
     expect(updateMock).toHaveBeenCalledWith({ completed: true });
     expect(eqMock).toHaveBeenCalledWith('id', 'task-1');
 
-    // Verify state was updated (pessimistic update behavior)
+    // Verify state was updated
     expect(setTasksMock).toHaveBeenCalled();
     const expectedTasks = [
       { id: 'task-1', text: 'Task 1', completed: true, sortOrder: 0 },
@@ -387,7 +388,6 @@ describe('useTasks', () => {
       { id: 'task-3', text: 'Task 3', completed: false, sortOrder: 2 },
     ];
 
-    // Check that tasksState was updated correctly by the callback
     expect(tasksState).toEqual(expectedTasks);
   });
 

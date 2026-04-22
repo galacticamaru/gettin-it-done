@@ -38,6 +38,10 @@
 **Learning:** In `useTasks.ts`, the `deleteTask` logic operates using a pessimistic update strategy—unlike `reorderTasks`, which updates optimistically and reverts on error. A failure during `deleteTask` simply bails out without mutating the local state. Testing this behavior is critical because deleting is a destructive action; if the UI removes the item optimistically but the DB fails, the user incorrectly thinks the task is deleted, only for it to reappear on the next reload, causing confusion.
 **Action:** When testing UI state hooks for destructive actions, first identify if the function uses optimistic or pessimistic updates. For pessimistic updates, assert that the state change does *not* occur upon a mocked failure.
 
+## 2026-04-21 - [Test toggleTask Happy Path]
+**Learning:** Testing only error paths leaves a functional gap where a core action might silently fail on the client side even if it works in the backend, meaning UI won't reflect successful actions without refresh. The `useTasks.ts`'s `toggleTask` uses a pessimistic update strategy that immediately updates local state upon successful DB interaction without fetching.
+**Action:** Always include a "happy path" test to verify local state mutation corresponding to a successful backend call when dealing with stateful UI hooks, particularly for fundamental actions like completion toggles.
+
 ## 2024-05-18 - Missing Component Tests for DesktopTaskInput
 **Learning:** Core interactive components like `DesktopTaskInput` which handle the primary user flow (adding a task) lacked unit testing, leaving crucial user interactions (like disabling submission for empty text, responding to the Enter key, and linking UI with the underlying state updater) unverified.
 **Action:** Ensure foundational interactive UI components have test coverage for basic event handling, accessibility states (e.g., button disabled state), and integration with their injected callback props. Add `DesktopTaskInput.test.tsx` to explicitly test empty/whitespace handling and keyboard event triggers.
