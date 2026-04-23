@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { Move } from 'lucide-react';
+import { Move, Check, X } from 'lucide-react';
 
 interface Task {
   id: string; // Changed from number to string
@@ -128,7 +128,7 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
           title={task.completed ? "Mark task as incomplete" : "Mark task as complete"}
         >
           {task.completed && (
-            <span className="text-white text-sm font-bold" aria-hidden="true">✓</span>
+            <Check className="w-4 h-4 text-white" aria-hidden="true" strokeWidth={3} />
           )}
         </button>
         
@@ -167,11 +167,11 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
         
         <button
           onClick={() => onDelete(task.id)}
-          className="text-muted-foreground hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 rounded-sm"
+          className="text-muted-foreground hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 rounded-sm p-1 -mr-1"
           aria-label={`Delete task "${task.text}"`}
           title="Delete task"
         >
-          <span aria-hidden="true">×</span>
+          <X className="w-5 h-5" aria-hidden="true" />
         </button>
       </div>
     </div>
