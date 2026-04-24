@@ -268,4 +268,57 @@ describe('useUserPreferences', () => {
       onesignal_subscription_id: 'sub-id',
     });
   });
+
+  it('updateDailyDigestEnabled should not update state if db update fails', async () => {
+    // 💡 What: Tests the error path of updating a user preference.
+    // 🎯 Why: Updating preferences is a pessimistic action. If the UI updates but the DB fails,
+    // the user thinks their preference is saved when it isn't.
+
+    const errorMsg = 'Update failed';
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock update failure
+    const updateMock = vi.fn().mockReturnThis();
+    const eqMock = vi.fn().mockResolvedValue({ error: new Error(errorMsg) });
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_preferences') {
+        return {
+          update: updateMock.mockReturnValue({ eq: eqMock }),
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    // Set up mock state
+    preferencesState = {
+      id: 'existing-prefs-id',
+      daily_digest_enabled: false,
+      onesignal_subscription_id: 'sub-id',
+    };
+
+    const { updateDailyDigestEnabled } = useUserPreferences();
+
+    // Reset setPreferencesMock because initialization of the hook calls it in our custom setup
+    setPreferencesMock.mockClear();
+
+    await updateDailyDigestEnabled(true);
+
+    // Verify it attempted to update the database
+    expect(updateMock).toHaveBeenCalledWith({
+      daily_digest_enabled: true,
+    });
+    expect(eqMock).toHaveBeenCalledWith('id', 'existing-prefs-id');
+
+    // Verify error was logged
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error updating daily digest preference:', new Error(errorMsg));
+
+    // Verify state was NOT updated (pessimistic update behavior)
+    expect(setPreferencesMock).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
 });
