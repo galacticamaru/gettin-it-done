@@ -34,3 +34,7 @@
 ## 2026-04-20 - Disabled Button Tooltips and Testing
 **Learning:** Adding Tooltips to disabled buttons requires wrapping the disabled button in a standard non-disabled container (like `<div className="inline-block">`) within the `<TooltipTrigger asChild>`. Native disabled buttons do not emit pointer events, meaning hover actions to trigger tooltips will fail to register (both for users and in Playwright E2E tests).
 **Action:** Always wrap disabled buttons with a `<div>` or similar container element when attaching Tooltips to ensure hover and focus events are correctly captured and the tooltip is displayed.
+
+## 2026-04-23 - Consistent Scalable Iconography
+**Learning:** Raw Unicode characters (like ✓ and ×) are problematic for UI controls because they render inconsistently across operating systems and cannot be styled robustly (like applying `strokeWidth` or exact scaling). They can cause layout jumps or visual discrepancies between mobile and desktop views.
+**Action:** Always use SVG icon libraries (like `lucide-react`) for standard UI controls (checkboxes, delete buttons, chevrons) instead of Unicode characters to ensure cross-platform visual consistency and styling flexibility.
