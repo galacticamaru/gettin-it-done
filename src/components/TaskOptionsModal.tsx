@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { NotificationPermissionDialog } from './NotificationPermissionDialog';
 import { useNotifications } from '@/hooks/useNotifications';
 import { cn } from '@/lib/utils';
@@ -50,15 +51,23 @@ export const TaskOptionsModal = ({
   const isReminderDisabled = !hasNotificationCapability;
 
   return (
-    <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 px-2">
-      {/* Calendar Modal */}
-      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="p-1 h-auto" aria-label="Set due date" title="Set due date">
-            <Calendar className={cn("w-4 h-4", dueDate && "text-yellow-600")} aria-hidden="true" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+    <TooltipProvider>
+      <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 px-2">
+        {/* Calendar Modal */}
+        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="p-1 h-auto" aria-label="Set due date">
+                  <Calendar className={cn("w-4 h-4", dueDate && "text-yellow-600")} aria-hidden="true" />
+                </Button>
+              </PopoverTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Set due date</p>
+            </TooltipContent>
+          </Tooltip>
+          <PopoverContent className="w-auto p-0" align="start">
           <CalendarComponent
             mode="single"
             selected={dueDate}
@@ -70,17 +79,24 @@ export const TaskOptionsModal = ({
             initialFocus
             className="pointer-events-auto"
           />
-        </PopoverContent>
-      </Popover>
+          </PopoverContent>
+        </Popover>
 
-      {/* Repeat Modal */}
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="p-1 h-auto" aria-label="Set repeat" title="Set repeat">
-            <Repeat className={cn("w-4 h-4", repeatOption !== 'none' && "text-yellow-600")} aria-hidden="true" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
+        {/* Repeat Modal */}
+        <Dialog>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="p-1 h-auto" aria-label="Set repeat">
+                  <Repeat className={cn("w-4 h-4", repeatOption !== 'none' && "text-yellow-600")} aria-hidden="true" />
+                </Button>
+              </DialogTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Set repeat</p>
+            </TooltipContent>
+          </Tooltip>
+          <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Set Repeat</DialogTitle>
           </DialogHeader>
@@ -112,32 +128,41 @@ export const TaskOptionsModal = ({
               </div>
             </RadioGroup>
           </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
 
-      {/* Reminder Modal */}
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="p-1 h-auto"
-            disabled={isReminderDisabled}
-            onClick={handleBellClick}
-            aria-label="Set reminder"
-            title="Set reminder"
-          >
-            <Bell 
-              className={cn(
-                "w-4 h-4", 
-                reminder !== 'none' && "text-yellow-600",
-                isReminderDisabled && "text-gray-300"
-              )} 
-              aria-hidden="true"
-            />
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
+        {/* Reminder Modal */}
+        <Dialog>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              {/* Wrapping the button in a div so the tooltip triggers even if button is disabled */}
+              <div className="inline-block">
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-1 h-auto"
+                    disabled={isReminderDisabled}
+                    onClick={handleBellClick}
+                    aria-label="Set reminder"
+                  >
+                    <Bell
+                      className={cn(
+                        "w-4 h-4",
+                        reminder !== 'none' && "text-yellow-600",
+                        isReminderDisabled && "text-gray-300"
+                      )}
+                      aria-hidden="true"
+                    />
+                  </Button>
+                </DialogTrigger>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{isReminderDisabled ? 'Notifications not supported' : 'Set reminder'}</p>
+            </TooltipContent>
+          </Tooltip>
+          <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Set Reminder</DialogTitle>
           </DialogHeader>
@@ -169,24 +194,25 @@ export const TaskOptionsModal = ({
               </div>
             </RadioGroup>
           </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
 
-      {/* Permission Dialog */}
-      <NotificationPermissionDialog
-        open={showPermissionDialog}
-        onOpenChange={setShowPermissionDialog}
-        onPermissionResult={handlePermissionResult}
-      />
+        {/* Permission Dialog */}
+        <NotificationPermissionDialog
+          open={showPermissionDialog}
+          onOpenChange={setShowPermissionDialog}
+          onPermissionResult={handlePermissionResult}
+        />
 
-      <span className="text-xs">
-        {dueDate && `Due ${format(dueDate, 'MMM d')}`}
-        {dueDate && (repeatOption !== 'none' || reminder !== 'none') && ' • '}
-        {repeatOption !== 'none' && `Repeats ${repeatOption}`}
-        {repeatOption !== 'none' && reminder !== 'none' && ' • '}
-        {reminder !== 'none' && `Reminder ${reminder}`}
-        {isReminderDisabled && reminder !== 'none' && ' (disabled)'}
-      </span>
-    </div>
+        <span className="text-xs">
+          {dueDate && `Due ${format(dueDate, 'MMM d')}`}
+          {dueDate && (repeatOption !== 'none' || reminder !== 'none') && ' • '}
+          {repeatOption !== 'none' && `Repeats ${repeatOption}`}
+          {repeatOption !== 'none' && reminder !== 'none' && ' • '}
+          {reminder !== 'none' && `Reminder ${reminder}`}
+          {isReminderDisabled && reminder !== 'none' && ' (disabled)'}
+        </span>
+      </div>
+    </TooltipProvider>
   );
 };
