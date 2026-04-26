@@ -38,3 +38,7 @@
 ## 2026-04-23 - Consistent Scalable Iconography
 **Learning:** Raw Unicode characters (like ✓ and ×) are problematic for UI controls because they render inconsistently across operating systems and cannot be styled robustly (like applying `strokeWidth` or exact scaling). They can cause layout jumps or visual discrepancies between mobile and desktop views.
 **Action:** Always use SVG icon libraries (like `lucide-react`) for standard UI controls (checkboxes, delete buttons, chevrons) instead of Unicode characters to ensure cross-platform visual consistency and styling flexibility.
+
+## 2026-04-26 - Authentication Password Visibility Toggle
+**Learning:** Password inputs without a visibility toggle cause significant user friction, especially on mobile devices where mistyping is common. An accessible toggle (using an absolute positioned button within a relative container) is a critical pattern for all authentication forms.
+**Action:** Whenever implementing password fields, always include a 'show/hide' toggle button. Ensure the button uses `type='button'` to prevent form submission, has clear `aria-label`s ('Show password' / 'Hide password') based on current state, and maintains `focus-visible` styles for keyboard navigation.
