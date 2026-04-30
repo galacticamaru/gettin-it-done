@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Cog, Bell, BellOff, Loader2 } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { DailyDigestToggle } from './DailyDigestToggle';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const SettingsDrawer = () => {
   const [open, setOpen] = useState(false);
@@ -33,11 +34,20 @@ export const SettingsDrawer = () => {
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        <Button variant="ghost" size="sm" className="p-2" aria-label="Open settings" title="Settings">
-          <Cog className="h-4 w-4" aria-hidden="true" />
-        </Button>
-      </DrawerTrigger>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DrawerTrigger asChild>
+              <Button variant="ghost" size="sm" className="p-2" aria-label="Open settings">
+                <Cog className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </DrawerTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Settings</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <DrawerContent>
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader>
