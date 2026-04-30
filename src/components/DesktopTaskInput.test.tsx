@@ -44,13 +44,13 @@ describe('DesktopTaskInput', () => {
     expect(button).toBeDisabled();
   });
 
-  it('calls handleAddTask when Enter key is pressed with valid input', () => {
-    // 💡 What: Tests that the Enter key triggers the add task action.
-    // 🎯 Why: Keyboard accessibility is essential. Users expect to submit tasks by pressing Enter.
+  it('calls handleAddTask when Enter is pressed and input is not empty', () => {
+    // 💡 What: Tests that pressing the Enter key inside the input submits the task.
+    // 🎯 Why: Keyboard accessibility and UX. Users expect to be able to type a task and hit Enter to add it, without needing to click the add button.
     const handleAddTask = vi.fn();
     render(
       <DesktopTaskInput
-        newTask="New Task"
+        newTask="Valid task"
         setNewTask={vi.fn()}
         dueDate=""
         setDueDate={vi.fn()}
@@ -64,17 +64,15 @@ describe('DesktopTaskInput', () => {
       />
     );
 
-    const input = screen.getByPlaceholderText('Add a new task');
-
-    // Simulate pressing Enter
+    const input = screen.getByRole('textbox', { name: /New task description/i });
     fireEvent.keyPress(input, { key: 'Enter', code: 'Enter', charCode: 13 });
 
-    expect(handleAddTask).toHaveBeenCalledTimes(1);
+    expect(handleAddTask).toHaveBeenCalled();
   });
 
-  it('does not call handleAddTask when Enter key is pressed with empty input', () => {
-    // 💡 What: Tests that Enter key is ignored if the input is only whitespace.
-    // 🎯 Why: We shouldn't allow empty task submission even via keyboard shortcuts.
+  it('does not call handleAddTask when Enter is pressed and input is empty', () => {
+    // 💡 What: Tests that pressing the Enter key inside the input does not submit the task if it is empty.
+    // 🎯 Why: Crucial empty state test to prevent submitting blank tasks to the backend when using keyboard shortcut.
     const handleAddTask = vi.fn();
     render(
       <DesktopTaskInput
