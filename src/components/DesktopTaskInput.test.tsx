@@ -90,9 +90,37 @@ describe('DesktopTaskInput', () => {
       />
     );
 
-    const input = screen.getByRole('textbox', { name: /New task description/i });
+    const input = screen.getByPlaceholderText('Add a new task');
+
     fireEvent.keyPress(input, { key: 'Enter', code: 'Enter', charCode: 13 });
 
     expect(handleAddTask).not.toHaveBeenCalled();
+  });
+
+  it('calls setNewTask when input value changes', () => {
+    // 💡 What: Tests that the input correctly calls the injected state updater.
+    // 🎯 Why: Ensures the component correctly links user typing to the parent component's state.
+    const setNewTask = vi.fn();
+    render(
+      <DesktopTaskInput
+        newTask=""
+        setNewTask={setNewTask}
+        dueDate=""
+        setDueDate={vi.fn()}
+        repeatOption="none"
+        setRepeatOption={vi.fn()}
+        reminder="none"
+        setReminder={vi.fn()}
+        selectedEmoji=""
+        setSelectedEmoji={vi.fn()}
+        handleAddTask={vi.fn()}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('Add a new task');
+
+    fireEvent.change(input, { target: { value: 'Test' } });
+
+    expect(setNewTask).toHaveBeenCalledWith('Test');
   });
 });
