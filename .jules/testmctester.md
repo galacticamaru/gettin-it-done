@@ -45,3 +45,7 @@
 ## 2024-05-18 - Missing Component Tests for DesktopTaskInput
 **Learning:** Core interactive components like `DesktopTaskInput` which handle the primary user flow (adding a task) lacked unit testing, leaving crucial user interactions (like disabling submission for empty text, responding to the Enter key, and linking UI with the underlying state updater) unverified.
 **Action:** Ensure foundational interactive UI components have test coverage for basic event handling, accessibility states (e.g., button disabled state), and integration with their injected callback props. Add `DesktopTaskInput.test.tsx` to explicitly test empty/whitespace handling and keyboard event triggers.
+
+## 2024-12-05 - [Pessimistic UI Update in useUserPreferences]
+**Learning:** `useUserPreferences` uses a pessimistic update strategy for `updateOneSignalSubscriptionId`. If the database update fails, it does not update the local React state, preventing the UI from believing the user is opted-in to notifications when the backend has not recorded it. We must write tests specifically asserting that state is *not* called to change during an error.
+**Action:** When testing preference updates or setting external IDs, mock a DB rejection and assert that `setState` is not called to ensure pessimistic integrity.
