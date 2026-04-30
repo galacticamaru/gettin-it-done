@@ -42,3 +42,7 @@
 ## 2026-04-26 - Authentication Password Visibility Toggle
 **Learning:** Password inputs without a visibility toggle cause significant user friction, especially on mobile devices where mistyping is common. An accessible toggle (using an absolute positioned button within a relative container) is a critical pattern for all authentication forms.
 **Action:** Whenever implementing password fields, always include a 'show/hide' toggle button. Ensure the button uses `type='button'` to prevent form submission, has clear `aria-label`s ('Show password' / 'Hide password') based on current state, and maintains `focus-visible` styles for keyboard navigation.
+
+## 2024-04-27 - Tooltip Wrapping for Stateful Buttons
+**Learning:** When adding `@radix-ui/react-tooltip` to stateful toggle buttons (like `ThemeToggle`), if the application root already wraps the main layout with a `<TooltipProvider>`, you do not need to add an additional `<TooltipProvider>` inside the component. Also, Radix Tooltip components must be used correctly without native `title` attributes interfering with the custom tooltip UI.
+**Action:** Always check the root `App.tsx` or layout files for existing context providers (like `TooltipProvider`) before adding redundant ones in individual leaf components.
