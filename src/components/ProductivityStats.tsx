@@ -10,6 +10,7 @@ interface ProductivityStatsProps {
 
 export const ProductivityStats = ({ tasks }: ProductivityStatsProps) => {
   const stats = useTaskStats(tasks);
+  const maxCompleted = Math.max(...stats.weeklyTrend.map(d => d.completed), 1);
 
   return (
     <div className="space-y-4 mb-6">
@@ -60,7 +61,6 @@ export const ProductivityStats = ({ tasks }: ProductivityStatsProps) => {
         </div>
         <div className="flex items-end justify-between gap-2 h-32">
           {stats.weeklyTrend.map((day, index) => {
-            const maxCompleted = Math.max(...stats.weeklyTrend.map(d => d.completed), 1);
             const height = (day.completed / maxCompleted) * 100;
             
             return (
