@@ -229,6 +229,112 @@ describe('useUserPreferences', () => {
     expect(setPreferencesMock).not.toHaveBeenCalled();
   });
 
+  it('updateOneSignalSubscriptionId should update state and db when valid subscription ID is provided', async () => {
+    // 💡 What: Tests the happy path of updating the OneSignal subscription ID.
+    // 🎯 Why: Subscription ID must be successfully persisted to the DB and local state
+    // so that the notification service can correctly target the user.
+
+    const updateMock = vi.fn().mockReturnThis();
+    const eqMock = vi.fn().mockResolvedValue({ error: null });
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_preferences') {
+        return {
+          update: updateMock.mockReturnValue({ eq: eqMock }),
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    // Set up mock state
+    preferencesState = {
+      id: 'existing-prefs-id',
+      daily_digest_enabled: false,
+      onesignal_subscription_id: 'old-sub-id',
+    };
+
+    refValue = 'old-sub-id';
+
+    const { updateOneSignalSubscriptionId } = useUserPreferences();
+
+    // Reset setPreferencesMock because initialization of the hook calls it in our custom setup
+    setPreferencesMock.mockClear();
+
+    await updateOneSignalSubscriptionId('new-sub-id');
+
+    expect(updateMock).toHaveBeenCalledWith({
+      onesignal_subscription_id: 'new-sub-id',
+    });
+    expect(eqMock).toHaveBeenCalledWith('id', 'existing-prefs-id');
+
+    // verify state updated via updater function
+    expect(preferencesState).toEqual({
+      id: 'existing-prefs-id',
+      daily_digest_enabled: false,
+      onesignal_subscription_id: 'new-sub-id',
+    });
+    expect(refValue).toBe('new-sub-id');
+  });
+
+  it('updateOneSignalSubscriptionId should log error and not update state if database update fails', async () => {
+    // 💡 What: Tests the error path of updating the OneSignal subscription ID.
+    // 🎯 Why: This operates as a pessimistic update. If the DB fails, local state shouldn't
+    // change, preventing the application from falsely assuming notifications are ready.
+
+    const errorMsg = 'Update failed';
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock update failure
+    const updateMock = vi.fn().mockReturnThis();
+    const eqMock = vi.fn().mockResolvedValue({ error: new Error(errorMsg) });
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_preferences') {
+        return {
+          update: updateMock.mockReturnValue({ eq: eqMock }),
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    // Set up mock state
+    preferencesState = {
+      id: 'existing-prefs-id',
+      daily_digest_enabled: false,
+      onesignal_subscription_id: 'old-sub-id',
+    };
+
+    refValue = 'old-sub-id';
+
+    const { updateOneSignalSubscriptionId } = useUserPreferences();
+
+    // Reset setPreferencesMock because initialization of the hook calls it in our custom setup
+    setPreferencesMock.mockClear();
+
+    await updateOneSignalSubscriptionId('new-sub-id');
+
+    // Verify it attempted to update the database
+    expect(updateMock).toHaveBeenCalledWith({
+      onesignal_subscription_id: 'new-sub-id',
+    });
+    expect(eqMock).toHaveBeenCalledWith('id', 'existing-prefs-id');
+
+    // Verify error was logged
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error updating OneSignal subscription ID:', new Error(errorMsg));
+
+    // Verify state was NOT updated
+    expect(setPreferencesMock).not.toHaveBeenCalled();
+    expect(refValue).toBe('old-sub-id');
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it('updateDailyDigestEnabled should update state and db', async () => {
     const updateMock = vi.fn().mockReturnThis();
     const eqMock = vi.fn().mockResolvedValue({ error: null });
