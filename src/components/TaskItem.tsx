@@ -23,77 +23,33 @@ interface TaskItemProps {
 
 const TASK_TYPE = 'task';
 
-// Set to track logged renders to avoid spam
-const loggedRenders = new Set<string>();
-
 export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps) => {
   const ref = useRef<HTMLDivElement>(null);
 
   const [{ isDragging }, drag] = useDrag({
     type: TASK_TYPE,
-    item: () => {
-      console.log('🚀 Drag started for task:', task.text, 'ID:', task.id);
-      return { id: task.id.toString() };
-    },
+    item: () => ({ id: task.id.toString() }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-    canDrag: () => {
-      console.log('🎯 canDrag check for task:', task.text);
-      return true;
-    },
-    end: (item, monitor) => {
-      console.log('🏁 Drag ended for task:', task.text, 'Success:', monitor.didDrop());
-    },
   });
 
   const [, drop] = useDrop({
     accept: TASK_TYPE,
     hover: (draggedItem: { id: string }) => {
-      if (!ref.current) {
-        console.log('❌ No ref available for hover');
-        return;
-      }
+      if (!ref.current) return;
       
       const dragId = draggedItem.id;
       const hoverId = task.id.toString();
       
-      console.log('👆 Hover detected:', { dragId, hoverId, taskText: task.text });
+      if (dragId === hoverId) return;
       
-      if (dragId === hoverId) {
-        console.log('🔄 Same task, skipping reorder');
-        return;
-      }
-      
-      console.log('📞 Calling onReorder with:', { dragId, hoverId });
       onReorder?.(dragId, hoverId);
-    },
-    drop: (draggedItem: { id: string }) => {
-      console.log('💧 Drop detected on task:', task.text, 'from:', draggedItem.id);
     },
   });
 
   // Connect both drag and drop to the ref
   drag(drop(ref));
-
-  // Only log render info if it's new or changed
-  const renderLogKey = `${task.id}-${task.text}-${isDragging}-${!!onReorder}`;
-  if (!loggedRenders.has(renderLogKey)) {
-    console.log('🎨 Rendering TaskItem:', { 
-      id: task.id, 
-      text: task.text, 
-      isDragging, 
-      hasOnReorder: !!onReorder 
-    });
-    loggedRenders.add(renderLogKey);
-    
-    // Clear old entries to prevent memory leaks (keep only last 100)
-    if (loggedRenders.size > 100) {
-      const entries = Array.from(loggedRenders);
-      loggedRenders.clear();
-      entries.slice(-50).forEach(entry => loggedRenders.add(entry));
-    }
-  }
 
   const getTaskEmoji = (text: string) => {
     const lower = text.toLowerCase();
