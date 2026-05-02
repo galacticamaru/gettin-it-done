@@ -47,3 +47,7 @@
 **Learning:** When writing Playwright scripts to visually verify Radix UI/shadcn `Tooltip` components, the default transition/delay makes immediate screenshots after `.hover()` unreliable (they capture before the tooltip appears).
 **Action:** Always include an explicit wait (e.g., `time.sleep(1)`) between the `.hover()` action and `page.screenshot()` when verifying tooltips or other delayed interactive elements.
 
+
+## 2026-05-02 - Icon-Only Button Tooltips
+**Learning:** Native `title` attributes on icon-only buttons (like those in task lists for completing, deleting, and reordering tasks) often feel unpolished and lack proper visual alignment with the design system. Furthermore, relying entirely on `title` doesn't provide the level of customizability required for a consistent, accessible experience, and they can sometimes conflict with or fail to appear alongside dynamic states. Using Radix `Tooltip` components significantly elevates the UX by rendering styled tooltips with consistent delays and animations.
+**Action:** When working with icon-only interactive elements in lists or repetitive UI components, always prioritize wrapping them in `@radix-ui/react-tooltip` components instead of relying on the native HTML `title` attribute. Ensure the `TooltipProvider` is properly placed and `delayDuration` is adjusted if necessary.
