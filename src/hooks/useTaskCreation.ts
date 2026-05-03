@@ -29,19 +29,25 @@ export const useTaskCreation = (addTask: (taskData: {
       try {
         const taskId = await addTask(taskData);
         if (taskId) {
-          if (taskData.dueDate) {
-            await scheduleDueDateNotification(taskId, taskData.text, taskData.dueDate);
-          }
-
-          if (taskData.reminder && taskData.reminder !== '') {
-            await scheduleTaskReminder(taskId, taskData.text, taskData.dueDate, taskData.reminder);
-          }
-
           setNewTask('');
           setDueDate('');
           setRepeatOption('none');
           setReminder('none');
           setSelectedEmoji('');
+
+          if (taskData.dueDate) {
+            const notificationPromise = scheduleDueDateNotification(taskId, taskData.text, taskData.dueDate);
+            if (notificationPromise && notificationPromise.catch) {
+              notificationPromise.catch(console.error);
+            }
+          }
+
+          if (taskData.reminder && taskData.reminder !== '') {
+            const reminderPromise = scheduleTaskReminder(taskId, taskData.text, taskData.dueDate, taskData.reminder);
+            if (reminderPromise && reminderPromise.catch) {
+              reminderPromise.catch(console.error);
+            }
+          }
         }
       } catch (error) {
         console.error('Error adding task:', error);
