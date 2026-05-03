@@ -51,3 +51,7 @@
 ## 2026-05-02 - Icon-Only Button Tooltips
 **Learning:** Native `title` attributes on icon-only buttons (like those in task lists for completing, deleting, and reordering tasks) often feel unpolished and lack proper visual alignment with the design system. Furthermore, relying entirely on `title` doesn't provide the level of customizability required for a consistent, accessible experience, and they can sometimes conflict with or fail to appear alongside dynamic states. Using Radix `Tooltip` components significantly elevates the UX by rendering styled tooltips with consistent delays and animations.
 **Action:** When working with icon-only interactive elements in lists or repetitive UI components, always prioritize wrapping them in `@radix-ui/react-tooltip` components instead of relying on the native HTML `title` attribute. Ensure the `TooltipProvider` is properly placed and `delayDuration` is adjusted if necessary.
+
+## 2024-05-19 - Added Delete Confirmation Dialog
+**Learning:** Destructive actions like deleting tasks should require confirmation to prevent accidental data loss, especially on touch interfaces where swipe gestures might misfire. Using `AlertDialog` provides a native-feeling, accessible confirmation step.
+**Action:** Always wrap destructive actions (buttons or swipe gestures) with an accessible `AlertDialog` or equivalent confirmation mechanism.
