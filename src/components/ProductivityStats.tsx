@@ -64,8 +64,8 @@ export const ProductivityStats = ({ tasks }: ProductivityStatsProps) => {
             const height = (day.completed / maxCompleted) * 100;
             
             return (
-              <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                <div className="w-full bg-muted rounded-t relative" style={{ height: '100%' }}>
+              <div key={index} className="flex-1 flex flex-col justify-end items-center gap-2 h-full">
+                <div className="w-full bg-muted rounded-t relative flex-1">
                   {day.completed > 0 && (
                     <div
                       className="absolute bottom-0 w-full bg-primary rounded-t transition-all duration-300"
@@ -73,7 +73,7 @@ export const ProductivityStats = ({ tasks }: ProductivityStatsProps) => {
                     />
                   )}
                 </div>
-                <div className="text-center">
+                <div className="text-center shrink-0">
                   <div className="text-xs font-medium text-foreground">{day.completed}</div>
                   <div className="text-xs text-muted-foreground">{day.date}</div>
                 </div>
