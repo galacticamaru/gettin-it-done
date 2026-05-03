@@ -1,7 +1,17 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { Move, Check, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Task {
   id: string; // Changed from number to string
@@ -28,6 +38,7 @@ const loggedRenders = new Set<string>();
 
 export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps) => {
   const ref = useRef<HTMLDivElement>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const [{ isDragging }, drag] = useDrag({
     type: TASK_TYPE,
@@ -182,7 +193,7 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={() => onDelete(task.id)}
+                onClick={() => setShowDeleteDialog(true)}
                 className="text-muted-foreground hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 rounded-sm p-1 -mr-1"
                 aria-label={`Delete task "${task.text}"`}
               >
@@ -195,6 +206,23 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
           </Tooltip>
         </div>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the task "{task.text}". This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => onDelete(task.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </TooltipProvider>
   );
 };

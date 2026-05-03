@@ -3,6 +3,16 @@ import { useDrag, useDrop } from 'react-dnd';
 import { useSpring, animated } from 'react-spring';
 import { useDrag as useGestureDrag } from '@use-gesture/react';
 import { Move, Check, X } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Task {
   id: string;
@@ -28,6 +38,7 @@ const SWIPE_THRESHOLD = 60;
 export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTaskItemProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [swiped, setSwiped] = useState<'complete' | 'delete' | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const [{ isDragging }, drag, dragPreview] = useDrag({
     type: TASK_TYPE,
@@ -114,7 +125,7 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
     if ('vibrate' in navigator) {
       navigator.vibrate([50, 50, 50]);
     }
-    onDelete(task.id);
+    setShowDeleteDialog(true);
   };
 
   const getTaskEmoji = (text: string) => {
@@ -228,7 +239,7 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
             
             {/* Enhanced delete button with better touch target */}
             <button
-              onClick={() => onDelete(task.id)}
+              onClick={() => setShowDeleteDialog(true)}
               className="text-muted-foreground hover:text-destructive transition-colors p-3 rounded-full hover:bg-destructive/10 active:scale-95 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2"
               aria-label={`Delete task "${task.text}"`}
               title="Delete task"
@@ -249,6 +260,23 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
           </div>
         )}
       </animated.div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="w-[95%] sm:max-w-md rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the task "{task.text}". This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => onDelete(task.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
