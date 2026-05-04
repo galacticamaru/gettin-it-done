@@ -65,7 +65,7 @@ describe('DesktopTaskInput', () => {
     );
 
     const input = screen.getByRole('textbox', { name: /New task description/i });
-    fireEvent.keyPress(input, { key: 'Enter', code: 'Enter', charCode: 13 });
+    fireEvent.submit(input);
 
     expect(handleAddTask).toHaveBeenCalled();
   });
@@ -92,7 +92,7 @@ describe('DesktopTaskInput', () => {
 
     const input = screen.getByPlaceholderText('Add a new task');
 
-    fireEvent.keyPress(input, { key: 'Enter', code: 'Enter', charCode: 13 });
+    fireEvent.submit(input);
 
     expect(handleAddTask).not.toHaveBeenCalled();
   });

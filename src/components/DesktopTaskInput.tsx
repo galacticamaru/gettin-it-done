@@ -34,7 +34,13 @@ export const DesktopTaskInput = ({
 }: DesktopTaskInputProps) => {
   return (
     <>
-      <div className="flex items-center gap-3 p-4 bg-card rounded-2xl shadow-sm mb-4 border transition-shadow focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (newTask.trim()) handleAddTask();
+        }}
+        className="flex items-center gap-3 p-4 bg-card rounded-2xl shadow-sm mb-4 border transition-shadow focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+      >
         <EmojiPicker selectedEmoji={selectedEmoji} onEmojiSelect={setSelectedEmoji} />
         <Label htmlFor="desktop-task-input" className="sr-only">New task description</Label>
         <Input
@@ -42,7 +48,6 @@ export const DesktopTaskInput = ({
           placeholder="Add a new task"
           value={newTask}
           onChange={e => setNewTask(e.target.value)}
-          onKeyPress={e => e.key === 'Enter' && newTask.trim() && handleAddTask()}
           className="border-0 bg-transparent focus-visible:ring-0"
           aria-label="New task description"
         />
@@ -51,7 +56,7 @@ export const DesktopTaskInput = ({
             <TooltipTrigger asChild>
               <div className="inline-block">
                 <Button
-                  onClick={handleAddTask}
+                  type="submit"
                   size="sm"
                   disabled={!newTask.trim()}
                   className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-medium px-4 py-2 rounded-full dark:bg-yellow-500 dark:hover:bg-yellow-600"
@@ -60,14 +65,12 @@ export const DesktopTaskInput = ({
                 </Button>
               </div>
             </TooltipTrigger>
-            {!newTask.trim() && (
-              <TooltipContent>
-                <p>Task description is required</p>
-              </TooltipContent>
-            )}
+            <TooltipContent>
+              <p>{!newTask.trim() ? 'Task description is required' : 'Add task (Enter)'}</p>
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-      </div>
+      </form>
 
       <TaskOptionsModal
         dueDate={dueDate ? new Date(dueDate) : undefined}
