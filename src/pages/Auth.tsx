@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -89,7 +90,7 @@ const Auth = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="max-w-md w-full px-6">
           <div className="text-center mb-8">
-            <div className="text-6xl mb-4">📧</div>
+            <div className="text-6xl mb-4" aria-hidden="true" role="img">📧</div>
             <h1 className="text-2xl font-bold text-foreground mb-2">
               Check your email!
             </h1>
@@ -138,6 +139,7 @@ const Auth = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading}
               className="w-full"
             />
           </div>
@@ -151,22 +153,34 @@ const Auth = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loading}
                 className="w-full pr-10"
                 minLength={6}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm p-1"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                title={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" aria-hidden="true" />
-                ) : (
-                  <Eye className="w-4 h-4" aria-hidden="true" />
-                )}
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm p-1 disabled:opacity-50"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" aria-hidden="true" />
+                        ) : (
+                          <Eye className="w-4 h-4" aria-hidden="true" />
+                        )}
+                      </button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{showPassword ? 'Hide password' : 'Show password'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
 
