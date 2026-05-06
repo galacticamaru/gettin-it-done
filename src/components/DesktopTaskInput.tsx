@@ -1,9 +1,11 @@
+import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { EmojiPicker } from './EmojiPicker';
 import { TaskOptionsModal } from './TaskOptionsModal';
+import { X } from 'lucide-react';
 
 interface DesktopTaskInputProps {
   newTask: string;
@@ -32,6 +34,13 @@ export const DesktopTaskInput = ({
   setSelectedEmoji,
   handleAddTask
 }: DesktopTaskInputProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const clearInput = () => {
+    setNewTask('');
+    inputRef.current?.focus();
+  };
+
   return (
     <>
       <form
@@ -43,14 +52,27 @@ export const DesktopTaskInput = ({
       >
         <EmojiPicker selectedEmoji={selectedEmoji} onEmojiSelect={setSelectedEmoji} />
         <Label htmlFor="desktop-task-input" className="sr-only">New task description</Label>
-        <Input
-          id="desktop-task-input"
-          placeholder="Add a new task"
-          value={newTask}
-          onChange={e => setNewTask(e.target.value)}
-          className="border-0 bg-transparent focus-visible:ring-0"
-          aria-label="New task description"
-        />
+        <div className="relative flex-1 flex items-center">
+          <Input
+            id="desktop-task-input"
+            ref={inputRef}
+            placeholder="Add a new task"
+            value={newTask}
+            onChange={e => setNewTask(e.target.value)}
+            className="border-0 bg-transparent focus-visible:ring-0 pr-8"
+            aria-label="New task description"
+          />
+          {newTask.trim() && (
+            <button
+              type="button"
+              onClick={clearInput}
+              className="absolute right-2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full p-1"
+              aria-label="Clear task description"
+            >
+              <X className="w-4 h-4" aria-hidden="true" />
+            </button>
+          )}
+        </div>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
