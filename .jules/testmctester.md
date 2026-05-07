@@ -49,3 +49,6 @@
 ## 2024-12-05 - [Pessimistic UI Update in useUserPreferences]
 **Learning:** `useUserPreferences` uses a pessimistic update strategy for `updateOneSignalSubscriptionId`. If the database update fails, it does not update the local React state, preventing the UI from believing the user is opted-in to notifications when the backend has not recorded it. We must write tests specifically asserting that state is *not* called to change during an error.
 **Action:** When testing preference updates or setting external IDs, mock a DB rejection and assert that `setState` is not called to ensure pessimistic integrity.
+## 2024-05-18 - Missing Test Target for the Subscription Request Flow
+**Learning:** We added two high-value test cases that explicitly test whether permission request is prompted before a due date notification is scheduled if a user is unsubscribed, and what to do depending on whether permission is granted or not. Previously, this condition in `useNotifications.ts` > `scheduleDueDateNotification` was completely untested and lacked coverage.
+**Action:** Always mock out sub-function dependencies, such as `subscribeUser` and `getUserId` here via `vi.mocked` so that both happy (resolve `true`) and sad (resolve `false`) paths can be deterministically asserted without relying on the actual permission pop-up.
