@@ -13,6 +13,7 @@ export const FilterTabs = ({ filter, onFilterChange }: FilterTabsProps) => {
         role="tab"
         onClick={() => onFilterChange('active')}
         aria-selected={filter === 'active'}
+        aria-controls="task-list"
         className={`pb-2 transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
           filter === 'active'
             ? 'text-yellow-600 border-b-2 border-yellow-400' 
@@ -25,6 +26,7 @@ export const FilterTabs = ({ filter, onFilterChange }: FilterTabsProps) => {
         role="tab"
         onClick={() => onFilterChange('all')}
         aria-selected={filter === 'all'}
+        aria-controls="task-list"
         className={`pb-2 transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
           filter === 'all'
             ? 'text-yellow-600 border-b-2 border-yellow-400' 
@@ -37,6 +39,7 @@ export const FilterTabs = ({ filter, onFilterChange }: FilterTabsProps) => {
         role="tab"
         onClick={() => onFilterChange('completed')}
         aria-selected={filter === 'completed'}
+        aria-controls="task-list"
         className={`pb-2 transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
           filter === 'completed'
             ? 'text-yellow-600 border-b-2 border-yellow-400' 

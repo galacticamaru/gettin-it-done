@@ -24,6 +24,7 @@ export const BottomNav = ({ currentTab, onTabChange }: BottomNavProps) => {
             key={id}
             role="tab"
             aria-selected={currentTab === id}
+            aria-controls="task-list"
             onClick={() => onTabChange(id)}
             className={cn(
               "flex flex-col items-center justify-center min-w-[64px] min-h-[44px] gap-1 transition-colors duration-200 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg",
