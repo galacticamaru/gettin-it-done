@@ -55,3 +55,7 @@
 ## 2024-05-19 - Added Delete Confirmation Dialog
 **Learning:** Destructive actions like deleting tasks should require confirmation to prevent accidental data loss, especially on touch interfaces where swipe gestures might misfire. Using `AlertDialog` provides a native-feeling, accessible confirmation step.
 **Action:** Always wrap destructive actions (buttons or swipe gestures) with an accessible `AlertDialog` or equivalent confirmation mechanism.
+
+## 2026-05-24 - Tab Control Accessibility
+**Learning:** Custom tab implementations (using `role="tablist"` and `role="tab"`) often correctly indicate their selected state with `aria-selected`, but frequently forget to link the tab to the specific content container it modifies. This leaves screen reader users without programmatic context of what content actually changed upon selection.
+**Action:** Always include an `aria-controls="[container-id]"` attribute on tab buttons that explicitly points to the `id` of the content area they are managing (e.g., `id="task-list"` on the resulting container).
