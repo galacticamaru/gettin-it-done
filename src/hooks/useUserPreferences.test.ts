@@ -77,354 +77,417 @@ describe('useUserPreferences', () => {
     });
   });
 
-  it('should create default preferences on load if none exist', async () => {
-    // Mock select returning no data (null) to simulate a new user without preferences
-    const eqMock1 = vi.fn().mockReturnThis();
-    const maybeSingleMock1 = vi.fn().mockResolvedValue({ data: null, error: null });
+  describe('fetchPreferences', () => {
+    it('should create default preferences on load if none exist', async () => {
+      // Mock select returning no data (null) to simulate a new user without preferences
+      const eqMock1 = vi.fn().mockReturnThis();
+      const maybeSingleMock1 = vi.fn().mockResolvedValue({ data: null, error: null });
 
-    // Mock insert successfully creating default preferences
-    const insertMock = vi.fn().mockReturnThis();
-    const selectMock2 = vi.fn().mockReturnThis();
-    const singleMock2 = vi.fn().mockResolvedValue({
-      data: {
-        id: 'new-prefs-id',
+      // Mock insert successfully creating default preferences
+      const insertMock = vi.fn().mockReturnThis();
+      const selectMock2 = vi.fn().mockReturnThis();
+      const singleMock2 = vi.fn().mockResolvedValue({
+        data: {
+          id: 'new-prefs-id',
+          user_id: 'test-user-id',
+          daily_digest_enabled: false,
+          onesignal_subscription_id: null
+        },
+        error: null
+      });
+
+      const fromMock = vi.fn().mockImplementation((table) => {
+        if (table === 'user_preferences') {
+          let selectCallCount = 0;
+          return {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            select: (...args: any[]) => {
+              selectCallCount++;
+              if (selectCallCount === 1) {
+                return { eq: eqMock1.mockReturnValue({ maybeSingle: maybeSingleMock1 }) };
+              }
+              return { single: singleMock2 };
+            },
+            insert: insertMock.mockReturnValue({ select: selectMock2.mockReturnValue({ single: singleMock2 }) }),
+          };
+        }
+        return {};
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase.from as any).mockImplementation(fromMock);
+
+      const { refetch } = useUserPreferences();
+
+      // Call fetchPreferences manually since useEffect is mocked
+      await refetch();
+
+      // Assert that we attempted to insert default preferences
+      expect(insertMock).toHaveBeenCalledWith({
         user_id: 'test-user-id',
         daily_digest_enabled: false,
-        onesignal_subscription_id: null
-      },
-      error: null
+      });
+
+      // Assert the final state matches the newly created defaults
+      expect(setPreferencesMock).toHaveBeenCalledWith({
+        id: 'new-prefs-id',
+        daily_digest_enabled: false,
+        onesignal_subscription_id: null,
+      });
+
+      // Assert loading state was updated
+      expect(setLoadingMock).toHaveBeenCalledWith(false);
     });
 
-    const fromMock = vi.fn().mockImplementation((table) => {
-      if (table === 'user_preferences') {
-        let selectCallCount = 0;
-        return {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          select: (...args: any[]) => {
-            selectCallCount++;
-            if (selectCallCount === 1) {
-              return { eq: eqMock1.mockReturnValue({ maybeSingle: maybeSingleMock1 }) };
-            }
-            return { single: singleMock2 };
-          },
-          insert: insertMock.mockReturnValue({ select: selectMock2.mockReturnValue({ single: singleMock2 }) }),
-        };
-      }
-      return {};
+    it('should gracefully handle errors when fallback insert fails', async () => {
+      // 💡 What: Tests the fallback logic when the database fails to create default preferences.
+      // 🎯 Why: If inserting defaults fails (e.g. database error), the hook should not crash.
+
+      const errorMsg = 'Database insert failed';
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Mock select returning no data (null) to simulate a new user without preferences
+      const eqMock1 = vi.fn().mockReturnThis();
+      const maybeSingleMock1 = vi.fn().mockResolvedValue({ data: null, error: null });
+
+      // Mock insert FAILING
+      const insertMock = vi.fn().mockReturnThis();
+      const selectMock2 = vi.fn().mockReturnThis();
+      // Simulate error during insert single AND returning null data
+      const singleMock2 = vi.fn().mockResolvedValue({
+        data: null,
+        error: new Error(errorMsg)
+      });
+
+      const fromMock = vi.fn().mockImplementation((table) => {
+        if (table === 'user_preferences') {
+          let selectCallCount = 0;
+          return {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            select: (...args: any[]) => {
+              selectCallCount++;
+              if (selectCallCount === 1) {
+                return { eq: eqMock1.mockReturnValue({ maybeSingle: maybeSingleMock1 }) };
+              }
+              return { single: singleMock2 }; // Called by insert fallback
+            },
+            insert: insertMock.mockReturnValue({ select: selectMock2.mockReturnValue({ single: singleMock2 }) }),
+          };
+        }
+        return {};
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase.from as any).mockImplementation(fromMock);
+
+      const { refetch } = useUserPreferences();
+
+      await refetch();
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching user preferences:', new Error(errorMsg));
+
+      // Preferences should not be set
+      expect(setPreferencesMock).not.toHaveBeenCalled();
+      // But loading should be false
+      expect(setLoadingMock).toHaveBeenCalledWith(false);
+
+      consoleErrorSpy.mockRestore();
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from as any).mockImplementation(fromMock);
+    it('should gracefully handle the case where insert returns null data without an error', async () => {
+      // 💡 What: Tests that the hook handles a scenario where Supabase returns null data and null error on insert.
+      // 🎯 Why: Defensive programming. Even if the DB doesn't return an error, if it doesn't return data
+      // we expect, the code should fail gracefully (via catch) rather than crashing on null property access.
 
-    const { refetch } = useUserPreferences();
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    // Call fetchPreferences manually since useEffect is mocked
-    await refetch();
+      // Mock select returning no data (null) to simulate a new user without preferences
+      const eqMock1 = vi.fn().mockReturnThis();
+      const maybeSingleMock1 = vi.fn().mockResolvedValue({ data: null, error: null });
 
-    // Assert that we attempted to insert default preferences
-    expect(insertMock).toHaveBeenCalledWith({
-      user_id: 'test-user-id',
-      daily_digest_enabled: false,
-    });
+      // Mock insert returning NULL data and NULL error
+      const insertMock = vi.fn().mockReturnThis();
+      const selectMock2 = vi.fn().mockReturnThis();
+      const singleMock2 = vi.fn().mockResolvedValue({
+        data: null,
+        error: null
+      });
 
-    // Assert the final state matches the newly created defaults
-    expect(setPreferencesMock).toHaveBeenCalledWith({
-      id: 'new-prefs-id',
-      daily_digest_enabled: false,
-      onesignal_subscription_id: null,
-    });
+      const fromMock = vi.fn().mockImplementation((table) => {
+        if (table === 'user_preferences') {
+          let selectCallCount = 0;
+          return {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            select: (...args: any[]) => {
+              selectCallCount++;
+              if (selectCallCount === 1) {
+                return { eq: eqMock1.mockReturnValue({ maybeSingle: maybeSingleMock1 }) };
+              }
+              return { single: singleMock2 };
+            },
+            insert: insertMock.mockReturnValue({ select: selectMock2.mockReturnValue({ single: singleMock2 }) }),
+          };
+        }
+        return {};
+      });
 
-    // Assert loading state was updated
-    expect(setLoadingMock).toHaveBeenCalledWith(false);
-  });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase.from as any).mockImplementation(fromMock);
 
-  it('should gracefully handle errors when fallback insert fails or returns null', async () => {
-    // 💡 What: Tests the fallback logic when the database fails to create default preferences.
-    // 🎯 Why: If inserting defaults fails (e.g. database error), the hook should not crash.
+      const { refetch } = useUserPreferences();
 
-    const errorMsg = 'Database insert failed';
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      await refetch();
 
-    // Mock select returning no data (null) to simulate a new user without preferences
-    const eqMock1 = vi.fn().mockReturnThis();
-    const maybeSingleMock1 = vi.fn().mockResolvedValue({ data: null, error: null });
+      // Should have caught the TypeError: Cannot read properties of null (reading 'id')
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error fetching user preferences:',
+        expect.any(Error)
+      );
 
-    // Mock insert FAILING
-    const insertMock = vi.fn().mockReturnThis();
-    const selectMock2 = vi.fn().mockReturnThis();
-    // Simulate error during insert single AND returning null data
-    const singleMock2 = vi.fn().mockResolvedValue({
-      data: null,
-      error: new Error(errorMsg)
-    });
+      // Verify state was not updated and loading finished
+      expect(setPreferencesMock).not.toHaveBeenCalled();
+      expect(setLoadingMock).toHaveBeenCalledWith(false);
 
-    const fromMock = vi.fn().mockImplementation((table) => {
-      if (table === 'user_preferences') {
-        let selectCallCount = 0;
-        return {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          select: (...args: any[]) => {
-            selectCallCount++;
-            if (selectCallCount === 1) {
-              return { eq: eqMock1.mockReturnValue({ maybeSingle: maybeSingleMock1 }) };
-            }
-            return { single: singleMock2 }; // Called by insert fallback
-          },
-          insert: insertMock.mockReturnValue({ select: selectMock2.mockReturnValue({ single: singleMock2 }) }),
-        };
-      }
-      return {};
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from as any).mockImplementation(fromMock);
-
-    const { refetch } = useUserPreferences();
-
-    await refetch();
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching user preferences:', new Error(errorMsg));
-
-    // Preferences should not be set
-    expect(setPreferencesMock).not.toHaveBeenCalled();
-    // But loading should be false
-    expect(setLoadingMock).toHaveBeenCalledWith(false);
-
-    consoleErrorSpy.mockRestore();
-  });
-
-  it('updateOneSignalSubscriptionId should skip database call if value has not changed', async () => {
-    const updateMock = vi.fn().mockReturnThis();
-
-    const fromMock = vi.fn().mockImplementation((table) => {
-      if (table === 'user_preferences') {
-        return {
-          update: updateMock,
-        };
-      }
-      return {};
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from as any).mockImplementation(fromMock);
-
-    // Set up mock state
-    preferencesState = {
-      id: 'existing-prefs-id',
-      daily_digest_enabled: false,
-      onesignal_subscription_id: 'existing-sub-id',
-    };
-
-    // Also mock the ref value which is checked first
-    refValue = 'existing-sub-id';
-
-    const { updateOneSignalSubscriptionId } = useUserPreferences();
-
-    // Reset setPreferencesMock because initialization of the hook calls it in our custom setup
-    setPreferencesMock.mockClear();
-
-    await updateOneSignalSubscriptionId('existing-sub-id');
-
-    expect(updateMock).not.toHaveBeenCalled();
-    expect(setPreferencesMock).not.toHaveBeenCalled();
-  });
-
-  it('updateOneSignalSubscriptionId should update state and db when valid subscription ID is provided', async () => {
-    // 💡 What: Tests the happy path of updating the OneSignal subscription ID.
-    // 🎯 Why: Subscription ID must be successfully persisted to the DB and local state
-    // so that the notification service can correctly target the user.
-
-    const updateMock = vi.fn().mockReturnThis();
-    const eqMock = vi.fn().mockResolvedValue({ error: null });
-
-    const fromMock = vi.fn().mockImplementation((table) => {
-      if (table === 'user_preferences') {
-        return {
-          update: updateMock.mockReturnValue({ eq: eqMock }),
-        };
-      }
-      return {};
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from as any).mockImplementation(fromMock);
-
-    // Set up mock state
-    preferencesState = {
-      id: 'existing-prefs-id',
-      daily_digest_enabled: false,
-      onesignal_subscription_id: 'old-sub-id',
-    };
-
-    refValue = 'old-sub-id';
-
-    const { updateOneSignalSubscriptionId } = useUserPreferences();
-
-    // Reset setPreferencesMock because initialization of the hook calls it in our custom setup
-    setPreferencesMock.mockClear();
-
-    await updateOneSignalSubscriptionId('new-sub-id');
-
-    expect(updateMock).toHaveBeenCalledWith({
-      onesignal_subscription_id: 'new-sub-id',
-    });
-    expect(eqMock).toHaveBeenCalledWith('id', 'existing-prefs-id');
-
-    // verify state updated via updater function
-    expect(preferencesState).toEqual({
-      id: 'existing-prefs-id',
-      daily_digest_enabled: false,
-      onesignal_subscription_id: 'new-sub-id',
-    });
-    expect(refValue).toBe('new-sub-id');
-  });
-
-  it('updateOneSignalSubscriptionId should log error and not update state if database update fails', async () => {
-    // 💡 What: Tests the error path of updating the OneSignal subscription ID.
-    // 🎯 Why: This operates as a pessimistic update. If the DB fails, local state shouldn't
-    // change, preventing the application from falsely assuming notifications are ready.
-
-    const errorMsg = 'Update failed';
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    // Mock update failure
-    const updateMock = vi.fn().mockReturnThis();
-    const eqMock = vi.fn().mockResolvedValue({ error: new Error(errorMsg) });
-
-    const fromMock = vi.fn().mockImplementation((table) => {
-      if (table === 'user_preferences') {
-        return {
-          update: updateMock.mockReturnValue({ eq: eqMock }),
-        };
-      }
-      return {};
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from as any).mockImplementation(fromMock);
-
-    // Set up mock state
-    preferencesState = {
-      id: 'existing-prefs-id',
-      daily_digest_enabled: false,
-      onesignal_subscription_id: 'old-sub-id',
-    };
-
-    refValue = 'old-sub-id';
-
-    const { updateOneSignalSubscriptionId } = useUserPreferences();
-
-    // Reset setPreferencesMock because initialization of the hook calls it in our custom setup
-    setPreferencesMock.mockClear();
-
-    await updateOneSignalSubscriptionId('new-sub-id');
-
-    // Verify it attempted to update the database
-    expect(updateMock).toHaveBeenCalledWith({
-      onesignal_subscription_id: 'new-sub-id',
-    });
-    expect(eqMock).toHaveBeenCalledWith('id', 'existing-prefs-id');
-
-    // Verify error was logged
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error updating OneSignal subscription ID:', new Error(errorMsg));
-
-    // Verify state was NOT updated
-    expect(setPreferencesMock).not.toHaveBeenCalled();
-    expect(refValue).toBe('old-sub-id');
-
-    consoleErrorSpy.mockRestore();
-  });
-
-  it('updateDailyDigestEnabled should update state and db', async () => {
-    const updateMock = vi.fn().mockReturnThis();
-    const eqMock = vi.fn().mockResolvedValue({ error: null });
-
-    const fromMock = vi.fn().mockImplementation((table) => {
-      if (table === 'user_preferences') {
-        return {
-          update: updateMock.mockReturnValue({ eq: eqMock }),
-        };
-      }
-      return {};
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from as any).mockImplementation(fromMock);
-
-    // Set up mock state
-    preferencesState = {
-      id: 'existing-prefs-id',
-      daily_digest_enabled: false,
-      onesignal_subscription_id: 'sub-id',
-    };
-
-    const { updateDailyDigestEnabled } = useUserPreferences();
-
-    await updateDailyDigestEnabled(true);
-
-    expect(updateMock).toHaveBeenCalledWith({
-      daily_digest_enabled: true,
-    });
-    expect(eqMock).toHaveBeenCalledWith('id', 'existing-prefs-id');
-
-    // verify state updated via updater function
-    expect(preferencesState).toEqual({
-      id: 'existing-prefs-id',
-      daily_digest_enabled: true,
-      onesignal_subscription_id: 'sub-id',
+      consoleErrorSpy.mockRestore();
     });
   });
 
-  it('updateDailyDigestEnabled should not update state if db update fails', async () => {
-    // 💡 What: Tests the error path of updating a user preference.
-    // 🎯 Why: Updating preferences is a pessimistic action. If the UI updates but the DB fails,
-    // the user thinks their preference is saved when it isn't.
+  describe('updateOneSignalSubscriptionId', () => {
+    it('should skip database call if value has not changed', async () => {
+      const updateMock = vi.fn().mockReturnThis();
 
-    const errorMsg = 'Update failed';
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const fromMock = vi.fn().mockImplementation((table) => {
+        if (table === 'user_preferences') {
+          return {
+            update: updateMock,
+          };
+        }
+        return {};
+      });
 
-    // Mock update failure
-    const updateMock = vi.fn().mockReturnThis();
-    const eqMock = vi.fn().mockResolvedValue({ error: new Error(errorMsg) });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase.from as any).mockImplementation(fromMock);
 
-    const fromMock = vi.fn().mockImplementation((table) => {
-      if (table === 'user_preferences') {
-        return {
-          update: updateMock.mockReturnValue({ eq: eqMock }),
-        };
-      }
-      return {};
+      // Set up mock state
+      preferencesState = {
+        id: 'existing-prefs-id',
+        daily_digest_enabled: false,
+        onesignal_subscription_id: 'existing-sub-id',
+      };
+
+      // Also mock the ref value which is checked first
+      refValue = 'existing-sub-id';
+
+      const { updateOneSignalSubscriptionId } = useUserPreferences();
+
+      // Reset setPreferencesMock because initialization of the hook calls it in our custom setup
+      setPreferencesMock.mockClear();
+
+      await updateOneSignalSubscriptionId('existing-sub-id');
+
+      expect(updateMock).not.toHaveBeenCalled();
+      expect(setPreferencesMock).not.toHaveBeenCalled();
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from as any).mockImplementation(fromMock);
+    it('should update state and db when valid subscription ID is provided', async () => {
+      // 💡 What: Tests the happy path of updating the OneSignal subscription ID.
+      // 🎯 Why: Subscription ID must be successfully persisted to the DB and local state
+      // so that the notification service can correctly target the user.
 
-    // Set up mock state
-    preferencesState = {
-      id: 'existing-prefs-id',
-      daily_digest_enabled: false,
-      onesignal_subscription_id: 'sub-id',
-    };
+      const updateMock = vi.fn().mockReturnThis();
+      const eqMock = vi.fn().mockResolvedValue({ error: null });
 
-    const { updateDailyDigestEnabled } = useUserPreferences();
+      const fromMock = vi.fn().mockImplementation((table) => {
+        if (table === 'user_preferences') {
+          return {
+            update: updateMock.mockReturnValue({ eq: eqMock }),
+          };
+        }
+        return {};
+      });
 
-    // Reset setPreferencesMock because initialization of the hook calls it in our custom setup
-    setPreferencesMock.mockClear();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase.from as any).mockImplementation(fromMock);
 
-    await updateDailyDigestEnabled(true);
+      // Set up mock state
+      preferencesState = {
+        id: 'existing-prefs-id',
+        daily_digest_enabled: false,
+        onesignal_subscription_id: 'old-sub-id',
+      };
 
-    // Verify it attempted to update the database
-    expect(updateMock).toHaveBeenCalledWith({
-      daily_digest_enabled: true,
+      refValue = 'old-sub-id';
+
+      const { updateOneSignalSubscriptionId } = useUserPreferences();
+
+      // Reset setPreferencesMock because initialization of the hook calls it in our custom setup
+      setPreferencesMock.mockClear();
+
+      await updateOneSignalSubscriptionId('new-sub-id');
+
+      expect(updateMock).toHaveBeenCalledWith({
+        onesignal_subscription_id: 'new-sub-id',
+      });
+      expect(eqMock).toHaveBeenCalledWith('id', 'existing-prefs-id');
+
+      // verify state updated via updater function
+      expect(preferencesState).toEqual({
+        id: 'existing-prefs-id',
+        daily_digest_enabled: false,
+        onesignal_subscription_id: 'new-sub-id',
+      });
+      expect(refValue).toBe('new-sub-id');
     });
-    expect(eqMock).toHaveBeenCalledWith('id', 'existing-prefs-id');
 
-    // Verify error was logged
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error updating daily digest preference:', new Error(errorMsg));
+    it('should log error and not update state if database update fails', async () => {
+      // 💡 What: Tests the error path of updating the OneSignal subscription ID.
+      // 🎯 Why: This operates as a pessimistic update. If the DB fails, local state shouldn't
+      // change, preventing the application from falsely assuming notifications are ready.
 
-    // Verify state was NOT updated (pessimistic update behavior)
-    expect(setPreferencesMock).not.toHaveBeenCalled();
+      const errorMsg = 'Update failed';
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    consoleErrorSpy.mockRestore();
+      // Mock update failure
+      const updateMock = vi.fn().mockReturnThis();
+      const eqMock = vi.fn().mockResolvedValue({ error: new Error(errorMsg) });
+
+      const fromMock = vi.fn().mockImplementation((table) => {
+        if (table === 'user_preferences') {
+          return {
+            update: updateMock.mockReturnValue({ eq: eqMock }),
+          };
+        }
+        return {};
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase.from as any).mockImplementation(fromMock);
+
+      // Set up mock state
+      preferencesState = {
+        id: 'existing-prefs-id',
+        daily_digest_enabled: false,
+        onesignal_subscription_id: 'old-sub-id',
+      };
+
+      refValue = 'old-sub-id';
+
+      const { updateOneSignalSubscriptionId } = useUserPreferences();
+
+      // Reset setPreferencesMock because initialization of the hook calls it in our custom setup
+      setPreferencesMock.mockClear();
+
+      await updateOneSignalSubscriptionId('new-sub-id');
+
+      // Verify it attempted to update the database
+      expect(updateMock).toHaveBeenCalledWith({
+        onesignal_subscription_id: 'new-sub-id',
+      });
+      expect(eqMock).toHaveBeenCalledWith('id', 'existing-prefs-id');
+
+      // Verify error was logged
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error updating OneSignal subscription ID:', new Error(errorMsg));
+
+      // Verify state was NOT updated
+      expect(setPreferencesMock).not.toHaveBeenCalled();
+      expect(refValue).toBe('old-sub-id');
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('updateDailyDigestEnabled', () => {
+    it('should update state and db', async () => {
+      const updateMock = vi.fn().mockReturnThis();
+      const eqMock = vi.fn().mockResolvedValue({ error: null });
+
+      const fromMock = vi.fn().mockImplementation((table) => {
+        if (table === 'user_preferences') {
+          return {
+            update: updateMock.mockReturnValue({ eq: eqMock }),
+          };
+        }
+        return {};
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase.from as any).mockImplementation(fromMock);
+
+      // Set up mock state
+      preferencesState = {
+        id: 'existing-prefs-id',
+        daily_digest_enabled: false,
+        onesignal_subscription_id: 'sub-id',
+      };
+
+      const { updateDailyDigestEnabled } = useUserPreferences();
+
+      await updateDailyDigestEnabled(true);
+
+      expect(updateMock).toHaveBeenCalledWith({
+        daily_digest_enabled: true,
+      });
+      expect(eqMock).toHaveBeenCalledWith('id', 'existing-prefs-id');
+
+      // verify state updated via updater function
+      expect(preferencesState).toEqual({
+        id: 'existing-prefs-id',
+        daily_digest_enabled: true,
+        onesignal_subscription_id: 'sub-id',
+      });
+    });
+
+    it('should not update state if db update fails', async () => {
+      // 💡 What: Tests the error path of updating a user preference.
+      // 🎯 Why: Updating preferences is a pessimistic action. If the UI updates but the DB fails,
+      // the user thinks their preference is saved when it isn't.
+
+      const errorMsg = 'Update failed';
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Mock update failure
+      const updateMock = vi.fn().mockReturnThis();
+      const eqMock = vi.fn().mockResolvedValue({ error: new Error(errorMsg) });
+
+      const fromMock = vi.fn().mockImplementation((table) => {
+        if (table === 'user_preferences') {
+          return {
+            update: updateMock.mockReturnValue({ eq: eqMock }),
+          };
+        }
+        return {};
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase.from as any).mockImplementation(fromMock);
+
+      // Set up mock state
+      preferencesState = {
+        id: 'existing-prefs-id',
+        daily_digest_enabled: false,
+        onesignal_subscription_id: 'sub-id',
+      };
+
+      const { updateDailyDigestEnabled } = useUserPreferences();
+
+      // Reset setPreferencesMock because initialization of the hook calls it in our custom setup
+      setPreferencesMock.mockClear();
+
+      await updateDailyDigestEnabled(true);
+
+      // Verify it attempted to update the database
+      expect(updateMock).toHaveBeenCalledWith({
+        daily_digest_enabled: true,
+      });
+      expect(eqMock).toHaveBeenCalledWith('id', 'existing-prefs-id');
+
+      // Verify error was logged
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error updating daily digest preference:', new Error(errorMsg));
+
+      // Verify state was NOT updated (pessimistic update behavior)
+      expect(setPreferencesMock).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
   });
 });
