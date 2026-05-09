@@ -7,17 +7,21 @@ import React from 'react';
 // 🎯 Why: We need to ensure the correct backend is chosen based on device touch capabilities.
 // Using simplified mocks to avoid dependency on the actual backends during testing.
 
-vi.mock('react-dnd', () => ({
-  DndProvider: vi.fn(({ children, backend, options }) => (
-    <div
-      data-testid="dnd-provider"
-      data-backend={backend?.name || 'unknown'}
-      data-has-options={options ? 'true' : 'false'}
-    >
-      {children}
-    </div>
-  )),
-}));
+vi.mock('react-dnd', async () => {
+  const actual = await vi.importActual('react-dnd');
+  return {
+    ...actual,
+    DndProvider: vi.fn(({ children, backend, options }) => (
+      <div
+        data-testid="dnd-provider"
+        data-backend={backend?.name || 'unknown'}
+        data-has-options={options ? 'true' : 'false'}
+      >
+        {children}
+      </div>
+    )),
+  };
+});
 
 vi.mock('react-dnd-html5-backend', () => ({
   HTML5Backend: { name: 'HTML5Backend' },
@@ -28,32 +32,49 @@ vi.mock('react-dnd-touch-backend', () => ({
 }));
 
 describe('DragDropContext', () => {
+  const originalNavigator = window.navigator;
+
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Default: Non-touch device
-    vi.stubGlobal('navigator', {
-      maxTouchPoints: 0,
-      msMaxTouchPoints: 0,
-    });
-
+    // Completely remove ontouchstart to ensure 'in' operator returns false
     // @ts-ignore
     delete window.ontouchstart;
+
+    // Reset navigator properties on the existing object to avoid breaking other tests
+    Object.defineProperty(window.navigator, 'maxTouchPoints', {
+      value: 0,
+      configurable: true,
+    });
+    // @ts-ignore
+    Object.defineProperty(window.navigator, 'msMaxTouchPoints', {
+      value: 0,
+      configurable: true,
+    });
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
+    // Restore navigator properties
+    Object.defineProperty(window.navigator, 'maxTouchPoints', {
+      value: originalNavigator.maxTouchPoints,
+      configurable: true,
+    });
+    // @ts-ignore
+    Object.defineProperty(window.navigator, 'msMaxTouchPoints', {
+      value: originalNavigator.msMaxTouchPoints,
+      configurable: true,
+    });
   });
 
   it('uses HTML5Backend by default on non-touch devices', async () => {
+    // 💡 What: Verifies the default choice for desktop environments.
+    // 🎯 Why: Ensures mouse-based drag and drop works correctly.
     render(
       <DragDropContext>
         <div />
       </DragDropContext>
     );
 
-    // Initial render might show unknown or HTML5 before useEffect runs
-    // But since it's initialized to false, it should be HTML5Backend
     await waitFor(() => {
       const provider = screen.getByTestId('dnd-provider');
       expect(provider).toHaveAttribute('data-backend', 'HTML5Backend');
@@ -62,6 +83,8 @@ describe('DragDropContext', () => {
   });
 
   it('uses TouchBackend if window.ontouchstart exists', async () => {
+    // 💡 What: Tests touch detection via the presence of ontouchstart.
+    // 🎯 Why: Legacy touch support detection.
     // @ts-ignore
     window.ontouchstart = () => {};
 
@@ -79,8 +102,11 @@ describe('DragDropContext', () => {
   });
 
   it('uses TouchBackend if navigator.maxTouchPoints > 0', async () => {
-    vi.stubGlobal('navigator', {
-      maxTouchPoints: 1,
+    // 💡 What: Tests modern touch detection via navigator properties.
+    // 🎯 Why: Standards-compliant way to detect touch capability.
+    Object.defineProperty(window.navigator, 'maxTouchPoints', {
+      value: 1,
+      configurable: true,
     });
 
     render(
@@ -96,8 +122,12 @@ describe('DragDropContext', () => {
   });
 
   it('uses TouchBackend if navigator.msMaxTouchPoints > 0', async () => {
-    vi.stubGlobal('navigator', {
-      msMaxTouchPoints: 1,
+    // 💡 What: Tests legacy Microsoft-specific touch detection.
+    // 🎯 Why: Compatibility with older Windows touch devices.
+    // @ts-ignore
+    Object.defineProperty(window.navigator, 'msMaxTouchPoints', {
+      value: 1,
+      configurable: true,
     });
 
     render(
@@ -113,6 +143,8 @@ describe('DragDropContext', () => {
   });
 
   it('re-checks touch support on window resize', async () => {
+    // 💡 What: Verifies dynamic updates to touch support detection.
+    // 🎯 Why: Support for 2-in-1 devices or dev tools mobile simulation.
     render(
       <DragDropContext>
         <div />
@@ -125,8 +157,9 @@ describe('DragDropContext', () => {
     });
 
     // Simulate switching to touch support
-    vi.stubGlobal('navigator', {
-      maxTouchPoints: 5,
+    Object.defineProperty(window.navigator, 'maxTouchPoints', {
+      value: 5,
+      configurable: true,
     });
 
     // Trigger resize event
