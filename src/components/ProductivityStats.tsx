@@ -18,7 +18,7 @@ export const ProductivityStats = ({ tasks }: ProductivityStatsProps) => {
         <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
           <span className="text-sm font-medium text-muted-foreground truncate">Current Streak</span>
           <div className="flex items-center gap-2 mt-2">
-            <Flame className="w-5 h-5 text-primary" />
+            <Flame className="w-5 h-5 text-primary" aria-hidden="true" />
             <div className="text-3xl font-bold text-primary">{stats.currentStreak}</div>
           </div>
           <p className="text-xs text-muted-foreground mt-1">days in a row</p>
@@ -27,7 +27,7 @@ export const ProductivityStats = ({ tasks }: ProductivityStatsProps) => {
         <Card className="p-4 bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
           <span className="text-sm font-medium text-muted-foreground truncate">Longest Streak</span>
           <div className="flex items-center gap-2 mt-2">
-            <TrendingUp className="w-5 h-5 text-accent-foreground" />
+            <TrendingUp className="w-5 h-5 text-accent-foreground" aria-hidden="true" />
             <div className="text-3xl font-bold">{stats.longestStreak}</div>
           </div>
           <p className="text-xs text-muted-foreground mt-1">days record</p>
@@ -36,7 +36,7 @@ export const ProductivityStats = ({ tasks }: ProductivityStatsProps) => {
         <Card className="p-4 bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
           <span className="text-sm font-medium text-muted-foreground truncate">Completed</span>
           <div className="flex items-center gap-2 mt-2">
-            <CheckCircle2 className="w-5 h-5 text-secondary-foreground" />
+            <CheckCircle2 className="w-5 h-5 text-secondary-foreground" aria-hidden="true" />
             <div className="text-3xl font-bold">{stats.totalCompleted}</div>
           </div>
           <p className="text-xs text-muted-foreground mt-1">total tasks</p>
@@ -45,7 +45,7 @@ export const ProductivityStats = ({ tasks }: ProductivityStatsProps) => {
         <Card className="p-4 bg-gradient-to-br from-success/10 to-success/5 border-success/20">
           <span className="text-sm font-medium text-muted-foreground truncate">Completion Rate</span>
           <div className="flex items-center gap-2 mt-2">
-            <Target className="w-5 h-5 text-success" />
+            <Target className="w-5 h-5 text-success" aria-hidden="true" />
             <div className="text-3xl font-bold">{stats.completionRate.toFixed(0)}%</div>
           </div>
           <p className="text-xs text-muted-foreground mt-1">success rate</p>
