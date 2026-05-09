@@ -63,3 +63,6 @@
 ## 2026-05-25 - Decorative Icon Accessibility
 **Learning:** Screen readers will often attempt to announce SVG icons (like those from `lucide-react`) if they are focusable or lack specific attributes. When these icons are purely decorative and sit next to clear text labels (like the icons in `ProductivityStats`), this results in redundant and confusing auditory noise for the user.
 **Action:** To optimize the screen reader experience, always add `aria-hidden="true"` to purely decorative icons that are accompanied by explicit text labels, preventing them from being announced.
+## 2024-05-09 - Radix UI Multiple Triggers Composition
+ **Learning:** When a single button needs to trigger multiple Radix UI behaviors (e.g., both a Popover and a Tooltip), using standard `<div>` wrappers can break accessibility by stranding ARIA attributes.
+ **Action:** Instead, safely compose triggers by nesting them and applying `asChild` to both. For example, nest `<PopoverTrigger asChild>` immediately inside `<TooltipTrigger asChild>`. The underlying `Slot` component cleanly merges event listeners and refs without conflicts.

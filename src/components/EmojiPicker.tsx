@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface EmojiPickerProps {
   selectedEmoji?: string;
@@ -34,17 +35,25 @@ export const EmojiPicker = ({ selectedEmoji, onEmojiSelect, className }: EmojiPi
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`text-xl p-1 h-auto ${className || ''}`}
-          aria-label={selectedEmoji ? `Change emoji, currently ${selectedEmoji}` : "Choose an emoji"}
-          title={selectedEmoji ? `Change emoji, currently ${selectedEmoji}` : "Choose an emoji"}
-        >
-          {selectedEmoji || '😀'}
-        </Button>
-      </PopoverTrigger>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`text-xl p-1 h-auto ${className || ''}`}
+                aria-label={selectedEmoji ? `Change emoji, currently ${selectedEmoji}` : "Choose an emoji"}
+              >
+                {selectedEmoji || '😀'}
+              </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{selectedEmoji ? `Change emoji, currently ${selectedEmoji}` : "Choose an emoji"}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <PopoverContent className="w-80 p-0" align="start">
         <div className="max-h-80 overflow-y-auto">
           <div className="p-2 border-b">
