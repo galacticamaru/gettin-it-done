@@ -1,4 +1,4 @@
-import { render, act, screen } from '@testing-library/react';
+import { render, act, screen, waitFor } from '@testing-library/react';
 import { DragDropContext } from './DragDropContext';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import React from 'react';
@@ -28,50 +28,40 @@ vi.mock('react-dnd-touch-backend', () => ({
 }));
 
 describe('DragDropContext', () => {
-  const originalNavigator = window.navigator;
-
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Completely remove ontouchstart to ensure 'in' operator returns false
-    // @ts-ignore
-    delete window.ontouchstart;
-
-    // Create a fresh mock navigator
-    const mockNavigator = {
-      ...originalNavigator,
+    // Default: Non-touch device
+    vi.stubGlobal('navigator', {
       maxTouchPoints: 0,
       msMaxTouchPoints: 0,
-    };
-
-    Object.defineProperty(window, 'navigator', {
-      value: mockNavigator,
-      configurable: true,
-      writable: true
     });
+
+    // @ts-ignore
+    delete window.ontouchstart;
   });
 
   afterEach(() => {
-    // Restore original navigator
-    Object.defineProperty(window, 'navigator', {
-      value: originalNavigator,
-      configurable: true,
-    });
+    vi.unstubAllGlobals();
   });
 
-  it('uses HTML5Backend by default on non-touch devices', () => {
+  it('uses HTML5Backend by default on non-touch devices', async () => {
     render(
       <DragDropContext>
-        <div data-testid="child" />
+        <div />
       </DragDropContext>
     );
 
-    const provider = screen.getByTestId('dnd-provider');
-    expect(provider).toHaveAttribute('data-backend', 'HTML5Backend');
-    expect(provider).toHaveAttribute('data-has-options', 'false');
+    // Initial render might show unknown or HTML5 before useEffect runs
+    // But since it's initialized to false, it should be HTML5Backend
+    await waitFor(() => {
+      const provider = screen.getByTestId('dnd-provider');
+      expect(provider).toHaveAttribute('data-backend', 'HTML5Backend');
+      expect(provider).toHaveAttribute('data-has-options', 'false');
+    });
   });
 
-  it('uses TouchBackend if window.ontouchstart exists', () => {
+  it('uses TouchBackend if window.ontouchstart exists', async () => {
     // @ts-ignore
     window.ontouchstart = () => {};
 
@@ -81,15 +71,16 @@ describe('DragDropContext', () => {
       </DragDropContext>
     );
 
-    const provider = screen.getByTestId('dnd-provider');
-    expect(provider).toHaveAttribute('data-backend', 'TouchBackend');
-    expect(provider).toHaveAttribute('data-has-options', 'true');
+    await waitFor(() => {
+      const provider = screen.getByTestId('dnd-provider');
+      expect(provider).toHaveAttribute('data-backend', 'TouchBackend');
+      expect(provider).toHaveAttribute('data-has-options', 'true');
+    });
   });
 
-  it('uses TouchBackend if navigator.maxTouchPoints > 0', () => {
-    Object.defineProperty(window.navigator, 'maxTouchPoints', {
-      value: 1,
-      configurable: true,
+  it('uses TouchBackend if navigator.maxTouchPoints > 0', async () => {
+    vi.stubGlobal('navigator', {
+      maxTouchPoints: 1,
     });
 
     render(
@@ -98,15 +89,15 @@ describe('DragDropContext', () => {
       </DragDropContext>
     );
 
-    const provider = screen.getByTestId('dnd-provider');
-    expect(provider).toHaveAttribute('data-backend', 'TouchBackend');
+    await waitFor(() => {
+      const provider = screen.getByTestId('dnd-provider');
+      expect(provider).toHaveAttribute('data-backend', 'TouchBackend');
+    });
   });
 
-  it('uses TouchBackend if navigator.msMaxTouchPoints > 0', () => {
-    // @ts-ignore
-    Object.defineProperty(window.navigator, 'msMaxTouchPoints', {
-      value: 1,
-      configurable: true,
+  it('uses TouchBackend if navigator.msMaxTouchPoints > 0', async () => {
+    vi.stubGlobal('navigator', {
+      msMaxTouchPoints: 1,
     });
 
     render(
@@ -115,11 +106,13 @@ describe('DragDropContext', () => {
       </DragDropContext>
     );
 
-    const provider = screen.getByTestId('dnd-provider');
-    expect(provider).toHaveAttribute('data-backend', 'TouchBackend');
+    await waitFor(() => {
+      const provider = screen.getByTestId('dnd-provider');
+      expect(provider).toHaveAttribute('data-backend', 'TouchBackend');
+    });
   });
 
-  it('re-checks touch support on window resize', () => {
+  it('re-checks touch support on window resize', async () => {
     render(
       <DragDropContext>
         <div />
@@ -127,12 +120,13 @@ describe('DragDropContext', () => {
     );
 
     // Initial check: HTML5
-    expect(screen.getByTestId('dnd-provider')).toHaveAttribute('data-backend', 'HTML5Backend');
+    await waitFor(() => {
+      expect(screen.getByTestId('dnd-provider')).toHaveAttribute('data-backend', 'HTML5Backend');
+    });
 
-    // Simulate switching to touch support (e.g. 2-in-1 device)
-    Object.defineProperty(window.navigator, 'maxTouchPoints', {
-      value: 5,
-      configurable: true,
+    // Simulate switching to touch support
+    vi.stubGlobal('navigator', {
+      maxTouchPoints: 5,
     });
 
     // Trigger resize event
@@ -140,6 +134,8 @@ describe('DragDropContext', () => {
       window.dispatchEvent(new Event('resize'));
     });
 
-    expect(screen.getByTestId('dnd-provider')).toHaveAttribute('data-backend', 'TouchBackend');
+    await waitFor(() => {
+      expect(screen.getByTestId('dnd-provider')).toHaveAttribute('data-backend', 'TouchBackend');
+    });
   });
 });
