@@ -56,6 +56,10 @@
 **Learning:** Destructive actions like deleting tasks should require confirmation to prevent accidental data loss, especially on touch interfaces where swipe gestures might misfire. Using `AlertDialog` provides a native-feeling, accessible confirmation step.
 **Action:** Always wrap destructive actions (buttons or swipe gestures) with an accessible `AlertDialog` or equivalent confirmation mechanism.
 
+## 2026-05-06 - Input Clear Buttons
+**Learning:** Text inputs (like task creation fields) without a quick "clear" button force users to repeatedly press backspace or manually select all text to delete it, causing significant friction on both desktop and mobile. Adding a conditionally rendered, accessible clear button (using an `X` icon inside a relative input wrapper) greatly improves the speed of repetitive data entry.
+**Action:** When implementing main text input fields, especially for creation flows, include an absolute-positioned clear button that appears when the input has content. Ensure clicking it clears the state and refocuses the input using a `ref`.
+
 ## 2026-05-24 - Tab Control Accessibility
 **Learning:** Custom tab implementations (using `role="tablist"` and `role="tab"`) often correctly indicate their selected state with `aria-selected`, but frequently forget to link the tab to the specific content container it modifies. This leaves screen reader users without programmatic context of what content actually changed upon selection.
 **Action:** Always include an `aria-controls="[container-id]"` attribute on tab buttons that explicitly points to the `id` of the content area they are managing (e.g., `id="task-list"` on the resulting container).

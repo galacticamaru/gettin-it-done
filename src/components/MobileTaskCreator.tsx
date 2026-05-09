@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Calendar, Smile } from 'lucide-react';
+import { Plus, Calendar, Smile, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -48,6 +48,11 @@ export const MobileTaskCreator = ({
     }
   }, [isOpen]);
 
+  const clearInput = () => {
+    setNewTask('');
+    inputRef.current?.focus();
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newTask.trim()) {
@@ -92,15 +97,27 @@ export const MobileTaskCreator = ({
               </Button>
               
               <Label htmlFor="mobile-task-input" className="sr-only">Task description</Label>
-              <Input
-                id="mobile-task-input"
-                ref={inputRef}
-                value={newTask}
-                onChange={(e) => setNewTask(e.target.value)}
-                placeholder="What do you need to do?"
-                className="flex-1 h-12 text-lg px-4 rounded-xl touch-manipulation border-none bg-secondary/50 focus-visible:ring-1"
-                aria-label="Task description"
-              />
+              <div className="relative flex-1 flex items-center">
+                <Input
+                  id="mobile-task-input"
+                  ref={inputRef}
+                  value={newTask}
+                  onChange={(e) => setNewTask(e.target.value)}
+                  placeholder="What do you need to do?"
+                  className="flex-1 h-12 text-lg px-4 rounded-xl touch-manipulation border-none bg-secondary/50 focus-visible:ring-1 pr-10"
+                  aria-label="Task description"
+                />
+                {newTask.trim() && (
+                  <button
+                    type="button"
+                    onClick={clearInput}
+                    className="absolute right-3 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full p-1"
+                    aria-label="Clear task description"
+                  >
+                    <X className="w-5 h-5" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
             </div>
             
             {showEmojiPicker && (
