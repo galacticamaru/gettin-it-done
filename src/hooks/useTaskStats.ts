@@ -15,30 +15,44 @@ export const useTaskStats = (tasks: Task[]): TaskStats => {
   return useMemo(() => {
     const now = new Date();
     const today = startOfDay(now);
+    const thirtyDaysAgo = subDays(today, 30);
     
-    // Get completed tasks with dates
-    const completedTasks = tasks.filter(task => task.completed);
-    const totalTasks = tasks.length;
+    let totalTasks = 0;
+    let completedTasksCount = 0;
+    const uniqueTimes = new Set<number>();
+    const completedTasksByDate = new Map<string, number>();
+    let recentCompletions = 0;
+
+    for (const task of tasks) {
+      totalTasks++;
+      if (task.completed) {
+        completedTasksCount++;
+        if (task.updatedAt) {
+          const taskDate = parseISO(task.updatedAt);
+          const dayStart = startOfDay(taskDate);
+          const time = dayStart.getTime();
+
+          uniqueTimes.add(time);
+
+          const dateStr = format(dayStart, 'yyyy-MM-dd');
+          completedTasksByDate.set(dateStr, (completedTasksByDate.get(dateStr) || 0) + 1);
+
+          if (taskDate >= thirtyDaysAgo) {
+            recentCompletions++;
+          }
+        }
+      }
+    }
     
     // Calculate completion rate
-    const completionRate = totalTasks > 0 ? (completedTasks.length / totalTasks) * 100 : 0;
+    const completionRate = totalTasks > 0 ? (completedTasksCount / totalTasks) * 100 : 0;
     
-    // Calculate streaks
-    const completionDates = completedTasks
-      .filter(task => task.updatedAt)
-      .map(task => startOfDay(parseISO(task.updatedAt)))
-      .sort((a, b) => b.getTime() - a.getTime());
-    
-    let currentStreak = 0;
-    let longestStreak = 0;
-    let tempStreak = 0;
-    let lastDate: Date | null = null;
-    
-    const uniqueDates = Array.from(new Set(completionDates.map(d => d.getTime())))
-      .map(t => new Date(t))
-      .sort((a, b) => b.getTime() - a.getTime());
+    const uniqueDates = Array.from(uniqueTimes)
+      .sort((a, b) => b - a)
+      .map(t => new Date(t));
     
     // Calculate current streak
+    let currentStreak = 0;
     for (let i = 0; i < uniqueDates.length; i++) {
       const date = uniqueDates[i];
       const expectedDate = subDays(today, currentStreak);
@@ -51,6 +65,10 @@ export const useTaskStats = (tasks: Task[]): TaskStats => {
     }
     
     // Calculate longest streak
+    let longestStreak = 0;
+    let tempStreak = 0;
+    let lastDate: Date | null = null;
+
     for (const date of uniqueDates) {
       if (!lastDate || differenceInDays(lastDate, date) === 1) {
         tempStreak++;
@@ -62,15 +80,6 @@ export const useTaskStats = (tasks: Task[]): TaskStats => {
     }
     
     // Calculate weekly trend (last 7 days)
-    // Pre-calculate completed task counts per day
-    const completedTasksByDate = new Map<string, number>();
-    for (const task of completedTasks) {
-      if (task.updatedAt) {
-        const taskDate = format(startOfDay(parseISO(task.updatedAt)), 'yyyy-MM-dd');
-        completedTasksByDate.set(taskDate, (completedTasksByDate.get(taskDate) || 0) + 1);
-      }
-    }
-
     const weeklyTrend = Array.from({ length: 7 }, (_, i) => {
       const date = subDays(today, 6 - i);
       const dateStr = format(date, 'yyyy-MM-dd');
@@ -83,18 +92,12 @@ export const useTaskStats = (tasks: Task[]): TaskStats => {
     });
     
     // Calculate monthly average (last 30 days)
-    const thirtyDaysAgo = subDays(today, 30);
-    const recentCompletions = completedTasks.filter(task => {
-      if (!task.updatedAt) return false;
-      const taskDate = parseISO(task.updatedAt);
-      return taskDate >= thirtyDaysAgo;
-    }).length;
     const monthlyAverage = recentCompletions / 30;
     
     return {
       currentStreak,
       longestStreak,
-      totalCompleted: completedTasks.length,
+      totalCompleted: completedTasksCount,
       completionRate,
       weeklyTrend,
       monthlyAverage
