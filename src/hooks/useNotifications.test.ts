@@ -123,4 +123,58 @@ describe('useNotifications', () => {
     expect(clearTimeoutSpy).toHaveBeenCalledWith(dueTimeoutId);
     expect(clearTimeoutSpy).toHaveBeenCalledWith(overdueTimeoutId);
   });
+
+  it('scheduleDueDateNotification requests permission and proceeds if granted when not subscribed', async () => {
+    // 💡 What: Tests the permission request flow inside scheduleDueDateNotification when user is unsubscribed.
+    // 🎯 Why: Ensures due date notifications are still scheduled after prompting a new user to accept notifications.
+
+    const subscribeUserMock = vi.fn().mockResolvedValue(true);
+    const getUserIdMock = vi.fn().mockResolvedValue('test-user');
+
+    // We need to override the oneSignalService mock for this specific test
+    vi.mocked((await import('@/services/oneSignalService')).oneSignalService.subscribeUser).mockImplementation(subscribeUserMock);
+    vi.mocked((await import('@/services/oneSignalService')).oneSignalService.getUserId).mockImplementation(getUserIdMock);
+
+    const { result } = renderHook(() => useNotifications());
+
+    const setTimeoutSpy = vi.spyOn(window, 'setTimeout');
+
+    const dueDate = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours away
+
+    await act(async () => {
+      await result.current.scheduleDueDateNotification('test-task', 'Test Task', dueDate);
+    });
+
+    // Check that we requested subscription
+    expect(subscribeUserMock).toHaveBeenCalled();
+
+    // We should have scheduled the 2 timeouts (1 hour before, and overdue)
+    expect(setTimeoutSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('scheduleDueDateNotification aborts scheduling if permission is denied', async () => {
+    // 💡 What: Tests the permission denied early return flow in scheduleDueDateNotification.
+    // 🎯 Why: If a user denies the permission prompt, we must gracefully abort scheduling without setting phantom timers or throwing errors.
+
+    const subscribeUserMock = vi.fn().mockResolvedValue(false);
+
+    // We need to override the oneSignalService mock for this specific test
+    vi.mocked((await import('@/services/oneSignalService')).oneSignalService.subscribeUser).mockImplementation(subscribeUserMock);
+
+    const { result } = renderHook(() => useNotifications());
+
+    const setTimeoutSpy = vi.spyOn(window, 'setTimeout');
+
+    const dueDate = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours away
+
+    await act(async () => {
+      await result.current.scheduleDueDateNotification('test-task', 'Test Task', dueDate);
+    });
+
+    // Check that we requested subscription
+    expect(subscribeUserMock).toHaveBeenCalled();
+
+    // Timers should NOT be scheduled
+    expect(setTimeoutSpy).not.toHaveBeenCalled();
+  });
 });
