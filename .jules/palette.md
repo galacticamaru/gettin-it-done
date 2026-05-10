@@ -70,3 +70,6 @@
 ## 2024-05-09 - Radix UI Multiple Triggers Composition
  **Learning:** When a single button needs to trigger multiple Radix UI behaviors (e.g., both a Popover and a Tooltip), using standard `<div>` wrappers can break accessibility by stranding ARIA attributes.
  **Action:** Instead, safely compose triggers by nesting them and applying `asChild` to both. For example, nest `<PopoverTrigger asChild>` immediately inside `<TooltipTrigger asChild>`. The underlying `Slot` component cleanly merges event listeners and refs without conflicts.
+## 2026-05-26 - Authentication Form Autofill and Keyboard Optimization
+**Learning:** By default, mobile keyboards often auto-capitalize the first letter of text inputs and attempt to autocorrect them, which creates significant friction for email fields during login or signup. Furthermore, password managers rely heavily on accurate `autoComplete` attributes to suggest or save credentials properly.
+**Action:** For all authentication forms, explicitly add `autoComplete="email"`, `autoCapitalize="none"`, `autoCorrect="off"`, and `spellCheck={false}` to email inputs. For password inputs, use `autoComplete="new-password"` for sign-up flows and `autoComplete="current-password"` for sign-in flows to ensure seamless integration with password managers.
