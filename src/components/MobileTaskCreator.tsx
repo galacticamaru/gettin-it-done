@@ -103,6 +103,9 @@ export const MobileTaskCreator = ({
                   ref={inputRef}
                   value={newTask}
                   onChange={(e) => setNewTask(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') clearInput();
+                  }}
                   placeholder="What do you need to do?"
                   className="flex-1 h-12 text-lg px-4 rounded-xl touch-manipulation border-none bg-secondary/50 focus-visible:ring-1 pr-10"
                   aria-label="Task description"

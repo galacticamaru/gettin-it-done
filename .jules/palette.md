@@ -70,3 +70,7 @@
 ## 2024-05-09 - Radix UI Multiple Triggers Composition
  **Learning:** When a single button needs to trigger multiple Radix UI behaviors (e.g., both a Popover and a Tooltip), using standard `<div>` wrappers can break accessibility by stranding ARIA attributes.
  **Action:** Instead, safely compose triggers by nesting them and applying `asChild` to both. For example, nest `<PopoverTrigger asChild>` immediately inside `<TooltipTrigger asChild>`. The underlying `Slot` component cleanly merges event listeners and refs without conflicts.
+
+## 2024-05-24 - Enhance keyboard shortcuts and visual hints
+**Learning:** Adding semantic `<kbd>` tags inside tooltips provides a much richer and more intuitive visual affordance for keyboard shortcuts than plain text.
+**Action:** When adding keyboard shortcuts, consistently use styled `<kbd>` tags within tooltips to clearly communicate the available shortcuts to users. Always pair `Enter` submissions with `Escape` clearing for a complete keyboard navigation experience.

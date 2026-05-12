@@ -123,4 +123,30 @@ describe('DesktopTaskInput', () => {
 
     expect(setNewTask).toHaveBeenCalledWith('Test');
   });
+
+  it('calls clearInput (setNewTask with empty string) when Escape is pressed', () => {
+    // 💡 What: Tests that pressing the Escape key inside the input clears the task.
+    // 🎯 Why: Keyboard accessibility and UX. Users expect to be able to hit Escape to quickly clear an input field.
+    const setNewTask = vi.fn();
+    render(
+      <DesktopTaskInput
+        newTask="Test task to clear"
+        setNewTask={setNewTask}
+        dueDate=""
+        setDueDate={vi.fn()}
+        repeatOption="none"
+        setRepeatOption={vi.fn()}
+        reminder="none"
+        setReminder={vi.fn()}
+        selectedEmoji=""
+        setSelectedEmoji={vi.fn()}
+        handleAddTask={vi.fn()}
+      />
+    );
+
+    const input = screen.getByRole('textbox', { name: /New task description/i });
+    fireEvent.keyDown(input, { key: 'Escape' });
+
+    expect(setNewTask).toHaveBeenCalledWith('');
+  });
 });

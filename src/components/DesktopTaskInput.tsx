@@ -59,6 +59,9 @@ export const DesktopTaskInput = ({
             placeholder="Add a new task"
             value={newTask}
             onChange={e => setNewTask(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') clearInput();
+            }}
             className="border-0 bg-transparent focus-visible:ring-0 pr-8"
             aria-label="New task description"
           />
@@ -88,7 +91,7 @@ export const DesktopTaskInput = ({
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{!newTask.trim() ? 'Task description is required' : 'Add task (Enter)'}</p>
+              <p>{!newTask.trim() ? 'Task description is required' : <>Add task (<kbd className="font-sans text-[10px] bg-muted px-1.5 py-0.5 rounded border border-border text-muted-foreground ml-1">Enter</kbd>)</>}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
