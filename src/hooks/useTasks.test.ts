@@ -524,4 +524,37 @@ describe('useTasks', () => {
 
     consoleErrorSpy.mockRestore();
   });
+  it('toggleTask should return early if task id is not found in local state', async () => {
+    // 💡 What: Tests the early exit condition in toggleTask when a non-existent ID is provided.
+    // 🎯 Why: Prevents unnecessary database calls and potential crashes if the UI somehow
+    // triggers a toggle on a stale or phantom task.
+
+    const updateMock = vi.fn().mockReturnThis();
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_tasks') {
+        return {
+          update: updateMock,
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    const { toggleTask } = useTasks();
+
+    // Clear previous mock calls from initial setup
+    setTasksMock.mockClear();
+
+    // Attempt to toggle a non-existent task
+    await toggleTask('non-existent-task-id');
+
+    // Verify it did not attempt to update the database
+    expect(updateMock).not.toHaveBeenCalled();
+
+    // Verify state was not updated
+    expect(setTasksMock).not.toHaveBeenCalled();
+  });
 });
