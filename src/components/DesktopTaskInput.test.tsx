@@ -97,6 +97,32 @@ describe('DesktopTaskInput', () => {
     expect(handleAddTask).not.toHaveBeenCalled();
   });
 
+  it('calls setNewTask with empty string when Escape is pressed and input is not empty', () => {
+    // 💡 What: Tests that pressing the Escape key inside the input clears it.
+    // 🎯 Why: Keyboard accessibility and UX. Provides a quick way to clear the input without using the mouse.
+    const setNewTask = vi.fn();
+    render(
+      <DesktopTaskInput
+        newTask="Test task"
+        setNewTask={setNewTask}
+        dueDate=""
+        setDueDate={vi.fn()}
+        repeatOption="none"
+        setRepeatOption={vi.fn()}
+        reminder="none"
+        setReminder={vi.fn()}
+        selectedEmoji=""
+        setSelectedEmoji={vi.fn()}
+        handleAddTask={vi.fn()}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('Add a new task');
+    fireEvent.keyDown(input, { key: 'Escape', code: 'Escape' });
+
+    expect(setNewTask).toHaveBeenCalledWith('');
+  });
+
   it('calls setNewTask when input value changes', () => {
     // 💡 What: Tests that the input correctly calls the injected state updater.
     // 🎯 Why: Ensures the component correctly links user typing to the parent component's state.
