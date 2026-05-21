@@ -52,3 +52,7 @@
 ## 2024-05-18 - Missing Test Target for the Subscription Request Flow
 **Learning:** We added two high-value test cases that explicitly test whether permission request is prompted before a due date notification is scheduled if a user is unsubscribed, and what to do depending on whether permission is granted or not. Previously, this condition in `useNotifications.ts` > `scheduleDueDateNotification` was completely untested and lacked coverage.
 **Action:** Always mock out sub-function dependencies, such as `subscribeUser` and `getUserId` here via `vi.mocked` so that both happy (resolve `true`) and sad (resolve `false`) paths can be deterministically asserted without relying on the actual permission pop-up.
+
+## 2024-05-21 - Unhandled Array Out of Bounds in reorderTasks
+**Learning:** In the `useTasks.ts` hook, `reorderTasks` uses `findIndex` to locate items for drag-and-drop ops. If an item isn't found, `findIndex` returns -1. If this isn't caught, `splice(-1)` modifies the end of the array, leading to silent data corruption instead of an explicit error.
+**Action:** When testing drag-and-drop or array manipulation functions, always include a test case where the target items (dragged or dropped) do not exist to ensure the function aborts gracefully and does not corrupt state.

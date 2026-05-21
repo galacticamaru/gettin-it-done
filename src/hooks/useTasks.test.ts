@@ -274,6 +274,31 @@ describe('useTasks', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  it('reorderTasks should return early and log error if task indices are not found', async () => {
+    // 💡 What: Tests that reorderTasks safely aborts if given invalid drag or hover IDs.
+    // 🎯 Why: Drag and drop operations can sometimes yield stale IDs due to rapid UI changes or
+    // race conditions. If the indices aren't checked, Array.splice with -1 could silently
+    // corrupt the task array or throw an uncaught error.
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { reorderTasks } = useTasks();
+
+    // Clear previous mock calls
+    setTasksMock.mockClear();
+
+    // Attempt to reorder with a non-existent task ID
+    await reorderTasks('non-existent-task', 'task-3');
+
+    // Verify error was logged
+    expect(consoleErrorSpy).toHaveBeenCalledWith('❌ Could not find task indices');
+
+    // Verify state was NOT updated
+    expect(setTasksMock).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it('reorderTasks should send text and other required fields in upsert payload', async () => {
     const upsertMock = vi.fn().mockResolvedValue({ data: null, error: null });
     const fromMock = vi.fn().mockReturnValue({ upsert: upsertMock, select: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis() });
