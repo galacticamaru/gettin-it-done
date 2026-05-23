@@ -59,18 +59,33 @@ export const DesktopTaskInput = ({
             placeholder="Add a new task"
             value={newTask}
             onChange={e => setNewTask(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' && newTask) {
+                e.preventDefault();
+                clearInput();
+              }
+            }}
             className="border-0 bg-transparent focus-visible:ring-0 pr-8"
             aria-label="New task description"
           />
           {newTask.trim() && (
-            <button
-              type="button"
-              onClick={clearInput}
-              className="absolute right-2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full p-1"
-              aria-label="Clear task description"
-            >
-              <X className="w-4 h-4" aria-hidden="true" />
-            </button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={clearInput}
+                    className="absolute right-2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full p-1"
+                    aria-label="Clear task description"
+                  >
+                    <X className="w-4 h-4" aria-hidden="true" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Clear input <kbd className="ml-1 px-1 bg-muted rounded text-xs">Esc</kbd></p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
         <TooltipProvider>
