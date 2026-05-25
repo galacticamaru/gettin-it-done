@@ -70,3 +70,6 @@
 ## 2024-05-09 - Radix UI Multiple Triggers Composition
  **Learning:** When a single button needs to trigger multiple Radix UI behaviors (e.g., both a Popover and a Tooltip), using standard `<div>` wrappers can break accessibility by stranding ARIA attributes.
  **Action:** Instead, safely compose triggers by nesting them and applying `asChild` to both. For example, nest `<PopoverTrigger asChild>` immediately inside `<TooltipTrigger asChild>`. The underlying `Slot` component cleanly merges event listeners and refs without conflicts.
+## 2024-05-25 - Keyboard Navigation Patterns in DesktopTaskInput
+**Learning:** Pairing 'Escape' key functionality to clear inputs alongside 'Enter' to submit creates a much more robust keyboard navigation experience, especially when these shortcuts are visually hinted to the user via styled `<kbd>` tags within tooltips.
+**Action:** When implementing new form inputs, always consider and support common keyboard patterns (like Escape to cancel/clear), and ensure they are discoverable through UI hints.
