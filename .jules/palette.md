@@ -70,3 +70,6 @@
 ## 2024-05-09 - Radix UI Multiple Triggers Composition
  **Learning:** When a single button needs to trigger multiple Radix UI behaviors (e.g., both a Popover and a Tooltip), using standard `<div>` wrappers can break accessibility by stranding ARIA attributes.
  **Action:** Instead, safely compose triggers by nesting them and applying `asChild` to both. For example, nest `<PopoverTrigger asChild>` immediately inside `<TooltipTrigger asChild>`. The underlying `Slot` component cleanly merges event listeners and refs without conflicts.
+## 2026-05-26 - Tooltip Shortcut Hints
+**Learning:** Adding explicit keyboard shortcuts (like `<kbd>Esc</kbd>`) to tooltips on form controls greatly improves discoverability of keyboard navigation, but the Radix UI `Tooltip` components have a default 700ms open delay that must be accounted for in visual testing frameworks like Playwright.
+**Action:** When adding shortcut hints to tooltips, consistently use styled `<kbd>` elements to differentiate them from the label text. When testing these tooltips visually, remember to add explicit waits (e.g. `page.wait_for_timeout(1000)`) after `.hover()`.

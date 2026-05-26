@@ -59,18 +59,35 @@ export const DesktopTaskInput = ({
             placeholder="Add a new task"
             value={newTask}
             onChange={e => setNewTask(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Escape') {
+                clearInput();
+              }
+            }}
             className="border-0 bg-transparent focus-visible:ring-0 pr-8"
             aria-label="New task description"
           />
           {newTask.trim() && (
-            <button
-              type="button"
-              onClick={clearInput}
-              className="absolute right-2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full p-1"
-              aria-label="Clear task description"
-            >
-              <X className="w-4 h-4" aria-hidden="true" />
-            </button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={clearInput}
+                    className="absolute right-2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full p-1"
+                    aria-label="Clear task description"
+                  >
+                    <X className="w-4 h-4" aria-hidden="true" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="flex items-center">
+                    Clear task description
+                    <kbd className="ml-2 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">Esc</kbd>
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
         <TooltipProvider>
@@ -88,7 +105,17 @@ export const DesktopTaskInput = ({
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{!newTask.trim() ? 'Task description is required' : 'Add task (Enter)'}</p>
+              {(() => {
+                if (!newTask.trim()) {
+                  return <p>Task description is required</p>;
+                }
+                return (
+                  <p className="flex items-center">
+                    Add task
+                    <kbd className="ml-2 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">Enter</kbd>
+                  </p>
+                );
+              })()}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
