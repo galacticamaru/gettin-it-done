@@ -88,7 +88,14 @@ export const DesktopTaskInput = ({
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{!newTask.trim() ? 'Task description is required' : 'Add task (Enter)'}</p>
+              <p className="flex items-center gap-1">
+                {!newTask.trim() ? 'Task description is required' : (
+                  <>
+                    Add task
+                    <kbd className="px-1.5 py-0.5 bg-muted rounded-md text-xs border font-mono ml-1">Enter</kbd>
+                  </>
+                )}
+              </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
