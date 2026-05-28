@@ -123,4 +123,34 @@ describe('DesktopTaskInput', () => {
 
     expect(setNewTask).toHaveBeenCalledWith('Test');
   });
+
+  it('clears the input and focuses it when Escape is pressed', () => {
+    // 💡 What: Tests that pressing the Escape key inside the input clears the text and focuses it.
+    // 🎯 Why: Keyboard accessibility and UX. Users expect to be able to hit Escape to clear the current draft without using the mouse.
+    const setNewTask = vi.fn();
+    render(
+      <DesktopTaskInput
+        newTask="Drafted task"
+        setNewTask={setNewTask}
+        dueDate=""
+        setDueDate={vi.fn()}
+        repeatOption="none"
+        setRepeatOption={vi.fn()}
+        reminder="none"
+        setReminder={vi.fn()}
+        selectedEmoji=""
+        setSelectedEmoji={vi.fn()}
+        handleAddTask={vi.fn()}
+      />
+    );
+
+    const input = screen.getByRole('textbox', { name: /New task description/i });
+
+    // Focus the input before interacting
+    input.focus();
+    fireEvent.keyDown(input, { key: 'Escape', code: 'Escape' });
+
+    expect(setNewTask).toHaveBeenCalledWith('');
+    expect(input).toHaveFocus();
+  });
 });

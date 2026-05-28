@@ -52,3 +52,8 @@
 ## 2024-05-18 - Missing Test Target for the Subscription Request Flow
 **Learning:** We added two high-value test cases that explicitly test whether permission request is prompted before a due date notification is scheduled if a user is unsubscribed, and what to do depending on whether permission is granted or not. Previously, this condition in `useNotifications.ts` > `scheduleDueDateNotification` was completely untested and lacked coverage.
 **Action:** Always mock out sub-function dependencies, such as `subscribeUser` and `getUserId` here via `vi.mocked` so that both happy (resolve `true`) and sad (resolve `false`) paths can be deterministically asserted without relying on the actual permission pop-up.
+
+
+## 2026-05-28 - Missing Keyboard Accessibility Coverage in Form Fields
+**Learning:** The `DesktopTaskInput` provided a visual 'clear' button, but the equivalent keyboard shortcut (`Escape`) was untested. When keyboard shortcuts map directly to UI actions, testing the programmatic dispatch of that key event is critical to ensure feature parity for users relying on keyboard navigation.
+**Action:** When adding or verifying interactive components, explicitly write test cases for any custom `onKeyDown` listeners (like `Escape` to clear or `Enter` to submit) to guarantee accessible feature parity.
