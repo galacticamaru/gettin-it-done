@@ -74,3 +74,6 @@
 ## 2024-05-27 - Keyboard Shortcut Hints in Tooltips
 **Learning:** Tooltips for primary actions that support keyboard shortcuts (like Add [Enter] or Clear [Escape]) often present the shortcut as plain text in parentheses. This lacks visual hierarchy and doesn't stand out as an actionable key press to users.
 **Action:** When documenting keyboard shortcuts within tooltips, consistently use styled `<kbd>` tags (e.g., `<kbd className="...">Enter</kbd>`) instead of plain text. Additionally, ensure paired actions (like Enter to submit and Escape to clear) are both supported with corresponding hints to provide a complete and discoverable keyboard navigation experience.
+## 2026-05-30 - Added aria-hidden to decorative icons
+**Learning:** Screen readers will often attempt to announce SVG icons (like those from `lucide-react`) if they are focusable or lack specific attributes. When these icons are purely decorative and sit next to clear text labels (like the icons in `BottomNav`), this results in redundant and confusing auditory noise for the user.
+**Action:** To optimize the screen reader experience, always add `aria-hidden="true"` to purely decorative icons that are accompanied by explicit text labels, preventing them from being announced.

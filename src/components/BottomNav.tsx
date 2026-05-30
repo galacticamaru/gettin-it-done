@@ -36,6 +36,7 @@ export const BottomNav = ({ currentTab, onTabChange }: BottomNavProps) => {
             aria-current={currentTab === id ? 'page' : undefined}
           >
             <Icon
+              aria-hidden="true"
               className={cn(
                 "h-6 w-6 transition-transform duration-200",
                 currentTab === id ? "scale-110" : "scale-100"
