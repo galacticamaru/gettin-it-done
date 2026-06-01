@@ -198,7 +198,7 @@ export const MobileTaskItem = ({ task, onToggle, onDelete, onReorder }: MobileTa
             )}
           </button>
           
-          <span className="text-2xl">
+          <span className="text-2xl" role="img" aria-hidden="true">
             {task.emoji || getTaskEmoji(task.text)}
           </span>
           
