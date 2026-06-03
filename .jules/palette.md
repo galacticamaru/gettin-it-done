@@ -74,3 +74,6 @@
 ## 2024-05-27 - Keyboard Shortcut Hints in Tooltips
 **Learning:** Tooltips for primary actions that support keyboard shortcuts (like Add [Enter] or Clear [Escape]) often present the shortcut as plain text in parentheses. This lacks visual hierarchy and doesn't stand out as an actionable key press to users.
 **Action:** When documenting keyboard shortcuts within tooltips, consistently use styled `<kbd>` tags (e.g., `<kbd className="...">Enter</kbd>`) instead of plain text. Additionally, ensure paired actions (like Enter to submit and Escape to clear) are both supported with corresponding hints to provide a complete and discoverable keyboard navigation experience.
+## 2026-06-03 - Auth Form Mobile Keyboard and Password Manager Support
+**Learning:** Auth forms without proper `autoComplete`, `autoCapitalize`, `autoCorrect`, and `spellCheck` attributes cause significant friction on mobile devices (e.g., autocorrecting email addresses or failing to trigger password managers).
+**Action:** Always include `autoComplete="email"`, `autoCapitalize="none"`, `autoCorrect="off"`, and `spellCheck={false}` on email inputs. Always include dynamic `autoComplete` ('new-password' or 'current-password') on password inputs depending on the form's mode.

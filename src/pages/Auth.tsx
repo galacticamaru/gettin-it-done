@@ -140,6 +140,10 @@ const Auth = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
+              autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               className="w-full"
             />
           </div>
@@ -154,6 +158,7 @@ const Auth = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
+                autoComplete={isSignUp ? 'new-password' : 'current-password'}
                 className="w-full pr-10"
                 minLength={6}
               />
