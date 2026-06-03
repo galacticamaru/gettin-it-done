@@ -107,7 +107,7 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
             </TooltipContent>
           </Tooltip>
 
-          <span className="text-xl">
+          <span className="text-xl" role="img" aria-hidden="true">
             {task.emoji || getTaskEmoji(task.text)}
           </span>
 
