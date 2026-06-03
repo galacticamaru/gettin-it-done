@@ -10,7 +10,7 @@ import { DesktopTaskInput } from './DesktopTaskInput';
 import { TaskList } from './TaskList';
 import { BottomNav } from './BottomNav';
 import { useTasks } from '@/hooks/useTasks';
-import { User } from 'lucide-react';
+import { User, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -97,8 +97,9 @@ export const TodoApp = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground">Loading your tasks...</div>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground mb-4" aria-hidden="true" />
+        <div className="text-muted-foreground text-sm font-medium" role="status">Loading your tasks...</div>
       </div>
     );
   }
