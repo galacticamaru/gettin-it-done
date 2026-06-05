@@ -11,7 +11,7 @@ export const ThemeToggle = () => {
   const label = isLight ? "Switch to dark theme" : "Switch to light theme";
 
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={500}>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
