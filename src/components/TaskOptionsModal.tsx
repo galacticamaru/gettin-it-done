@@ -51,7 +51,7 @@ export const TaskOptionsModal = ({
   const isReminderDisabled = !hasNotificationCapability;
 
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={500}>
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 px-2">
         {/* Calendar Modal */}
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
