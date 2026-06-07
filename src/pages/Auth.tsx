@@ -157,7 +157,7 @@ const Auth = () => {
                 className="w-full pr-10"
                 minLength={6}
               />
-              <TooltipProvider>
+              <TooltipProvider delayDuration={500}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">

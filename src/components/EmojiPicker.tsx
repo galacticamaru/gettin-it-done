@@ -35,7 +35,7 @@ export const EmojiPicker = ({ selectedEmoji, onEmojiSelect, className }: EmojiPi
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <TooltipProvider>
+      <TooltipProvider delayDuration={500}>
         <Tooltip>
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>

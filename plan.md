@@ -1,15 +1,25 @@
-1. **Add `aria-busy` to the SettingsDrawer toggle**
-    - Modify `src/components/SettingsDrawer.tsx` to set `aria-busy={isToggling}` on the push notifications `<Switch>` component to improve screen reader feedback.
+1. **Identify the UX/accessibility issue:**
+   The `Palette` memory indicates:
+   > When using Radix UI / shadcn `TooltipProvider` components throughout the application, explicitly set the `delayDuration` prop (e.g., `delayDuration={500}`) to override the sluggish 700ms default and ensure a consistent, more responsive user experience.
 
-2. **Add Tooltip to DesktopTaskInput Button**
-    - Wrap the "Add" button in `DesktopTaskInput.tsx` with a `Tooltip` component.
-    - The tooltip will show a message explaining that a task description is required when the input is empty and the button is disabled.
+   Looking at the codebase, `delayDuration={500}` is applied in `src/components/TaskItem.tsx` and `delayDuration={0}` is applied in `src/components/ui/sidebar.tsx`, but missing in:
+   - `src/components/EmojiPicker.tsx`
+   - `src/components/DesktopTaskInput.tsx` (multiple times)
+   - `src/components/MobileTaskCreator.tsx`
+   - `src/components/ThemeToggle.tsx`
+   - `src/components/TaskOptionsModal.tsx`
+   - `src/components/SettingsDrawer.tsx`
+   - `src/pages/Auth.tsx`
 
-3. **Add Tooltip to MobileTaskCreator Button**
-    - Similar to `DesktopTaskInput`, wrap the "Save" button in `MobileTaskCreator.tsx` with a `Tooltip` component to explain the disabled state.
+   We will update these files to set `delayDuration={500}` on `<TooltipProvider>`.
 
-4. **Complete pre-commit checks**
-    - This will include verifying tests and formatting according to the repo standard.
+2. **Implement changes:**
+   - Modify the missing `<TooltipProvider>` components to `<TooltipProvider delayDuration={500}>`.
 
-5. **Submit the PR**
-    - The branch name and commit message should follow the requirements (e.g. `🎨 Palette: ...`).
+3. **Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.**
+   - Run linter (`pnpm lint`) to ensure no new errors are introduced.
+   - Run tests (`pnpm test`) to ensure nothing breaks.
+   - Run `pnpm build` to verify the build passes.
+
+4. **Submit PR:**
+   - Commit message: "🎨 Palette: Add delayDuration to TooltipProvider for consistent UX"

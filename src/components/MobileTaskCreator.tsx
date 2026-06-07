@@ -148,7 +148,7 @@ export const MobileTaskCreator = ({
               />
             </div>
 
-            <TooltipProvider>
+            <TooltipProvider delayDuration={500}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="inline-block">
