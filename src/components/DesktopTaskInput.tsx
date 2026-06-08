@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,6 +36,23 @@ export const DesktopTaskInput = ({
 }: DesktopTaskInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === '/' &&
+        document.activeElement?.tagName !== 'INPUT' &&
+        document.activeElement?.tagName !== 'TEXTAREA'
+      ) {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+
   const clearInput = () => {
     setNewTask('');
     inputRef.current?.focus();
@@ -62,9 +79,18 @@ export const DesktopTaskInput = ({
             onKeyDown={e => {
               if (e.key === 'Escape') clearInput();
             }}
-            className="border-0 bg-transparent focus-visible:ring-0 pr-8"
+            className="border-0 bg-transparent focus-visible:ring-0 pr-12"
             aria-label="New task description"
           />
+
+          {!newTask.trim() && (
+            <div className="absolute right-3 pointer-events-none flex items-center justify-center">
+              <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100" aria-hidden="true" title="Press / to focus">
+                /
+              </kbd>
+            </div>
+          )}
+
           {newTask.trim() && (
             <TooltipProvider>
               <Tooltip>
