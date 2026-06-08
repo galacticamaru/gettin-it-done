@@ -153,4 +153,29 @@ describe('DesktopTaskInput', () => {
     expect(setNewTask).toHaveBeenCalledWith('');
     expect(input).toHaveFocus();
   });
+
+  it('focuses input when "/" key is pressed', () => {
+    const setNewTask = vi.fn();
+    render(
+      <DesktopTaskInput
+        newTask=""
+        setNewTask={setNewTask}
+        dueDate=""
+        setDueDate={vi.fn()}
+        repeatOption="none"
+        setRepeatOption={vi.fn()}
+        reminder="none"
+        setReminder={vi.fn()}
+        selectedEmoji=""
+        setSelectedEmoji={vi.fn()}
+        handleAddTask={vi.fn()}
+      />
+    );
+
+    const input = screen.getByRole('textbox', { name: /New task description/i });
+
+    fireEvent.keyDown(window, { key: '/' });
+
+    expect(input).toHaveFocus();
+  });
 });

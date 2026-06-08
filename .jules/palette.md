@@ -78,3 +78,6 @@
 ## 2026-05-28 - Tab Navigation Accessibility
 **Learning:** Tab buttons (like in `BottomNav`) that contain both text labels and decorative icons often mistakenly use both `aria-label` and `aria-current`. If `aria-label` is the same as the visible text, it is redundant and can cause screen readers to announce incorrectly. If the tab has `role="tab"`, state is properly conveyed by `aria-selected`, making `aria-current` invalid. Finally, not hiding decorative icons with `aria-hidden="true"` leads to noisy announcements.
 **Action:** For tab buttons, allow the visible text (e.g., `<span>`) to provide the accessible name, remove redundant `aria-label`s, rely on `aria-selected` instead of `aria-current`, and explicitly hide decorative icons using `aria-hidden="true"`.
+## 2024-06-08 - Keyboard Shortcuts for Input Focus
+**Learning:** Adding a keyboard shortcut like `/` to focus the main search or input field is a highly expected pattern on desktop that greatly improves keyboard accessibility, but it needs to be carefully implemented so it doesn't trigger when the user is already typing in an input or textarea. Also, displaying `<kbd>` elements in the UI helps discoverability.
+**Action:** When implementing main forms or search bars, consider adding a `/` shortcut that focuses the primary input, and expose the hint visually in empty states.
