@@ -141,6 +141,10 @@ const Auth = () => {
               required
               disabled={loading}
               className="w-full"
+              autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
             />
           </div>
           <div className="space-y-2">
@@ -156,6 +160,7 @@ const Auth = () => {
                 disabled={loading}
                 className="w-full pr-10"
                 minLength={6}
+                autoComplete={isSignUp ? 'new-password' : 'current-password'}
               />
               <TooltipProvider>
                 <Tooltip>
@@ -202,7 +207,8 @@ const Auth = () => {
         <div className="text-center mt-6">
           <button
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md px-2 py-1"
+            disabled={loading}
+            className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md px-2 py-1 disabled:opacity-50 disabled:pointer-events-none"
           >
             {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
           </button>
