@@ -37,7 +37,7 @@ export const NotificationPermissionDialog = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-yellow-600" />
+            <Bell className="w-5 h-5 text-yellow-600" aria-hidden="true" />
             Enable Task Reminders
           </DialogTitle>
           <DialogDescription className="space-y-4 pt-4">
@@ -47,11 +47,11 @@ export const NotificationPermissionDialog = ({
             
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
-                <Clock className="w-4 h-4 text-gray-500" />
+                <Clock className="w-4 h-4 text-gray-500" aria-hidden="true" />
                 <span>Get notified 15 minutes, 1 hour, or 1 day before your tasks are due</span>
               </div>
               <div className="flex items-center gap-3 text-sm">
-                <Calendar className="w-4 h-4 text-gray-500" />
+                <Calendar className="w-4 h-4 text-gray-500" aria-hidden="true" />
                 <span>Set reminders for tasks without due dates</span>
               </div>
             </div>
