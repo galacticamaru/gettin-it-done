@@ -141,6 +141,10 @@ const Auth = () => {
               required
               disabled={loading}
               className="w-full"
+              autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
             />
           </div>
           <div className="space-y-2">
@@ -156,6 +160,7 @@ const Auth = () => {
                 disabled={loading}
                 className="w-full pr-10"
                 minLength={6}
+                autoComplete={isSignUp ? 'new-password' : 'current-password'}
               />
               <TooltipProvider>
                 <Tooltip>
