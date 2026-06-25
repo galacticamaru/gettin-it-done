@@ -57,3 +57,7 @@
 ## 2026-05-28 - Missing Keyboard Accessibility Coverage in Form Fields
 **Learning:** The `DesktopTaskInput` provided a visual 'clear' button, but the equivalent keyboard shortcut (`Escape`) was untested. When keyboard shortcuts map directly to UI actions, testing the programmatic dispatch of that key event is critical to ensure feature parity for users relying on keyboard navigation.
 **Action:** When adding or verifying interactive components, explicitly write test cases for any custom `onKeyDown` listeners (like `Escape` to clear or `Enter` to submit) to guarantee accessible feature parity.
+
+## 2024-05-18 - [addTask fallback sort order coverage]
+**Learning:** `useTasks` has a fallback logic to calculate the `sort_order` when the Supabase query for minimum `sort_order` fails to return data but the client has cached local tasks.
+**Action:** Ensure such edge cases and fallback logic have tests in place to prevent regressions if the sorting or database query behavior changes.
