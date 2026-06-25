@@ -222,6 +222,71 @@ describe('useTasks', () => {
     expect(newTasks[1].id).toBe('task-1');
   });
 
+  it('addTask should fallback to local tasks array to calculate sort_order if db returns no valid order', async () => {
+    // 💡 What: Tests the edge case of adding a task when the DB query for min sort_order returns no data.
+    // 🎯 Why: If the DB is temporarily out of sync or returns empty for the minimum sort order, the client
+    // should gracefully fallback to calculating the sort order based on its local cached state.
+
+    // Mock minimum sort_order fetch to return empty data (simulating no tasks or an issue fetching min)
+    const selectMock1 = vi.fn().mockReturnThis();
+    const eqMock1 = vi.fn().mockReturnThis();
+    const orderMock1 = vi.fn().mockReturnThis();
+    const limitMock1 = vi.fn().mockReturnThis();
+    const maybeSingleMock1 = vi.fn().mockResolvedValue({ data: null, error: null }); // Returns no valid sort order
+
+    // Mock successful insert
+    const insertMock = vi.fn().mockReturnThis();
+    const selectMock2 = vi.fn().mockReturnThis();
+    const singleMock2 = vi.fn().mockResolvedValue({
+      data: {
+        id: 'new-fallback-task',
+        text: 'Fallback Task',
+        completed: false,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+        sort_order: -1
+      },
+      error: null
+    });
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'user_tasks') {
+        let callCount = 0;
+        return {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          select: (...args: any[]) => {
+            callCount++;
+            if (callCount === 1) {
+              return { eq: eqMock1.mockReturnValue({ order: orderMock1.mockReturnValue({ limit: limitMock1.mockReturnValue({ maybeSingle: maybeSingleMock1 }) }) }) };
+            }
+            return { single: singleMock2 };
+          },
+          insert: insertMock.mockReturnValue({ select: selectMock2.mockReturnValue({ single: singleMock2 }) }),
+        };
+      }
+      return {};
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    const { addTask } = useTasks();
+
+    // Since mock local tasks start with sortOrder 0 for task-1, the fallback logic `tasks[0].sortOrder - 1`
+    // will calculate -1.
+    const result = await addTask({ text: 'Fallback Task' });
+
+    expect(result).toBe('new-fallback-task');
+    expect(insertMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'Fallback Task',
+        sort_order: -1 // Calculated from local task-1's sort_order (0) - 1
+      })
+    );
+
+    expect(setTasksMock).toHaveBeenCalled();
+  });
+
   it('addTask should return null when Supabase insert fails', async () => {
     const errorMsg = 'Failed to insert task';
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
