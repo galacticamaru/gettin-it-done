@@ -78,3 +78,7 @@
 ## 2026-05-28 - Tab Navigation Accessibility
 **Learning:** Tab buttons (like in `BottomNav`) that contain both text labels and decorative icons often mistakenly use both `aria-label` and `aria-current`. If `aria-label` is the same as the visible text, it is redundant and can cause screen readers to announce incorrectly. If the tab has `role="tab"`, state is properly conveyed by `aria-selected`, making `aria-current` invalid. Finally, not hiding decorative icons with `aria-hidden="true"` leads to noisy announcements.
 **Action:** For tab buttons, allow the visible text (e.g., `<span>`) to provide the accessible name, remove redundant `aria-label`s, rely on `aria-selected` instead of `aria-current`, and explicitly hide decorative icons using `aria-hidden="true"`.
+
+## 2026-06-25 - Authentication Form AutoComplete Attributes
+**Learning:** Text inputs for standard fields like 'email' and 'password' should utilize appropriate standard HTML attributes to improve keyboard behavior on mobile and aid in password manager usage. Without these, mobile users often suffer from unexpected auto-capitalization or spellcheck logic, and password managers can struggle to identify whether to fill a current password or generate a new one.
+**Action:** When implementing or fixing authentication forms, ensure email inputs use `autoComplete="email"`, `autoCapitalize="none"`, `autoCorrect="off"`, and `spellCheck={false}`. Ensure password inputs use `autoComplete="new-password"` during registration flows and `autoComplete="current-password"` during sign-in flows.
