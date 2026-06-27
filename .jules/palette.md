@@ -78,3 +78,9 @@
 ## 2026-05-28 - Tab Navigation Accessibility
 **Learning:** Tab buttons (like in `BottomNav`) that contain both text labels and decorative icons often mistakenly use both `aria-label` and `aria-current`. If `aria-label` is the same as the visible text, it is redundant and can cause screen readers to announce incorrectly. If the tab has `role="tab"`, state is properly conveyed by `aria-selected`, making `aria-current` invalid. Finally, not hiding decorative icons with `aria-hidden="true"` leads to noisy announcements.
 **Action:** For tab buttons, allow the visible text (e.g., `<span>`) to provide the accessible name, remove redundant `aria-label`s, rely on `aria-selected` instead of `aria-current`, and explicitly hide decorative icons using `aria-hidden="true"`.
+## 2026-06-27 - Reduced Global Tooltip Delay
+**Learning:** By default, Radix UI Tooltip components (wrapped by shadcn/ui) have a relatively sluggish delay (700ms) before appearing. While a delay prevents flickering when mousing over complex UI quickly, a long delay makes the application feel unresponsive, especially for icon-only buttons where tooltips are the primary source of context.
+**Action:** When setting up a root  for an application, explicitly configure the  prop (e.g. ) to create a snappier, more responsive user experience across all standard tooltips.
+## 2026-06-27 - Reduced Global Tooltip Delay
+**Learning:** By default, Radix UI Tooltip components (wrapped by shadcn/ui) have a relatively sluggish delay (700ms) before appearing. While a delay prevents flickering when mousing over complex UI quickly, a long delay makes the application feel unresponsive, especially for icon-only buttons where tooltips are the primary source of context.
+**Action:** When setting up a root `TooltipProvider` for an application, explicitly configure the `delayDuration` prop (e.g. `delayDuration={500}`) to create a snappier, more responsive user experience across all standard tooltips.
