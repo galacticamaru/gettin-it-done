@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { EmojiPicker } from '@/components/EmojiPicker';
 import { toast } from 'sonner';
 
@@ -148,7 +148,6 @@ export const MobileTaskCreator = ({
               />
             </div>
 
-            <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="inline-block">
@@ -168,7 +167,6 @@ export const MobileTaskCreator = ({
                   </TooltipContent>
                 )}
               </Tooltip>
-            </TooltipProvider>
           </div>
         </form>
       </DialogContent>

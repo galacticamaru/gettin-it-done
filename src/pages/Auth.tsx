@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -157,7 +157,6 @@ const Auth = () => {
                 className="w-full pr-10"
                 minLength={6}
               />
-              <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -180,7 +179,6 @@ const Auth = () => {
                     <p>{showPassword ? 'Hide password' : 'Show password'}</p>
                   </TooltipContent>
                 </Tooltip>
-              </TooltipProvider>
             </div>
           </div>
 

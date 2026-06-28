@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Cog, Bell, BellOff, Loader2 } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { DailyDigestToggle } from './DailyDigestToggle';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const SettingsDrawer = () => {
   const [open, setOpen] = useState(false);
@@ -34,7 +34,6 @@ export const SettingsDrawer = () => {
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
-      <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
             <DrawerTrigger asChild>
@@ -47,7 +46,6 @@ export const SettingsDrawer = () => {
             <p>Settings</p>
           </TooltipContent>
         </Tooltip>
-      </TooltipProvider>
       <DrawerContent>
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader>

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { Move, Check, X } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -76,7 +76,7 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
   };
 
   return (
-    <TooltipProvider delayDuration={500}>
+    <>
       <div
         ref={ref}
         className={`flex items-center gap-3 p-4 bg-card rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md border ${
@@ -179,6 +179,6 @@ export const TaskItem = ({ task, onToggle, onDelete, onReorder }: TaskItemProps)
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </TooltipProvider>
+    </>
   );
 };

@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DesktopTaskInput } from './DesktopTaskInput';
 import { vi } from 'vitest';
+import { TooltipProvider } from "@/components/ui/tooltip";
 import '@testing-library/jest-dom';
 
 vi.mock('@/contexts/AuthContext', () => ({
@@ -25,6 +26,7 @@ describe('DesktopTaskInput', () => {
     // 🎯 Why: Crucial empty state test to prevent submitting blank tasks to the backend.
     const handleAddTask = vi.fn();
     render(
+      <TooltipProvider>
       <DesktopTaskInput
         newTask="   "
         setNewTask={vi.fn()}
@@ -38,7 +40,8 @@ describe('DesktopTaskInput', () => {
         setSelectedEmoji={vi.fn()}
         handleAddTask={handleAddTask}
       />
-    );
+      </TooltipProvider>
+  );
 
     const button = screen.getByRole('button', { name: /Add/i });
     expect(button).toBeDisabled();
@@ -49,6 +52,7 @@ describe('DesktopTaskInput', () => {
     // 🎯 Why: Keyboard accessibility and UX. Users expect to be able to type a task and hit Enter to add it, without needing to click the add button.
     const handleAddTask = vi.fn();
     render(
+      <TooltipProvider>
       <DesktopTaskInput
         newTask="Valid task"
         setNewTask={vi.fn()}
@@ -62,7 +66,8 @@ describe('DesktopTaskInput', () => {
         setSelectedEmoji={vi.fn()}
         handleAddTask={handleAddTask}
       />
-    );
+      </TooltipProvider>
+  );
 
     const input = screen.getByRole('textbox', { name: /New task description/i });
     fireEvent.submit(input);
@@ -75,6 +80,7 @@ describe('DesktopTaskInput', () => {
     // 🎯 Why: Crucial empty state test to prevent submitting blank tasks to the backend when using keyboard shortcut.
     const handleAddTask = vi.fn();
     render(
+      <TooltipProvider>
       <DesktopTaskInput
         newTask="   "
         setNewTask={vi.fn()}
@@ -88,7 +94,8 @@ describe('DesktopTaskInput', () => {
         setSelectedEmoji={vi.fn()}
         handleAddTask={handleAddTask}
       />
-    );
+      </TooltipProvider>
+  );
 
     const input = screen.getByPlaceholderText('Add a new task');
 
@@ -102,6 +109,7 @@ describe('DesktopTaskInput', () => {
     // 🎯 Why: Ensures the component correctly links user typing to the parent component's state.
     const setNewTask = vi.fn();
     render(
+      <TooltipProvider>
       <DesktopTaskInput
         newTask=""
         setNewTask={setNewTask}
@@ -115,7 +123,8 @@ describe('DesktopTaskInput', () => {
         setSelectedEmoji={vi.fn()}
         handleAddTask={vi.fn()}
       />
-    );
+      </TooltipProvider>
+  );
 
     const input = screen.getByPlaceholderText('Add a new task');
 
@@ -129,6 +138,7 @@ describe('DesktopTaskInput', () => {
     // 🎯 Why: Keyboard accessibility and UX. Users expect to be able to hit Escape to clear the current draft without using the mouse.
     const setNewTask = vi.fn();
     render(
+      <TooltipProvider>
       <DesktopTaskInput
         newTask="Drafted task"
         setNewTask={setNewTask}
@@ -142,7 +152,8 @@ describe('DesktopTaskInput', () => {
         setSelectedEmoji={vi.fn()}
         handleAddTask={vi.fn()}
       />
-    );
+      </TooltipProvider>
+  );
 
     const input = screen.getByRole('textbox', { name: /New task description/i });
 

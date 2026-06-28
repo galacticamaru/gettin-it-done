@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeToggle } from './ThemeToggle';
 import { useTheme } from '@/contexts/ThemeContext';
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 
@@ -32,7 +33,7 @@ describe('ThemeToggle', () => {
       toggleTheme: mockToggleTheme,
     } as any);
 
-    render(<ThemeToggle />);
+    render(<TooltipProvider><ThemeToggle /></TooltipProvider>);
 
     const button = screen.getByRole('button');
     // The component on disk uses aria-label={label} where label is "Switch to dark theme"
@@ -49,7 +50,7 @@ describe('ThemeToggle', () => {
       toggleTheme: mockToggleTheme,
     } as any);
 
-    render(<ThemeToggle />);
+    render(<TooltipProvider><ThemeToggle /></TooltipProvider>);
 
     const button = screen.getByRole('button');
     // The component on disk uses aria-label={label} where label is "Switch to light theme"
@@ -66,7 +67,7 @@ describe('ThemeToggle', () => {
       toggleTheme: mockToggleTheme,
     } as any);
 
-    render(<ThemeToggle />);
+    render(<TooltipProvider><ThemeToggle /></TooltipProvider>);
 
     const button = screen.getByRole('button');
     fireEvent.click(button);

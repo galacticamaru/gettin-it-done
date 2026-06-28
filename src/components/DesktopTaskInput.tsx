@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { EmojiPicker } from './EmojiPicker';
 import { TaskOptionsModal } from './TaskOptionsModal';
 import { X } from 'lucide-react';
@@ -66,7 +66,6 @@ export const DesktopTaskInput = ({
             aria-label="New task description"
           />
           {newTask.trim() && (
-            <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -84,10 +83,8 @@ export const DesktopTaskInput = ({
                   </p>
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
           )}
         </div>
-        <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="inline-block">
@@ -111,7 +108,6 @@ export const DesktopTaskInput = ({
               )}
             </TooltipContent>
           </Tooltip>
-        </TooltipProvider>
       </form>
 
       <TaskOptionsModal
