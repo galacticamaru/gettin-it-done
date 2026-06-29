@@ -78,3 +78,7 @@
 ## 2026-05-28 - Tab Navigation Accessibility
 **Learning:** Tab buttons (like in `BottomNav`) that contain both text labels and decorative icons often mistakenly use both `aria-label` and `aria-current`. If `aria-label` is the same as the visible text, it is redundant and can cause screen readers to announce incorrectly. If the tab has `role="tab"`, state is properly conveyed by `aria-selected`, making `aria-current` invalid. Finally, not hiding decorative icons with `aria-hidden="true"` leads to noisy announcements.
 **Action:** For tab buttons, allow the visible text (e.g., `<span>`) to provide the accessible name, remove redundant `aria-label`s, rely on `aria-selected` instead of `aria-current`, and explicitly hide decorative icons using `aria-hidden="true"`.
+
+## 2024-06-28 - [Dynamic List Accessibility]
+**Learning:** Dynamic lists (like task lists) where items can be added, deleted, completed, or filtered without page reloads must have `aria-live="polite"` added to the wrapper element to ensure screen reader accessibility. This allows assistive technologies to announce updates appropriately.
+**Action:** When implementing or fixing dynamic lists, always apply `aria-live="polite"` to the container element of the list items.
