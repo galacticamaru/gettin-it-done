@@ -67,7 +67,7 @@ export const TaskList = ({
 
   if (isMobile) {
     return (
-      <div id="task-list" className="space-y-3 relative pb-24">
+      <div id="task-list" aria-live="polite" className="space-y-3 relative pb-24">
         <ConfettiAnimation isVisible={celebratingTaskId !== null} />
 
         {tasks.length === 0 ? (
@@ -88,7 +88,7 @@ export const TaskList = ({
   }
 
   return (
-    <div id="task-list" className="space-y-3 relative">
+    <div id="task-list" aria-live="polite" className="space-y-3 relative">
       <ConfettiAnimation isVisible={celebratingTaskId !== null} />
 
       {tasks.length === 0 ? (
