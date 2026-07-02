@@ -347,6 +347,37 @@ describe('useTasks', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  it('reorderTasks should return early and log error when task indices cannot be found', async () => {
+    // 💡 What: Tests the early bailout in reorderTasks when an invalid task ID is provided.
+    // 🎯 Why: Reordering assumes it can find array indices for optimistic UI updates.
+    // If it attempts to splice with -1, it mutates the state incorrectly or throws an error.
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const upsertMock = vi.fn().mockResolvedValue({ data: null, error: null });
+    const fromMock = vi.fn().mockReturnValue({ upsert: upsertMock, select: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis() });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    const { reorderTasks } = useTasks();
+
+    // Clear previous mock calls from initial setup
+    setTasksMock.mockClear();
+
+    // Attempt to reorder with an invalid ID
+    await reorderTasks('invalid-task-id', 'task-3');
+
+    // Verify it logged the correct error
+    expect(consoleErrorSpy).toHaveBeenCalledWith('❌ Could not find task indices');
+
+    // Verify it aborted before making DB calls or updating state
+    expect(upsertMock).not.toHaveBeenCalled();
+    expect(setTasksMock).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it('toggleTask should update local state when Supabase update succeeds', async () => {
     // 💡 What: Tests the happy path of toggling a task's completion status.
     // 🎯 Why: Toggling is a core feature. If the backend update succeeds but local state

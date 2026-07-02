@@ -57,3 +57,7 @@
 ## 2026-05-28 - Missing Keyboard Accessibility Coverage in Form Fields
 **Learning:** The `DesktopTaskInput` provided a visual 'clear' button, but the equivalent keyboard shortcut (`Escape`) was untested. When keyboard shortcuts map directly to UI actions, testing the programmatic dispatch of that key event is critical to ensure feature parity for users relying on keyboard navigation.
 **Action:** When adding or verifying interactive components, explicitly write test cases for any custom `onKeyDown` listeners (like `Escape` to clear or `Enter` to submit) to guarantee accessible feature parity.
+
+## 2024-05-18 - Early Bailouts in Optimistic Updates
+**Learning:** Optimistic UI update functions (like `reorderTasks` arrays operations) often rely on finding valid indices in local state before proceeding. If a task is missing from local state, early assertions fail and functions return. These bailout paths are often overlooked in testing but are crucial for ensuring the state doesn't get corrupted by `-1` slice/splice array operations or invalid API calls.
+**Action:** When testing optimistic updates that manipulate lists, always add a test for the "not found in local state" early return edge case to ensure the component bails cleanly without corrupting the state or triggering unnecessary side-effects.
