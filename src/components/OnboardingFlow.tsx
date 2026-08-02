@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Calendar, Bell, Repeat } from 'lucide-react';
 import { FilterTabs } from './FilterTabs';
 import { useNavigate } from 'react-router-dom';
