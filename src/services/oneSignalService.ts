@@ -272,10 +272,6 @@ export class OneSignalService {
       return null;
     }
   }
-
-  async getPushSubscriptionId(): Promise<string | null> {
-    return this.getUserId();
-  }
 }
 
 export const oneSignalService = OneSignalService.getInstance();
