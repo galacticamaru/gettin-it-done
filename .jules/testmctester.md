@@ -57,3 +57,7 @@
 ## 2026-05-28 - Missing Keyboard Accessibility Coverage in Form Fields
 **Learning:** The `DesktopTaskInput` provided a visual 'clear' button, but the equivalent keyboard shortcut (`Escape`) was untested. When keyboard shortcuts map directly to UI actions, testing the programmatic dispatch of that key event is critical to ensure feature parity for users relying on keyboard navigation.
 **Action:** When adding or verifying interactive components, explicitly write test cases for any custom `onKeyDown` listeners (like `Escape` to clear or `Enter` to submit) to guarantee accessible feature parity.
+
+## 2024-05-24 - Missing Early Return Test for UI Optimistic Updates
+**Learning:** Optimistic updates that manipulate list state (like array slicing/splicing in `reorderTasks`) can corrupt data or make invalid API calls if they don't properly handle the 'item not found' (index `-1`) early return edge case.
+**Action:** When testing optimistic UI updates on lists, always include a test case for the early return condition to verify the code bails out safely without mutating state.
