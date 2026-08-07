@@ -299,6 +299,33 @@ describe('useTasks', () => {
     ]);
   });
 
+  it('reorderTasks should return early without mutating state or calling API if task is not found', async () => {
+    // 💡 What: Tests the "not found in local state" early return condition.
+    // 🎯 Why: Reordering lists manipulates array slices. If an index is -1, it could corrupt state or make invalid API calls.
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const upsertMock = vi.fn().mockResolvedValue({ data: null, error: null });
+    const fromMock = vi.fn().mockReturnValue({ upsert: upsertMock });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from as any).mockImplementation(fromMock);
+
+    const { reorderTasks } = useTasks();
+
+    setTasksMock.mockClear();
+
+    // Attempt to reorder a non-existent task
+    await reorderTasks('non-existent-task', 'task-3');
+
+    // Verify error was logged
+    expect(consoleErrorSpy).toHaveBeenCalledWith('❌ Could not find task indices');
+
+    // Verify state and API were not mutated
+    expect(setTasksMock).not.toHaveBeenCalled();
+    expect(upsertMock).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it('reorderTasks should revert optimistic UI update by calling fetchTasks when upsert fails', async () => {
     // 💡 What: Tests that local UI changes are rolled back if the backend fails to save the new order.
     // 🎯 Why: Reordering is an optimistic update. If the database update fails silently without reverting,
