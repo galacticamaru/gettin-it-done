@@ -1,7 +1,7 @@
 import { expect, test, describe, beforeEach, afterEach, vi } from "vitest";
 import { useTaskStats } from "./useTaskStats";
 import { Task } from "./useTasks";
-import { startOfDay, subDays } from "date-fns";
+import { subDays } from "date-fns";
 
 vi.mock("react", () => ({
   useMemo: (cb: () => any) => cb(),
