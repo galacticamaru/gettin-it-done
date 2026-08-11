@@ -162,7 +162,7 @@ const Auth = () => {
                 minLength={6}
                 autoComplete={isSignUp ? 'new-password' : 'current-password'}
               />
-              <TooltipProvider>
+              <TooltipProvider delayDuration={500}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">

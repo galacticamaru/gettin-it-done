@@ -66,7 +66,7 @@ export const DesktopTaskInput = ({
             aria-label="New task description"
           />
           {newTask.trim() && (
-            <TooltipProvider>
+            <TooltipProvider delayDuration={500}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -87,7 +87,7 @@ export const DesktopTaskInput = ({
             </TooltipProvider>
           )}
         </div>
-        <TooltipProvider>
+        <TooltipProvider delayDuration={500}>
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="inline-block">
