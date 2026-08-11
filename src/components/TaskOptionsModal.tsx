@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { NotificationPermissionDialog } from './NotificationPermissionDialog';
 import { useNotifications } from '@/hooks/useNotifications';
 import { cn } from '@/lib/utils';
@@ -51,7 +51,6 @@ export const TaskOptionsModal = ({
   const isReminderDisabled = !hasNotificationCapability;
 
   return (
-    <TooltipProvider>
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 px-2">
         {/* Calendar Modal */}
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
@@ -213,6 +212,5 @@ export const TaskOptionsModal = ({
           {isReminderDisabled && reminder !== 'none' && ' (disabled)'}
         </span>
       </div>
-    </TooltipProvider>
   );
 };

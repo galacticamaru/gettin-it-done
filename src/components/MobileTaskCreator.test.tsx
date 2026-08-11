@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MobileTaskCreator } from './MobileTaskCreator';
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Mock matchMedia for Dialog to work
 Object.defineProperty(window, 'matchMedia', {
@@ -45,6 +46,7 @@ describe('MobileTaskCreator', () => {
     // 💡 What: Tests that the submit button remains disabled when input is missing.
     // 🎯 Why: Crucial empty state test to prevent submitting blank tasks to the backend on mobile.
     render(
+      <TooltipProvider>
       <MobileTaskCreator
         newTask="   "
         setNewTask={vi.fn()}
@@ -58,7 +60,8 @@ describe('MobileTaskCreator', () => {
         setSelectedEmoji={vi.fn()}
         onAddTask={vi.fn()}
       />
-    );
+      </TooltipProvider>
+  );
 
     // Open the mobile task creator dialog
     const createBtn = screen.getByRole('button', { name: /Create new task/i });
